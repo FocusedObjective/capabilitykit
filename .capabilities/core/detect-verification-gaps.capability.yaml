@@ -1,0 +1,32 @@
+id: core.detect-verification-gaps
+title: Detect verification gaps
+status: implemented
+area: core
+summary: Identify missing or weak verification information in capability specs.
+intent: Reduce the human bottleneck by making review needs explicit before maintainers inspect code manually.
+inputs:
+  - parsed capability objects
+outputs:
+  - verification gap list
+depends_on:
+  - core.define-capability
+acceptance:
+  - Reports capabilities with no automated checks.
+  - Reports capabilities with no manual review guidance.
+  - Reports implemented or verified capabilities without implementation references.
+  - Reports declared verification gaps from capability files.
+verification:
+  automated:
+    - id: verification-gap-tests
+      description: Unit tests cover deterministic verification gap detection.
+      command: npm test
+  manual:
+    - Review validation output and confirm gaps explain what a human still needs to check.
+implementation:
+  references:
+    - packages/core/src/validateCapabilities.ts
+agent_guidance:
+  build_notes:
+    - Prefer specific gap messages tied to capability IDs.
+  avoid:
+    - Do not use AI inference for MVP verification gap detection.

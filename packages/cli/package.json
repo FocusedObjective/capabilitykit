@@ -1,0 +1,19 @@
+{
+  "name": "@capabilitykit/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "capabilitykit": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@capabilitykit/core": "file:../core",
+    "commander": "^13.1.0",
+    "yaml": "^2.7.1"
+  }
+}

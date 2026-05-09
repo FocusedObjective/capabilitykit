@@ -1,0 +1,19 @@
+schema_version: 0.1
+project:
+  name: capabilitykit
+  description: Capabilities as code for AI-native software teams.
+  repository: https://github.com/FocusedObjective/capabilitykit
+source:
+  include:
+    - "**/*.capability.yaml"
+  exclude:
+    - "dist/**"
+validation:
+  require_acceptance: true
+  require_verification: true
+  allow_verification_gaps: true
+  require_implementation_references_for_status:
+    - implemented
+    - verified
+output:
+  path: .capabilities/dist/capabilities.json

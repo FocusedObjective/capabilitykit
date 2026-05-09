@@ -1,0 +1,30 @@
+id: account.profile
+title: User profile
+status: planned
+area: account
+summary: Let users view and update basic profile information.
+intent: Keep account data visible and editable after login.
+inputs:
+  - authenticated session
+outputs:
+  - updated profile
+depends_on:
+  - account.login
+acceptance:
+  - Signed-in users can view profile details.
+  - Signed-in users can update display name.
+  - Anonymous users cannot access profile details.
+verification:
+  automated:
+    - id: profile-tests
+      description: Profile tests cover access control and updates.
+      command: npm test
+  manual:
+    - Review profile update behavior in the example app.
+implementation:
+  references: []
+agent_guidance:
+  build_notes:
+    - Treat account.login as a dependency for profile access.
+  avoid:
+    - Do not expose profile data to anonymous users.

@@ -1,0 +1,37 @@
+id: core.compile-capabilities
+title: Compile capabilities
+status: implemented
+area: core
+summary: Compile capability YAML files into normalized JSON with validation and verification summary data.
+intent: Provide a machine-readable capability map that tools and agents can consume consistently.
+inputs:
+  - .capabilities/**/*.capability.yaml
+outputs:
+  - .capabilities/dist/capabilities.json
+depends_on:
+  - core.define-capability
+  - core.validate-capabilities
+acceptance:
+  - Writes normalized JSON to the configured output path.
+  - Includes project metadata and all parsed capabilities.
+  - Includes dependency graph information.
+  - Includes validation results and verification summary.
+verification:
+  automated:
+    - id: compile-tests
+      description: Unit tests verify compiled output shape.
+      command: npm test
+    - id: dogfood-compile
+      description: The CLI compiles CapabilityKit's own capability map.
+      command: npm run capabilitykit -- compile
+  manual:
+    - Inspect .capabilities/dist/capabilities.json after compile and confirm the graph is readable.
+implementation:
+  references:
+    - packages/core/src/compileCapabilities.ts
+    - packages/cli/src/index.ts
+agent_guidance:
+  build_notes:
+    - Include validation output in the compiled artifact so downstream tools can detect risk.
+  avoid:
+    - Do not emit partial JSON without surfacing validation failures.

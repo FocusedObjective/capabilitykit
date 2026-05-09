@@ -1,0 +1,32 @@
+id: developer-experience.example-project
+title: Example project
+status: implemented
+area: developer-experience
+summary: Provide a small example app capability map for users to inspect.
+intent: Show how product capabilities can be grouped by area and connected with dependencies.
+inputs:
+  - examples/basic-app/.capabilities
+outputs:
+  - example capability files
+depends_on:
+  - core.define-capability
+acceptance:
+  - Includes account and checkout capability areas.
+  - Example files include verification sections.
+  - Example files are valid against the MVP schema.
+verification:
+  automated:
+    - id: parser-tests
+      description: Unit tests load example capability shapes.
+      command: npm test
+  manual:
+    - Read the example files and confirm they are understandable without extra docs.
+implementation:
+  references:
+    - examples/basic-app/.capabilities/capabilitykit.yaml
+    - examples/basic-app/.capabilities/account/login.capability.yaml
+agent_guidance:
+  build_notes:
+    - Keep examples realistic but compact.
+  avoid:
+    - Do not add app code that distracts from capability files.

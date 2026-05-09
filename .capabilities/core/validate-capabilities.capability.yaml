@@ -1,0 +1,39 @@
+id: core.validate-capabilities
+title: Validate capability files
+status: implemented
+area: core
+summary: Validate schema correctness, duplicate IDs, broken dependencies, and verification gaps.
+intent: Make changes safer by giving humans and agents a repeatable check before review.
+inputs:
+  - .capabilities/**/*.capability.yaml
+outputs:
+  - validation report
+  - verification gap list
+depends_on:
+  - core.define-capability
+acceptance:
+  - Reports YAML and schema errors with file paths.
+  - Detects duplicate capability IDs.
+  - Detects broken depends_on references.
+  - Reports missing automated checks, missing manual review guidance, and missing implementation references.
+verification:
+  automated:
+    - id: validation-tests
+      description: Unit tests cover duplicate IDs, broken dependencies, and verification gaps.
+      command: npm test
+    - id: dogfood-validate
+      description: The CLI validates CapabilityKit's own capability map.
+      command: npm run capabilitykit -- validate
+  manual:
+    - Confirm validation output is actionable enough to reduce manual review guesswork.
+implementation:
+  references:
+    - packages/core/src/validateCapabilities.ts
+    - packages/core/src/loadCapabilities.ts
+    - packages/cli/src/index.ts
+agent_guidance:
+  build_notes:
+    - Treat verification gaps as warnings by default.
+    - Keep validation deterministic in the MVP.
+  avoid:
+    - Do not silently ignore malformed capability files.

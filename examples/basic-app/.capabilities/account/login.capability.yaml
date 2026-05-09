@@ -1,0 +1,30 @@
+id: account.login
+title: User login
+status: planned
+area: account
+summary: Allow users to sign in to an account.
+intent: Give returning users secure access to saved profile and checkout data.
+inputs:
+  - email
+  - password
+outputs:
+  - authenticated session
+depends_on: []
+acceptance:
+  - Valid users can sign in.
+  - Invalid credentials are rejected.
+  - Failed login attempts produce a clear error.
+verification:
+  automated:
+    - id: login-tests
+      description: Authentication tests cover valid and invalid credentials.
+      command: npm test
+  manual:
+    - Try a successful and failed login in the example app.
+implementation:
+  references: []
+agent_guidance:
+  build_notes:
+    - Keep authentication behavior explicit in acceptance criteria.
+  avoid:
+    - Do not store plaintext passwords.

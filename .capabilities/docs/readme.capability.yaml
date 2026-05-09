@@ -1,0 +1,33 @@
+id: docs.readme
+title: README
+status: implemented
+area: docs
+summary: Explain CapabilityKit, quick start, CLI commands, verification gaps, and dogfooding.
+intent: Make the project understandable enough for a developer to try locally.
+inputs:
+  - README.md
+outputs:
+  - project overview
+  - quick start
+  - CLI command reference
+depends_on:
+  - docs.capability-format
+acceptance:
+  - README states the product thesis clearly.
+  - README includes install and quick start instructions.
+  - README explains how verification reduces manual review bottlenecks.
+verification:
+  automated:
+    - id: dogfood-validate
+      description: README capability is validated with the rest of the capability map.
+      command: npm run capabilitykit -- validate
+  manual:
+    - Read README and confirm it avoids heavyweight methodology language.
+implementation:
+  references:
+    - README.md
+agent_guidance:
+  build_notes:
+    - Keep the docs CLI-first and repo-native.
+  avoid:
+    - Do not position the MVP as a cloud product.

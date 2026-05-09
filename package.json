@@ -1,0 +1,22 @@
+{
+  "name": "capabilitykit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.4",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @capabilitykit/core && npm run build --workspace @capabilitykit/cli",
+    "test": "vitest run",
+    "capabilitykit": "node packages/cli/dist/index.js",
+    "verify": "npm run build && npm test && npm run capabilitykit -- validate && npm run capabilitykit -- compile"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  }
+}
