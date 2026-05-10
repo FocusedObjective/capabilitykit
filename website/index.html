@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CapabilityKit | Capabilities as Code</title>
+    <meta
+      name="description"
+      content="CapabilityKit helps developer and product teams define, validate, and verify product capabilities directly in their codebase."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <div class="brand">capabilitykit<span>.com</span></div>
+        <a class="nav-link" href="#contact">Get Started</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <p class="eyebrow">Capabilities as code</p>
+            <h1>
+              Align product intent and implementation in one source of truth.
+            </h1>
+            <p class="lead">
+              CapabilityKit gives developers and product managers a simple way to
+              define what the system should do, how success is verified, and what
+              still needs confidence.
+            </p>
+            <div class="cta-row">
+              <a class="btn btn-primary" href="#goals">Explore Goals</a>
+              <a class="btn btn-secondary" href="#benefits">See Benefits</a>
+            </div>
+          </div>
+          <aside class="hero-card" aria-label="Capability snippet">
+            <p class="card-label">Example capability</p>
+            <pre><code>id: account.user-login
+title: User login
+status: implemented
+acceptance:
+  - Users can sign in with email.
+verification:
+  automated:
+    - npm test</code></pre>
+          </aside>
+        </div>
+      </section>
+
+      <section id="goals" class="section">
+        <div class="container">
+          <h2>Goals</h2>
+          <div class="cards">
+            <article class="card">
+              <h3>Make intent explicit</h3>
+              <p>
+                Document product capabilities alongside code so everyone can see
+                the target behavior before implementation changes begin.
+              </p>
+            </article>
+            <article class="card">
+              <h3>Improve AI-assisted delivery</h3>
+              <p>
+                Give AI agents and engineers clear definitions, dependencies, and
+                verification checks that reduce ambiguity and rework.
+              </p>
+            </article>
+            <article class="card">
+              <h3>Reduce review bottlenecks</h3>
+              <p>
+                Shift review from rediscovering context to validating outcomes by
+                making acceptance criteria and test commands visible up front.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="benefits" class="section section-alt">
+        <div class="container">
+          <h2>Benefits</h2>
+          <ul class="benefits">
+            <li><strong>Developers:</strong> faster onboarding and safer refactors with explicit capability contracts.</li>
+            <li><strong>Product managers:</strong> clear traceability from requirements to shipped behavior.</li>
+            <li><strong>Teams:</strong> fewer regressions through repeatable verification and visible confidence gaps.</li>
+            <li><strong>Organizations:</strong> scalable standards for AI-native software delivery.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container split">
+          <div>
+            <h2>What we are trying to solve</h2>
+            <p>
+              Traditional specs and tickets drift away from code, especially in
+              high-velocity AI workflows. CapabilityKit closes that gap by
+              treating capability definitions as versioned, testable artifacts.
+            </p>
+          </div>
+          <div>
+            <h3>The core problem</h3>
+            <p>
+              Teams move quickly with AI coding tools, but confidence often lags.
+              Critical behavior, dependencies, and verification steps become
+              implicit knowledge and are hard to audit.
+            </p>
+            <h3>The CapabilityKit approach</h3>
+            <p>
+              Keep capability definitions in the repository, validate them in CI,
+              and compile them into a consistent map the whole team can trust.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="section section-cta">
+        <div class="container cta-block">
+          <h2>Ready to standardize capability-driven delivery?</h2>
+          <p>Run CapabilityKit locally, then deploy this static site directly to Amazon S3.</p>
+          <code>npm install && npm run build</code>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
