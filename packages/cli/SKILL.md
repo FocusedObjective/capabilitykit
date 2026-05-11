@@ -1,11 +1,11 @@
 ---
 name: capabilitykit
-description: Work with CapabilityKit capabilities as code. Use when creating, editing, validating, compiling, reviewing, or comparing .capability.yaml files against implementation references.
+description: Work with CapabilityKit capabilities as code. Use when creating, editing, validating, compiling, reviewing, or comparing .capability.yaml files against agent.implementation.references.
 ---
 
 # CapabilityKit
 
-Use CapabilityKit to keep product intent, acceptance criteria, implementation references, and verification checks close to the code.
+Use CapabilityKit to keep product intent, acceptance criteria, agent-maintained implementation references, and verification checks close to the code.
 
 ## Workflow
 
@@ -20,7 +20,7 @@ Use CapabilityKit to keep product intent, acceptance criteria, implementation re
 When asked whether a capability matches implementation behavior:
 
 1. Treat the capability file as the source of truth.
-2. Inspect every path in `implementation.references`.
+2. Inspect every path in `agent.implementation.references`.
 3. Compare each acceptance criterion with concrete code, test, or documentation evidence.
 4. Report each criterion as `covered`, `partially covered`, `not covered`, or `uncertain`.
 5. Do not infer coverage from filenames alone.
@@ -31,7 +31,7 @@ When asked whether a capability matches implementation behavior:
 ```bash
 capabilitykit create "User login" --area account
 capabilitykit validate
-capabilitykit inspect account.login
+capabilitykit inspect account/user-login
 capabilitykit compile
-capabilitykit install-agent-guidance
+capabilitykit skill
 ```

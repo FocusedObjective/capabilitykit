@@ -27,9 +27,11 @@ function parsed(id: string, overrides: Partial<ParsedCapability["capability"]> =
       summary: "Summary",
       intent: "Intent",
       acceptance: ["Acceptance"],
-      verification: {
-        automated: [{ id: "test", description: "Runs tests", command: "npm test" }],
-        manual: ["Review output"]
+      agent: {
+        verification: {
+          automated: [{ id: "test", description: "Runs tests", command: "npm test" }],
+          manual: ["Review output"]
+        }
       },
       ...overrides
     }
@@ -48,13 +50,13 @@ function loaded(capabilities: ParsedCapability[]): LoadCapabilitiesResult {
 
 describe("validateLoadedCapabilities", () => {
   it("detects duplicate IDs", () => {
-    const result = validateLoadedCapabilities(loaded([parsed("core.same"), parsed("core.same")]));
+    const result = validateLoadedCapabilities(loaded([parsed("core/same"), parsed("core/same")]));
     expect(result.valid).toBe(false);
     expect(result.errors.some((error) => error.code === "duplicate-id")).toBe(true);
   });
 
   it("detects broken dependencies", () => {
-    const result = validateLoadedCapabilities(loaded([parsed("core.child", { depends_on: ["core.missing"] })]));
+    const result = validateLoadedCapabilities(loaded([parsed("core/child", { agent: { depends_on: ["core/missing"] } })]));
     expect(result.valid).toBe(false);
     expect(result.errors.some((error) => error.code === "broken-dependency")).toBe(true);
   });
@@ -62,8 +64,8 @@ describe("validateLoadedCapabilities", () => {
   it("reports verification gaps without making the result invalid", () => {
     const result = validateLoadedCapabilities(
       loaded([
-        parsed("core.gap", {
-          verification: { automated: [], manual: [], gaps: ["Needs a real check."] }
+        parsed("core/gap", {
+          agent: { verification: { automated: [], manual: [], gaps: ["Needs a real check."] } }
         })
       ])
     );
@@ -75,7 +77,7 @@ describe("validateLoadedCapabilities", () => {
   });
 
   it("requires implementation references for implemented capabilities", () => {
-    const result = validateLoadedCapabilities(loaded([parsed("core.done", { status: "implemented" })]));
+    const result = validateLoadedCapabilities(loaded([parsed("core/done", { status: "implemented" })]));
     expect(result.valid).toBe(true);
     expect(result.verificationGaps.some((gap) => gap.code === "missing-implementation-references")).toBe(true);
   });
@@ -83,10 +85,16 @@ describe("validateLoadedCapabilities", () => {
   it("reports implementation references that do not resolve to files", () => {
     const result = validateLoadedCapabilities(
       loaded([
-        parsed("core.done", {
+        parsed("core/done", {
           status: "implemented",
-          implementation: {
-            references: ["packages/core/src/validateCapabilities.ts", "packages/core/src/missing.ts"]
+          agent: {
+            verification: {
+              automated: [{ id: "test", description: "Runs tests", command: "npm test" }],
+              manual: ["Review output"]
+            },
+            implementation: {
+              references: ["packages/core/src/validateCapabilities.ts", "packages/core/src/missing.ts"]
+            }
           }
         })
       ])
@@ -96,13 +104,13 @@ describe("validateLoadedCapabilities", () => {
     expect(result.verificationGaps).toContainEqual(
       expect.objectContaining({
         code: "missing-implementation-reference-target",
-        capabilityId: "core.done",
-        message: 'core.done references missing implementation path "packages/core/src/missing.ts"'
+        capabilityId: "core/done",
+        message: 'core/done references missing implementation path "packages/core/src/missing.ts"'
       })
     );
     expect(result.verificationGaps).not.toContainEqual(
       expect.objectContaining({
-        message: 'core.done references missing implementation path "packages/core/src/validateCapabilities.ts"'
+        message: 'core/done references missing implementation path "packages/core/src/validateCapabilities.ts"'
       })
     );
   });

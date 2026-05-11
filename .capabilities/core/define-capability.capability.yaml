@@ -1,34 +1,35 @@
-id: core.define-capability
+id: core/define-capability-format
 title: Define capability format
 status: implemented
 area: core
 summary: Define the YAML schema and TypeScript types for repo-native capability specs.
-intent: Give humans and AI coding agents a shared source of intent, scope, acceptance criteria, and verification expectations.
-inputs:
-  - .capabilities/**/*.capability.yaml
-outputs:
-  - TypeScript schema
-  - parsed capability objects
-depends_on: []
+intent: Give humans and AI coding agents a shared source of intent, scope,
+  acceptance criteria, and verification expectations.
 acceptance:
-  - Capability files require id, title, status, area, summary, intent, and acceptance criteria.
-  - Verification checks can include automated commands, manual review guidance, and known gaps.
-  - Implementation references can point from capability specs to source files.
-verification:
-  automated:
-    - id: parser-tests
-      description: Unit tests cover valid and invalid capability parsing.
-      command: npm test
-  manual:
-    - Review the example capability file in the README for clarity.
-implementation:
-  references:
-    - packages/core/src/schema.ts
-    - packages/core/src/types.ts
-    - packages/core/src/parseCapability.ts
-agent_guidance:
-  build_notes:
-    - Keep the MVP format small and deterministic.
-    - Update this spec whenever the schema changes.
-  avoid:
-    - Do not make cloud services required for schema validation.
+  - Capability files require title, status, area, summary, intent, and
+    acceptance criteria.
+  - Capability IDs can be omitted and derived from area and title.
+  - Agent-maintained fields capture inputs, outputs, dependencies,
+    implementation references, verification, and review evidence.
+guidance:
+  - Keep the MVP format small and deterministic.
+  - Update this spec whenever the schema changes.
+  - Do not make cloud services required for schema validation.
+agent:
+  inputs:
+    - .capabilities/**/*.capability.yaml
+  outputs:
+    - TypeScript schema
+    - parsed capability objects
+  implementation:
+    references:
+      - packages/core/src/schema.ts
+      - packages/core/src/types.ts
+      - packages/core/src/parseCapability.ts
+  verification:
+    automated:
+      - id: parser-tests
+        description: Unit tests cover valid and invalid capability parsing.
+        command: npm test
+    manual:
+      - Review the example capability file in the README for clarity.

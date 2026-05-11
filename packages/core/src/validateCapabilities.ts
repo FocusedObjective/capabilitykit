@@ -13,13 +13,13 @@ const placeholderPattern = /\b(TODO|TBD|FIXME|placeholder)\b/i;
 
 function hasVerification(capability: Capability): boolean {
   return Boolean(
-    (capability.verification?.automated?.length ?? 0) > 0 ||
-      (capability.verification?.manual?.length ?? 0) > 0
+    (capability.agent?.verification?.automated?.length ?? 0) > 0 ||
+      (capability.agent?.verification?.manual?.length ?? 0) > 0
   );
 }
 
 function hasImplementationReferences(capability: Capability): boolean {
-  return (capability.implementation?.references?.length ?? 0) > 0;
+  return (capability.agent?.implementation?.references?.length ?? 0) > 0;
 }
 
 function implementationReferenceExists(rootDir: string, reference: string): boolean {
@@ -75,7 +75,7 @@ export function validateLoadedCapabilities(loaded: LoadCapabilitiesResult): Vali
   for (const parsed of loaded.capabilities) {
     const capability = parsed.capability;
 
-    for (const dependency of capability.depends_on ?? []) {
+    for (const dependency of capability.agent?.depends_on ?? []) {
       if (!ids.has(dependency)) {
         errors.push({
           code: "broken-dependency",
@@ -95,15 +95,15 @@ export function validateLoadedCapabilities(loaded: LoadCapabilitiesResult): Vali
       );
     }
 
-    if ((capability.verification?.automated?.length ?? 0) === 0) {
+    if ((capability.agent?.verification?.automated?.length ?? 0) === 0) {
       addGap(verificationGaps, parsed, "missing-automated-checks", `${capability.id} has no automated checks`);
     }
 
-    if ((capability.verification?.manual?.length ?? 0) === 0) {
+    if ((capability.agent?.verification?.manual?.length ?? 0) === 0) {
       addGap(verificationGaps, parsed, "missing-manual-review", `${capability.id} has no manual review guidance`);
     }
 
-    for (const declaredGap of capability.verification?.gaps ?? []) {
+    for (const declaredGap of capability.agent?.verification?.gaps ?? []) {
       addGap(verificationGaps, parsed, "declared-gap", `${capability.id}: ${declaredGap}`);
     }
 
@@ -120,7 +120,7 @@ export function validateLoadedCapabilities(loaded: LoadCapabilitiesResult): Vali
     }
 
     if (requiresImplementation) {
-      for (const reference of capability.implementation?.references ?? []) {
+      for (const reference of capability.agent?.implementation?.references ?? []) {
         if (!implementationReferenceExists(loaded.rootDir, reference)) {
           addGap(
             verificationGaps,

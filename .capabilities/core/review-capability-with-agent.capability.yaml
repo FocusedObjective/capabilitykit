@@ -1,0 +1,44 @@
+id: core/review-capability-with-agent
+title: Review capability with agent
+status: planned
+area: core
+summary: Ask an external agent to compare a capability's declared intent and
+  acceptance criteria against implementation evidence.
+intent: Help maintainers decide whether implementation is done by producing
+  structured evidence for each acceptance criterion without blindly trusting an
+  AI judgment.
+acceptance:
+  - Generates a review-mode task bundle for one capability.
+  - Asks the agent to summarize intent in its own words before judging coverage.
+  - Asks the agent to mark each acceptance criterion covered, partial,
+    uncovered, or uncertain.
+  - Requires file-path evidence for covered or partially covered criteria.
+  - Keeps status changes policy-controlled and does not automatically mark a
+    capability verified solely from agent prose.
+guidance:
+  - Treat agent review as evidence for human or policy-controlled acceptance.
+  - Prefer structured JSON output for criterion status and evidence.
+  - Reuse the deterministic implementation coverage report when available.
+agent:
+  inputs:
+    - capability summary and intent
+    - acceptance criteria
+    - implementation reference files
+    - verification checks
+  outputs:
+    - structured acceptance coverage review
+    - unresolved gaps or uncertain criteria
+  depends_on:
+    - core/prepare-agent-task-bundle
+    - core/assess-implementation-coverage
+  verification:
+    automated:
+      - id: agent-review-prompt-tests
+        description: Unit tests confirm review bundles request structured criterion-level evidence.
+        command: npm test
+    manual:
+      - Run a review bundle through Codex or Claude Code and confirm the output
+        is usable as acceptance evidence.
+    gaps:
+      - Capability status updates from review output need an explicit project
+        policy before automation.

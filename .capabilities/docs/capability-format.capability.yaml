@@ -1,32 +1,33 @@
-id: docs.capability-format
+id: docs/capability-format-documentation
 title: Capability format documentation
 status: implemented
 area: docs
 summary: Document the capability YAML fields and verification gap model.
-intent: Help developers write useful specs without treating CapabilityKit as heavyweight process.
-inputs:
-  - README.md
-  - .capabilities/**/*.capability.yaml
-outputs:
-  - documented capability format
-depends_on:
-  - core.define-capability
+intent: Help developers write useful specs without treating CapabilityKit as
+  heavyweight process.
 acceptance:
   - README explains what a capability is.
   - README includes an example capability file.
   - README explains verification gaps.
-verification:
-  automated:
-    - id: dogfood-validate
-      description: The docs capability is validated as part of the project capability map.
-      command: npm run capabilitykit -- validate
-  manual:
-    - Read README from a new user's perspective and confirm the format is clear.
-implementation:
-  references:
+guidance:
+  - Use practical developer language.
+  - Avoid UML, enterprise architecture, and governance-heavy framing.
+agent:
+  inputs:
     - README.md
-agent_guidance:
-  build_notes:
-    - Use practical developer language.
-  avoid:
-    - Avoid UML, enterprise architecture, and governance-heavy framing.
+    - .capabilities/**/*.capability.yaml
+  outputs:
+    - documented capability format
+  depends_on:
+    - core/define-capability-format
+  implementation:
+    references:
+      - README.md
+  verification:
+    automated:
+      - id: dogfood-validate
+        description: The docs capability is validated as part of the project capability map.
+        command: npm run capabilitykit -- validate
+    manual:
+      - Read README from a new user's perspective and confirm the format is
+        clear.

@@ -1,29 +1,29 @@
-id: developer-experience.vscode-extension
+id: developer-experience/vs-code-extension-readiness
 title: VS Code extension readiness
 status: planned
 area: developer-experience
-summary: Keep the package structure ready for a future VS Code extension without implementing it in the MVP.
-intent: Preserve a path toward editor diagnostics, navigation, and capability tree views.
-inputs:
-  - compiled capabilities JSON
-outputs:
-  - future editor integration points
-depends_on:
-  - core.compile-capabilities
+summary: Keep the package structure ready for a future VS Code extension without
+  implementing it in the MVP.
+intent: Preserve a path toward editor diagnostics, navigation, and capability
+  tree views.
 acceptance:
   - MVP does not include VS Code extension code.
   - Compiled JSON contains enough path and graph data for a future extension.
-verification:
-  automated:
-    - id: compile-tests
-      description: Compile tests cover path and graph data needed by future tools.
-      command: npm test
-  manual:
-    - Review compiled JSON and confirm it contains capability paths and dependencies.
-implementation:
-  references: []
-agent_guidance:
-  build_notes:
-    - Design output data to be editor-friendly.
-  avoid:
-    - Do not implement extension UI during the MVP.
+guidance:
+  - Design output data to be editor-friendly.
+  - Do not implement extension UI during the MVP.
+agent:
+  inputs:
+    - compiled capabilities JSON
+  outputs:
+    - future editor integration points
+  depends_on:
+    - core/compile-capabilities
+  verification:
+    automated:
+      - id: compile-tests
+        description: Compile tests cover path and graph data needed by future tools.
+        command: npm test
+    manual:
+      - Review compiled JSON and confirm it contains capability paths and
+        dependencies.

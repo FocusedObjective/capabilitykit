@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { buildAgentGuidanceFiles, mergeManagedBlock } from "../src/agentGuidance.js";
+import { buildCapabilityKitSkillFiles, mergeManagedBlock } from "../src/skillInstall.js";
 
-describe("agent guidance installation", () => {
+describe("CapabilityKit skill installation", () => {
   it("creates a managed block for empty agent files", () => {
     const result = mergeManagedBlock(undefined, "<!-- capabilitykit:start -->\nbody\n<!-- capabilitykit:end -->");
     expect(result).toBe("<!-- capabilitykit:start -->\nbody\n<!-- capabilitykit:end -->\n");
@@ -39,7 +39,7 @@ describe("agent guidance installation", () => {
   });
 
   it("builds Codex and Claude entrypoints that reference the package skill", () => {
-    const files = buildAgentGuidanceFiles();
+    const files = buildCapabilityKitSkillFiles();
     expect(files.map((file) => file.path)).toEqual([
       "AGENTS.md",
       "CLAUDE.md",

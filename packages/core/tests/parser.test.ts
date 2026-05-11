@@ -5,7 +5,6 @@ describe("parseCapability", () => {
   it("parses a valid capability", () => {
     const result = parseCapability(
       `
-id: core.example
 title: Example
 status: planned
 area: core
@@ -13,23 +12,59 @@ summary: Example summary.
 intent: Example intent.
 acceptance:
   - It works.
-verification:
-  manual:
-    - Review it.
+agent:
+  verification:
+    manual:
+      - Review it.
 `,
       "example.capability.yaml"
     );
 
     expect(result.errors).toEqual([]);
-    expect(result.capability?.id).toBe("core.example");
+    expect(result.capability?.id).toBe("core/example");
+  });
+
+  it("normalizes legacy implementation fields into the agent section", () => {
+    const result = parseCapability(
+      `
+id: core.legacy
+title: Legacy
+status: implemented
+area: core
+summary: Legacy summary.
+intent: Legacy intent.
+acceptance:
+  - It works.
+verification:
+  manual:
+    - Review it.
+implementation:
+  references:
+    - packages/core/src/parseCapability.ts
+agent_guidance:
+  build_notes:
+    - Keep behavior stable.
+  avoid:
+    - Do not guess.
+`,
+      "legacy.capability.yaml"
+    );
+
+    expect(result.errors).toEqual([]);
+    expect(result.capability?.agent?.implementation?.references).toEqual(["packages/core/src/parseCapability.ts"]);
+    expect(result.capability?.guidance).toEqual(["Keep behavior stable.", "Do not guess."]);
   });
 
   it("returns schema errors for invalid capability data", () => {
     const result = parseCapability(
       `
-id: core.invalid
 title: Invalid
 status: unknown
+area: core
+summary: Invalid summary.
+intent: Invalid intent.
+acceptance:
+  - It fails schema validation.
 `,
       "invalid.capability.yaml"
     );

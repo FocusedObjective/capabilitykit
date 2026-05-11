@@ -56,7 +56,7 @@ AI-native engineering needs a stronger source of truth than a backlog of stories
 
 Traditional backlogs describe tasks to do. CapabilityKit describes capabilities the system should have.
 
-A capability is more durable than a story. It can contain intent, scope, dependencies, acceptance criteria, verification checks, known gaps, implementation references, and AI-agent guidance.
+A capability is more durable than a story. It can contain intent, scope, dependencies, acceptance criteria, verification checks, known gaps, and an `agent` section for implementation references and review guidance.
 
 This allows teams to replace or augment story backlogs with a capability backlog:
 
@@ -243,7 +243,7 @@ It should report:
 - Duplicate IDs
 - Broken dependency references
 - Missing verification information
-- Missing implementation references where applicable
+- Missing `agent.implementation.references` where applicable
 - TODO markers or placeholder sections
 
 Important concept:
@@ -259,9 +259,9 @@ CapabilityKit validation
 ✓ 8 unique IDs
 
 Verification gaps:
-  - core.compile-capabilities has no automated checks
-  - core.validate-capabilities has no manual review guidance
-  - developer-experience.cli-workflow has no implementation references
+  - core/compile-capabilities has no automated checks
+  - core/validate-capability-files has no manual review guidance
+  - developer-experience/cli-workflow has no agent.implementation.references
 
 Result: valid with 3 verification gaps
 ```
@@ -292,7 +292,7 @@ Prints one capability and its relationships.
 Example:
 
 ```bash
-capabilitykit inspect core.validate-capabilities
+capabilitykit inspect core/validate-capability-files
 ```
 
 Output should include:
@@ -302,7 +302,7 @@ Output should include:
 - Status
 - Dependencies
 - Verification checks
-- Implementation references
+- Agent implementation references
 - Open verification gaps
 
 ## Capability format MVP
@@ -312,23 +312,13 @@ Use YAML for the first version.
 Example:
 
 ```yaml
-id: core.validate-capabilities
+id: core/validate-capability-files
 title: Validate capability files
 status: planned
 area: core
 summary: Validate all capability files for schema correctness, consistency, references, and verification gaps.
 intent: >
   Help developers trust that their capability map is complete enough to guide human and AI implementation work.
-
-inputs:
-  - .capabilities/**/*.capability.yaml
-
-outputs:
-  - validation report
-  - verification gap list
-
-depends_on:
-  - core.define-capability
 
 acceptance:
   - Parses every capability YAML file in the repository.
@@ -337,28 +327,33 @@ acceptance:
   - Detects broken depends_on references.
   - Detects missing or weak verification sections.
 
-verification:
-  automated:
-    - id: schema-validation-tests
-      description: Unit tests cover valid and invalid capability YAML files.
-      command: pnpm test
-  manual:
-    - Review validation output for a sample project and confirm it is understandable.
-  gaps:
-    - Line-aware YAML error reporting may be approximate in the MVP.
+guidance:
+  - Keep validation rules deterministic before adding AI-assisted suggestions.
+  - Prefer actionable validation messages over abstract warnings.
+  - Do not silently ignore malformed capability files.
+  - Do not require a cloud service.
 
-implementation:
-  references:
-    - packages/core/src/validateCapabilities.ts
-    - packages/cli/src/commands/validate.ts
-
-agent_guidance:
-  build_notes:
-    - Keep validation rules deterministic before adding AI-assisted suggestions.
-    - Prefer actionable validation messages over abstract warnings.
-  avoid:
-    - Do not silently ignore malformed capability files.
-    - Do not require a cloud service.
+agent:
+  inputs:
+    - .capabilities/**/*.capability.yaml
+  outputs:
+    - validation report
+    - verification gap list
+  depends_on:
+    - core/define-capability-format
+  implementation:
+    references:
+      - packages/core/src/validateCapabilities.ts
+      - packages/cli/src/commands/validate.ts
+  verification:
+    automated:
+      - id: schema-validation-tests
+        description: Unit tests cover valid and invalid capability YAML files.
+        command: pnpm test
+    manual:
+      - Review validation output for a sample project and confirm it is understandable.
+    gaps:
+      - Line-aware YAML error reporting may be approximate in the MVP.
 ```
 
 ## Root config format MVP
@@ -410,9 +405,9 @@ deprecated
 
 Validation rules:
 
-- `planned` can omit implementation references.
-- `in-progress` should have either implementation references or verification gaps.
-- `implemented` should have implementation references.
+- `planned` can omit agent implementation references.
+- `in-progress` should have either agent implementation references or verification gaps.
+- `implemented` should have agent implementation references.
 - `verified` should have at least one automated or manual verification item.
 - `deprecated` should include replacement guidance if applicable.
 
@@ -427,7 +422,7 @@ Examples:
 - No automated tests
 - No manual review guidance
 - Ambiguous acceptance criteria
-- No implementation references
+- No agent implementation references
 - Broken dependency reference
 - Missing owner or status
 - Capability exists in code but not in `.capabilities/`
@@ -463,7 +458,7 @@ Capabilities as code for AI-native software teams.
 
 AI agents can write more code faster, but teams still need a reliable way to describe what the system is supposed to do and how to verify it.
 
-CapabilityKit adds a `.capabilities/` folder to your repo so product intent, implementation references, dependencies, and verification checks live beside the code.
+CapabilityKit adds a `.capabilities/` folder to your repo so product intent, acceptance criteria, agent-maintained implementation references, and verification checks live beside the code.
 
 ## Install
 
@@ -538,7 +533,7 @@ Future VS Code features:
 - Tree view of capabilities
 - Inline validation diagnostics
 - Create capability from command palette
-- Jump from capability to implementation references
+- Jump from capability to agent implementation references
 - Suggest missing verification checks
 - Show verification gaps as warnings
 
@@ -593,31 +588,31 @@ Verification is part of the implementation plan, not a separate cleanup phase. E
 
 Create these before implementing code:
 
-### `core.define-capability`
+### `core/define-capability-format`
 
 Purpose: define the YAML schema and TypeScript types for a capability.
 
-### `core.validate-capabilities`
+### `core/validate-capability-files`
 
 Purpose: validate schema correctness, references, and verification gaps.
 
-### `core.compile-capabilities`
+### `core/compile-capabilities`
 
 Purpose: compile capabilities into normalized JSON.
 
-### `core.detect-verification-gaps`
+### `core/detect-verification-gaps`
 
 Purpose: identify missing or weak verification information.
 
-### `developer-experience.cli-workflow`
+### `developer-experience/cli-workflow`
 
 Purpose: provide CLI commands for init, create, validate, compile, and inspect.
 
-### `docs.capability-format`
+### `docs/capability-format-documentation`
 
 Purpose: document the capability YAML format.
 
-### `docs.readme`
+### `docs/readme`
 
 Purpose: explain the project, quick start, and dogfooding model.
 

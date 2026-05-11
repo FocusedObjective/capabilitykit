@@ -1,36 +1,36 @@
-id: developer-experience.cli-workflow
+id: developer-experience/cli-workflow
 title: CLI workflow
 status: implemented
 area: developer-experience
 summary: Provide CLI commands for init, create, validate, compile, and inspect.
-intent: Make capability management fast enough to stay close to normal development workflows.
-inputs:
-  - terminal commands
-  - capability files
-outputs:
-  - created capability files
-  - validation reports
-  - compiled JSON
-depends_on:
-  - core.initialize-project
-  - core.validate-capabilities
-  - core.compile-capabilities
+intent: Make capability management fast enough to stay close to normal
+  development workflows.
 acceptance:
   - Supports init, create, validate, compile, and inspect commands.
   - Returns a non-zero exit code for validation failures.
   - Prints verification gaps in validation and inspect output.
-verification:
-  automated:
-    - id: cli-build
-      description: TypeScript build verifies CLI entrypoint imports.
-      command: npm run build
-  manual:
-    - Run each CLI command against the dogfooded capability map before release.
-implementation:
-  references:
-    - packages/cli/src/index.ts
-agent_guidance:
-  build_notes:
-    - Keep command output concise and script-friendly.
-  avoid:
-    - Do not hide verification gaps behind verbose flags.
+guidance:
+  - Keep command output concise and script-friendly.
+  - Do not hide verification gaps behind verbose flags.
+agent:
+  inputs:
+    - terminal commands
+    - capability files
+  outputs:
+    - created capability files
+    - validation reports
+    - compiled JSON
+  depends_on:
+    - core/initialize-capability-project
+    - core/validate-capability-files
+    - core/compile-capabilities
+  implementation:
+    references:
+      - packages/cli/src/index.ts
+  verification:
+    automated:
+      - id: cli-build
+        description: TypeScript build verifies CLI entrypoint imports.
+        command: npm run build
+    manual:
+      - Run each CLI command against the dogfooded capability map before release.

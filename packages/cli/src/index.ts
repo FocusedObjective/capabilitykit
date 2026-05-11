@@ -3,8 +3,13 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { Command } from "commander";
 import YAML from "yaml";
-import { loadCapabilities, validateLoadedCapabilities, writeCompiledCapabilities } from "@capabilitykit/core";
-import { installAgentGuidance } from "./agentGuidance.js";
+import {
+  buildAgentTaskBundle,
+  loadCapabilities,
+  validateLoadedCapabilities,
+  writeCompiledCapabilities
+} from "@capabilitykit/core";
+import { installCapabilityKitSkill } from "./skillInstall.js";
 
 const program = new Command();
 
@@ -34,30 +39,14 @@ async function writeNewFile(filePath: string, contents: string, force = false): 
 }
 
 function capabilityTemplate(name: string, area: string): string {
-  const id = `${slugify(area).replace(/-/g, ".")}.${slugify(name)}`;
   return YAML.stringify({
-    id,
     title: name,
     status: "planned",
     area,
     summary: `Describe the ${name} capability.`,
     intent: "Explain why this capability matters to users, maintainers, and AI coding agents.",
-    inputs: [],
-    outputs: [],
-    depends_on: [],
     acceptance: [`${name} has clear acceptance criteria.`],
-    verification: {
-      automated: [],
-      manual: [`Review ${name} behavior against the acceptance criteria.`],
-      gaps: ["Add automated tests before marking this capability implemented."]
-    },
-    implementation: {
-      references: []
-    },
-    agent_guidance: {
-      build_notes: ["Update this capability when implementation behavior changes."],
-      avoid: ["Do not mark this verified without automated or manual evidence."]
-    }
+    guidance: ["Keep implementation and tests aligned with this capability."]
   });
 }
 
@@ -89,6 +78,13 @@ function printValidationReport(result: ReturnType<typeof validateLoadedCapabilit
       result.verificationGaps.length > 0 ? ` with ${result.verificationGaps.length} verification gaps` : ""
     }`
   );
+}
+
+function parseAgentTaskMode(value: string): "implement" | "review" {
+  if (value === "implement" || value === "review") {
+    return value;
+  }
+  throw new Error(`Invalid agent task mode "${value}". Expected "implement" or "review".`);
 }
 
 program
@@ -152,23 +148,23 @@ program
   });
 
 program
-  .command("install-agent-guidance")
-  .description("Create or update Codex, Claude, and AGENTS guidance for CapabilityKit")
+  .command("skill")
+  .description("Create or update CapabilityKit skill files and agent entrypoints")
   .option(
     "--skill-path <path>",
     "path agents should read for the full CapabilityKit guide",
     "node_modules/@capabilitykit/cli/SKILL.md"
   )
   .action(async (options: { skillPath: string }) => {
-    const result = await installAgentGuidance(process.cwd(), { packageSkillPath: options.skillPath });
-    console.log("Installed CapabilityKit agent guidance:");
+    const result = await installCapabilityKitSkill(process.cwd(), { packageSkillPath: options.skillPath });
+    console.log("Installed CapabilityKit skill:");
     for (const filePath of result.written) {
       console.log(`  - ${filePath}`);
     }
     console.log("");
     console.log("Try:");
     console.log("  /capabilitykit review .capabilities/core/verify-implementation-references.capability.yaml");
-    console.log("  Ask Codex: review this capability against its implementation references");
+    console.log("  Ask Codex: review this capability against its agent.implementation.references");
   });
 
 program
@@ -206,7 +202,7 @@ program
 
     const result = validateLoadedCapabilities(loaded);
     const dependents = loaded.capabilities
-      .filter((item) => item.capability.depends_on?.includes(capabilityId))
+      .filter((item) => item.capability.agent?.depends_on?.includes(capabilityId))
       .map((item) => item.capability.id);
     const gaps = result.verificationGaps.filter((gap) => gap.capabilityId === capabilityId);
 
@@ -218,10 +214,10 @@ program
     console.log(match.capability.summary);
     console.log("");
     console.log("Dependencies:");
-    for (const dependency of match.capability.depends_on ?? []) {
+    for (const dependency of match.capability.agent?.depends_on ?? []) {
       console.log(`  - ${dependency}`);
     }
-    if ((match.capability.depends_on ?? []).length === 0) {
+    if ((match.capability.agent?.depends_on ?? []).length === 0) {
       console.log("  - none");
     }
     console.log("Dependents:");
@@ -239,6 +235,41 @@ program
       console.log("  - none");
     }
   });
+
+program
+  .command("agent-task")
+  .description("Generate a prompt bundle for an external coding agent")
+  .argument("<capability-id>", "capability id")
+  .option("--mode <mode>", "task mode: implement or review", "implement")
+  .option("--no-references", "omit implementation reference file contents")
+  .option("--output <path>", "write the prompt bundle to a file instead of stdout")
+  .action(
+    async (
+      capabilityId: string,
+      options: { mode: string; references: boolean; output?: string }
+    ) => {
+      const bundle = await buildAgentTaskBundle(process.cwd(), capabilityId, {
+        mode: parseAgentTaskMode(options.mode),
+        includeReferences: options.references
+      });
+
+      if (options.output) {
+        const outputPath = path.resolve(process.cwd(), options.output);
+        await fs.mkdir(path.dirname(outputPath), { recursive: true });
+        await fs.writeFile(outputPath, bundle.prompt);
+        console.log(`Wrote ${path.relative(process.cwd(), outputPath)}`);
+        if (bundle.missingReferences.length > 0) {
+          console.log(`Missing references: ${bundle.missingReferences.join(", ")}`);
+        }
+        return;
+      }
+
+      console.log(bundle.prompt);
+      if (bundle.missingReferences.length > 0) {
+        console.error(`Missing references: ${bundle.missingReferences.join(", ")}`);
+      }
+    }
+  );
 
 program.parseAsync().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));

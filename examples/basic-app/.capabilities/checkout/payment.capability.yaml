@@ -1,30 +1,27 @@
-id: checkout.payment
+id: checkout/payment
 title: Payment
 status: planned
 area: checkout
 summary: Allow users to pay for cart contents.
 intent: Complete checkout with a clear verification path for payment behavior.
-inputs:
-  - cart contents
-outputs:
-  - payment result
-depends_on:
-  - checkout.cart
 acceptance:
   - Users can submit payment for a non-empty cart.
   - Failed payments preserve the cart.
   - Successful payments produce a receipt.
-verification:
-  automated:
-    - id: payment-tests
-      description: Payment tests cover success and failure paths.
-      command: npm test
-  manual:
-    - Review checkout with a test payment method.
-implementation:
-  references: []
-agent_guidance:
-  build_notes:
-    - Keep external payment provider assumptions explicit.
-  avoid:
-    - Do not treat payment success as verified without tests or manual evidence.
+guidance:
+  - Keep external payment provider assumptions explicit.
+  - Do not treat payment success as verified without tests or manual evidence.
+agent:
+  inputs:
+    - cart contents
+  outputs:
+    - payment result
+  depends_on:
+    - checkout/shopping-cart
+  verification:
+    automated:
+      - id: payment-tests
+        description: Payment tests cover success and failure paths.
+        command: npm test
+    manual:
+      - Review checkout with a test payment method.

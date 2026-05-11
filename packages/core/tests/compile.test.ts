@@ -7,7 +7,7 @@ describe("compileCapabilities", () => {
 
     expect(compiled.project.name).toBe("capabilitykit");
     expect(compiled.capabilities.length).toBeGreaterThan(0);
-    expect(compiled.dependency_graph["core.validate-capabilities"]).toContain("core.define-capability");
+    expect(compiled.dependency_graph["core/validate-capability-files"]).toContain("core/define-capability-format");
     expect(compiled.verification_summary.automated_checks).toBeGreaterThan(0);
   });
 });

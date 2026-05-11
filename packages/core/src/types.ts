@@ -13,21 +13,26 @@ export interface Capability {
   area: string;
   summary: string;
   intent: string;
-  inputs?: string[];
-  outputs?: string[];
-  depends_on?: string[];
   acceptance: string[];
-  verification?: {
-    automated?: VerificationCheck[];
-    manual?: string[];
-    gaps?: string[];
-  };
-  implementation?: {
-    references?: string[];
-  };
-  agent_guidance?: {
-    build_notes?: string[];
-    avoid?: string[];
+  guidance?: string[];
+  agent?: {
+    inputs?: string[];
+    outputs?: string[];
+    depends_on?: string[];
+    implementation?: {
+      references?: string[];
+      inferred_from?: string[];
+    };
+    verification?: {
+      automated?: VerificationCheck[];
+      manual?: string[];
+      gaps?: string[];
+    };
+    review?: {
+      depth?: "none" | "referenced" | "partial" | "behavioral" | "tested" | "verified" | "unknown";
+      gaps?: string[];
+      evidence?: string[];
+    };
   };
   replacement?: string;
 }

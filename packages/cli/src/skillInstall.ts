@@ -4,17 +4,17 @@ import path from "node:path";
 const blockStart = "<!-- capabilitykit:start -->";
 const blockEnd = "<!-- capabilitykit:end -->";
 
-export interface AgentGuidanceFile {
+export interface SkillInstallFile {
   path: string;
   contents: string;
   block: string;
 }
 
-export interface InstallAgentGuidanceOptions {
+export interface InstallCapabilityKitSkillOptions {
   packageSkillPath?: string;
 }
 
-export interface InstallAgentGuidanceResult {
+export interface InstallCapabilityKitSkillResult {
   written: string[];
 }
 
@@ -31,7 +31,7 @@ ${blockEnd}`;
 function codexSkillContents(packageSkillPath: string): string {
   return `---
 name: capabilitykit
-description: Work with CapabilityKit capabilities as code. Use when creating, editing, validating, compiling, reviewing, or comparing .capability.yaml files against implementation references.
+description: Work with CapabilityKit capabilities as code. Use when creating, editing, validating, compiling, reviewing, or comparing .capability.yaml files against agent.implementation.references.
 ---
 
 # CapabilityKit
@@ -63,7 +63,7 @@ export function mergeManagedBlock(existing: string | undefined, block: string): 
   return `${existing.replace(/\s*$/, "")}\n\n${trimmedBlock}\n`;
 }
 
-export function buildAgentGuidanceFiles(options: InstallAgentGuidanceOptions = {}): AgentGuidanceFile[] {
+export function buildCapabilityKitSkillFiles(options: InstallCapabilityKitSkillOptions = {}): SkillInstallFile[] {
   const packageSkillPath = options.packageSkillPath ?? "node_modules/@capabilitykit/cli/SKILL.md";
   const block = managedBlock(packageSkillPath);
 
@@ -91,11 +91,11 @@ export function buildAgentGuidanceFiles(options: InstallAgentGuidanceOptions = {
   ];
 }
 
-export async function installAgentGuidance(
+export async function installCapabilityKitSkill(
   rootDir: string,
-  options: InstallAgentGuidanceOptions = {}
-): Promise<InstallAgentGuidanceResult> {
-  const files = buildAgentGuidanceFiles(options);
+  options: InstallCapabilityKitSkillOptions = {}
+): Promise<InstallCapabilityKitSkillResult> {
+  const files = buildCapabilityKitSkillFiles(options);
   const written: string[] = [];
 
   for (const file of files) {

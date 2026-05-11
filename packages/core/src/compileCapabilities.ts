@@ -18,10 +18,10 @@ export async function compileCapabilities(rootDir = process.cwd()): Promise<Comp
     project: loaded.config.project,
     generated_at: new Date().toISOString(),
     capabilities,
-    dependency_graph: Object.fromEntries(capabilities.map((capability) => [capability.id, capability.depends_on ?? []])),
+    dependency_graph: Object.fromEntries(capabilities.map((capability) => [capability.id, capability.agent?.depends_on ?? []])),
     verification_summary: {
-      automated_checks: capabilities.reduce((total, capability) => total + (capability.verification?.automated?.length ?? 0), 0),
-      manual_checks: capabilities.reduce((total, capability) => total + (capability.verification?.manual?.length ?? 0), 0),
+      automated_checks: capabilities.reduce((total, capability) => total + (capability.agent?.verification?.automated?.length ?? 0), 0),
+      manual_checks: capabilities.reduce((total, capability) => total + (capability.agent?.verification?.manual?.length ?? 0), 0),
       gaps: validation.verificationGaps.length
     },
     validation

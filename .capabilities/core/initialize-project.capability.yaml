@@ -1,33 +1,33 @@
-id: core.initialize-project
+id: core/initialize-capability-project
 title: Initialize capability project
 status: implemented
 area: core
 summary: Create a starter .capabilities folder with config and an example capability.
 intent: Help teams adopt capabilities as code with a small, understandable first step.
-inputs:
-  - current working directory
-outputs:
-  - .capabilities/capabilitykit.yaml
-  - .capabilities/example.capability.yaml
-depends_on:
-  - core.define-capability
 acceptance:
   - Creates the root capability config file.
   - Creates a starter capability file.
   - Refuses to overwrite existing files unless force is requested.
   - Prints practical next steps.
-verification:
-  automated:
-    - id: cli-build
-      description: The CLI builds successfully.
-      command: npm run build
-  manual:
-    - Run capabilitykit init in a temporary folder and confirm starter files are valid.
-implementation:
-  references:
-    - packages/cli/src/index.ts
-agent_guidance:
-  build_notes:
-    - Generated files should pass capabilitykit validate.
-  avoid:
-    - Do not overwrite user capability files by default.
+guidance:
+  - Generated files should pass capabilitykit validate.
+  - Do not overwrite user capability files by default.
+agent:
+  inputs:
+    - current working directory
+  outputs:
+    - .capabilities/capabilitykit.yaml
+    - .capabilities/example.capability.yaml
+  depends_on:
+    - core/define-capability-format
+  implementation:
+    references:
+      - packages/cli/src/index.ts
+  verification:
+    automated:
+      - id: cli-build
+        description: The CLI builds successfully.
+        command: npm run build
+    manual:
+      - Run capabilitykit init in a temporary folder and confirm starter files
+        are valid.

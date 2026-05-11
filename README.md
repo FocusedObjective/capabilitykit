@@ -6,7 +6,7 @@ Capabilities as code for AI-native software teams.
 
 AI agents can write more code faster, but teams still need a reliable way to describe what the system is supposed to do and how to verify it.
 
-CapabilityKit adds a `.capabilities/` folder to your repo so product intent, implementation references, dependencies, acceptance criteria, and verification checks live beside the code.
+CapabilityKit adds a `.capabilities/` folder to your repo so product intent, acceptance criteria, human guidance, implementation review notes, and verification checks live beside the code.
 
 The practical goal is to reduce the human bottleneck in review. Humans should not have to rediscover intent or manually invent every regression check after each AI-assisted change. Capability specs make the expected behavior and required verification visible before code changes start.
 
@@ -34,58 +34,57 @@ In another repository, the CLI will eventually be used as:
 ```bash
 npx @capabilitykit/cli init
 capabilitykit create "User login" --area account
+capabilitykit skill
 capabilitykit validate
 capabilitykit compile
 ```
 
 ## What Is A Capability?
 
-A capability is a repo-native description of something the system should do. It can include intent, scope, dependencies, acceptance criteria, implementation references, verification checks, and known gaps.
+A capability is a repo-native description of something the system should do. The default format keeps human-authored intent and guidance at the root of the file and puts implementation details, dependencies, and verification that agents can infer or maintain under `agent`.
+
+Humans do not need to invent capability IDs. If `id` is omitted, CapabilityKit derives it as `area/title-with-dashes`.
 
 ## Example Capability File
 
 ```yaml
-id: core.validate-capabilities
-title: Validate capability files
+title: User login
 status: implemented
-area: core
-summary: Validate capability files for schema correctness, references, and verification gaps.
-intent: Help developers and agents know whether the capability map is trustworthy.
-inputs:
-  - .capabilities/**/*.capability.yaml
-outputs:
-  - validation report
-depends_on:
-  - core.define-capability
+area: account
+summary: Let users sign in with valid account credentials.
+intent: Give returning users secure access to their account.
 acceptance:
-  - Reports schema errors.
-  - Detects duplicate capability IDs.
-  - Detects broken dependency references.
-  - Detects missing verification information.
-verification:
-  automated:
-    - id: validation-tests
-      description: Unit tests cover validation behavior.
-      command: npm test
-  manual:
-    - Run capabilitykit validate and confirm the report is understandable.
-implementation:
-  references:
-    - packages/core/src/validateCapabilities.ts
-    - packages/cli/src/index.ts
+  - Users can submit an email and password.
+  - Valid credentials create an authenticated session.
+  - Invalid credentials show a clear error without creating a session.
+guidance:
+  - Keep credential errors clear without exposing sensitive details.
+agent:
+  verification:
+    manual:
+      - Review login behavior against the acceptance criteria.
+  implementation:
+    references:
+      - src/auth/login.ts
+      - src/auth/session.ts
+  review:
+    depth: partial
+    gaps:
+      - Add automated tests for invalid credentials.
 ```
 
 ## CLI Commands
 
 - `capabilitykit init` creates a starter `.capabilities/` folder.
 - `capabilitykit create <name> --area <area>` creates a capability file.
+- `capabilitykit skill` creates or updates CapabilityKit skill files and agent entrypoints.
 - `capabilitykit validate` validates capability files and reports verification gaps.
 - `capabilitykit compile` writes normalized JSON to `.capabilities/dist/capabilities.json`.
 - `capabilitykit inspect <capability-id>` prints one capability and its relationships.
 
 ## Verification Gaps
 
-CapabilityKit treats missing confidence as a first-class signal. Missing automated checks, vague acceptance criteria, broken references, missing implementation references, and manual review gaps are reported as verification gaps.
+CapabilityKit treats missing confidence as a first-class signal. Missing automated checks, vague acceptance criteria, broken references, missing `agent.implementation.references`, and manual review gaps are reported as verification gaps.
 
 Gaps are warnings by default. They should be fixed or intentionally documented so humans and agents know what still needs review.
 

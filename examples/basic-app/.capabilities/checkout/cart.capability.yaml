@@ -1,29 +1,25 @@
-id: checkout.cart
+id: checkout/shopping-cart
 title: Shopping cart
 status: planned
 area: checkout
 summary: Let users add, remove, and update cart items.
 intent: Provide the state needed before payment.
-inputs:
-  - product selection
-outputs:
-  - cart contents
-depends_on: []
 acceptance:
   - Users can add items to the cart.
   - Users can remove items from the cart.
   - Users can update quantities.
-verification:
-  automated:
-    - id: cart-tests
-      description: Cart tests cover add, remove, and update behavior.
-      command: npm test
-  manual:
-    - Review cart behavior with more than one item.
-implementation:
-  references: []
-agent_guidance:
-  build_notes:
-    - Keep cart behavior independent from payment processing.
-  avoid:
-    - Do not mix payment authorization into cart state.
+guidance:
+  - Keep cart behavior independent from payment processing.
+  - Do not mix payment authorization into cart state.
+agent:
+  inputs:
+    - product selection
+  outputs:
+    - cart contents
+  verification:
+    automated:
+      - id: cart-tests
+        description: Cart tests cover add, remove, and update behavior.
+        command: npm test
+    manual:
+      - Review cart behavior with more than one item.

@@ -1,6 +1,6 @@
 ---
 name: capabilitykit
-description: Work with CapabilityKit capabilities as code. Use when creating, editing, validating, compiling, reviewing, or comparing .capability.yaml files against implementation references.
+description: Work with CapabilityKit capabilities as code. Use when creating, editing, validating, compiling, reviewing, or comparing .capability.yaml files against agent.implementation.references.
 ---
 
 # CapabilityKit

@@ -1,0 +1,44 @@
+id: core/run-external-agent-cli
+title: Run external agent CLI
+status: planned
+area: core
+summary: Invoke an installed external coding-agent CLI with a generated
+  CapabilityKit task bundle.
+intent: Let CapabilityKit orchestrate handoff to installed tools such as Codex
+  or Claude Code while keeping the implementation loop owned by those agents.
+acceptance:
+  - Detects whether the requested agent command is available.
+  - Lets users configure the executable and arguments instead of hard-coding a
+    VS Code integration.
+  - Passes the generated task bundle to the external agent through a documented
+    stdin, argument, or prompt-file strategy.
+  - Captures the external agent exit code and output path or transcript.
+  - Fails with an actionable message when the agent CLI is not installed.
+guidance:
+  - Do not require VS Code or any editor extension.
+  - Start with explicit user-provided command configuration before adding
+    provider-specific defaults.
+  - Keep process execution separate from bundle generation so CI and humans can
+    inspect prompts before running an agent.
+agent:
+  inputs:
+    - agent task prompt bundle
+    - requested agent provider or command
+    - process exit status and output
+  outputs:
+    - external agent run transcript
+    - actionable installation or configuration error
+  depends_on:
+    - core/prepare-agent-task-bundle
+  verification:
+    automated:
+      - id: external-agent-detection-tests
+        description: Unit tests cover missing command and configured command handling.
+        command: npm test
+    manual:
+      - Run a dry-run handoff from a terminal without VS Code and confirm the
+        generated command is inspectable before execution.
+    gaps:
+      - Provider-specific Codex and Claude Code argument defaults need to be
+        verified against their installed CLIs before enabling automatic runs.
+

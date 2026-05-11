@@ -1,36 +1,43 @@
-id: core.verify-implementation-references
+id: core/verify-implementation-references
 title: Verify implementation references
 status: implemented
 area: core
-summary: Confirm implemented and verified capabilities point to implementation references that exist in the repository.
-intent: Help maintainers and agents trust that completed capabilities are tied to inspectable code or documentation.
-inputs:
-  - .capabilities/**/*.capability.yaml
-  - implementation.references values
-outputs:
-  - verification gap list
-depends_on:
-  - core.validate-capabilities
+summary: Confirm implemented and verified capabilities point to
+  agent.implementation.references values that exist in the repository.
+intent: Help maintainers and agents trust that completed capabilities are tied
+  to inspectable code or documentation.
 acceptance:
-  - Checks implementation references for capabilities marked implemented or verified.
-  - Reports a verification gap when a referenced implementation path does not exist.
-  - Does not report a gap for implementation references that resolve under the project root.
-verification:
-  automated:
-    - id: implementation-reference-tests
-      description: Unit tests cover existing and missing implementation reference targets.
-      command: npm test
-    - id: dogfood-validate
-      description: The CLI validates CapabilityKit's own capability map and implementation references.
-      command: npm run capabilitykit -- validate
-  manual:
-    - Break one implementation reference locally and confirm validation reports the missing path.
-implementation:
-  references:
-    - packages/core/src/validateCapabilities.ts
-    - packages/core/tests/validation.test.ts
-agent_guidance:
-  build_notes:
-    - Treat missing reference targets as verification gaps so validation remains advisory by default.
-  avoid:
-    - Do not require planned capabilities to have implementation references.
+  - Checks agent.implementation.references for capabilities marked implemented
+    or verified.
+  - Reports a verification gap when a referenced implementation path does not
+    exist.
+  - Does not report a gap for agent.implementation.references values that
+    resolve under the project root.
+guidance:
+  - Treat missing reference targets as verification gaps so validation remains
+    advisory by default.
+  - Do not require planned capabilities to have agent.implementation.references.
+agent:
+  inputs:
+    - .capabilities/**/*.capability.yaml
+    - agent.implementation.references values
+  outputs:
+    - verification gap list
+  depends_on:
+    - core/validate-capability-files
+  implementation:
+    references:
+      - packages/core/src/validateCapabilities.ts
+      - packages/core/tests/validation.test.ts
+  verification:
+    automated:
+      - id: implementation-reference-tests
+        description: Unit tests cover existing and missing implementation reference targets.
+        command: npm test
+      - id: dogfood-validate
+        description: The CLI validates CapabilityKit's own capability map and
+          agent.implementation.references values.
+        command: npm run capabilitykit -- validate
+    manual:
+      - Break one agent.implementation.references value locally and confirm
+        validation reports the missing path.
