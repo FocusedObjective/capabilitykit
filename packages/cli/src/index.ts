@@ -4,8 +4,12 @@ import path from "node:path";
 import { Command } from "commander";
 import YAML from "yaml";
 import {
+  assessImplementationCoverage,
+  buildAgentReviewPrompt,
   buildAgentTaskBundle,
+  formatImplementationCoverageReport,
   loadCapabilities,
+  runExternalAgentCommand,
   validateLoadedCapabilities,
   writeCompiledCapabilities
 } from "@capabilitykit/core";
@@ -85,6 +89,17 @@ function parseAgentTaskMode(value: string): "implement" | "review" {
     return value;
   }
   throw new Error(`Invalid agent task mode "${value}". Expected "implement" or "review".`);
+}
+
+function parseAgentHandoff(value: string): "stdin" | "argument" | "prompt-file" {
+  if (value === "stdin" || value === "argument" || value === "prompt-file") {
+    return value;
+  }
+  throw new Error(`Invalid agent handoff "${value}". Expected "stdin", "argument", or "prompt-file".`);
+}
+
+function collectOption(value: string, previous: string[] = []): string[] {
+  return [...previous, value];
 }
 
 program
@@ -237,6 +252,21 @@ program
   });
 
 program
+  .command("assess")
+  .description("Assess implementation coverage for a capability")
+  .argument("<capability-id>", "capability id")
+  .option("--json", "print the coverage report as JSON")
+  .action(async (capabilityId: string, options: { json?: boolean }) => {
+    const report = await assessImplementationCoverage(process.cwd(), capabilityId);
+    if (options.json) {
+      console.log(JSON.stringify(report, null, 2));
+      return;
+    }
+
+    console.log(formatImplementationCoverageReport(report));
+  });
+
+program
   .command("agent-task")
   .description("Generate a prompt bundle for an external coding agent")
   .argument("<capability-id>", "capability id")
@@ -267,6 +297,155 @@ program
       console.log(bundle.prompt);
       if (bundle.missingReferences.length > 0) {
         console.error(`Missing references: ${bundle.missingReferences.join(", ")}`);
+      }
+    }
+  );
+
+program
+  .command("agent-run")
+  .description("Run an external coding-agent command with a generated capability task bundle")
+  .argument("<capability-id>", "capability id")
+  .requiredOption("--command <command>", "external agent executable to run")
+  .option("--arg <value>", "argument to pass to the external agent command; repeat for multiple args", collectOption, [])
+  .option("--mode <mode>", "task mode: implement or review", "implement")
+  .option("--handoff <strategy>", "bundle handoff strategy: stdin, argument, or prompt-file", "stdin")
+  .option("--prompt-file <path>", "prompt file path for prompt-file handoff")
+  .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
+  .option("--no-references", "omit implementation reference file contents")
+  .option("--dry-run", "detect the command and prepare handoff files without running the external agent")
+  .action(
+    async (
+      capabilityId: string,
+      options: {
+        command: string;
+        arg: string[];
+        mode: string;
+        handoff: string;
+        promptFile?: string;
+        transcript?: string;
+        references: boolean;
+        dryRun?: boolean;
+      }
+    ) => {
+      const bundle = await buildAgentTaskBundle(process.cwd(), capabilityId, {
+        mode: parseAgentTaskMode(options.mode),
+        includeReferences: options.references
+      });
+
+      const result = await runExternalAgentCommand({
+        command: options.command,
+        args: options.arg,
+        cwd: process.cwd(),
+        input: bundle.prompt,
+        handoff: parseAgentHandoff(options.handoff),
+        promptFilePath: options.promptFile,
+        transcriptPath: options.transcript,
+        dryRun: options.dryRun
+      });
+
+      console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
+      console.log(`Handoff: ${result.handoff}`);
+      if (result.promptFilePath) {
+        console.log(`Prompt file: ${path.relative(process.cwd(), result.promptFilePath)}`);
+      }
+      if (result.dryRun) {
+        console.log("Result: dry run");
+      } else {
+        console.log(`Exit code: ${result.exitCode ?? "unknown"}`);
+      }
+      if (result.transcriptPath) {
+        console.log(`Transcript: ${path.relative(process.cwd(), result.transcriptPath)}`);
+      }
+      if (result.stdout.trim()) {
+        console.log("");
+        console.log(result.stdout.trimEnd());
+      }
+      if (result.stderr.trim()) {
+        console.error("");
+        console.error(result.stderr.trimEnd());
+      }
+
+      if (!result.dryRun && result.exitCode !== 0) {
+        process.exitCode = result.exitCode ?? 1;
+      }
+    }
+  );
+
+program
+  .command("agent-review")
+  .description("Ask an external agent to review a capability against implementation evidence")
+  .argument("<capability-id>", "capability id")
+  .requiredOption("--command <command>", "external agent executable to run")
+  .option("--arg <value>", "argument to pass to the external agent command; repeat for multiple args", collectOption, [])
+  .option("--handoff <strategy>", "bundle handoff strategy: stdin, argument, or prompt-file", "stdin")
+  .option("--prompt-file <path>", "prompt file path for prompt-file handoff")
+  .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
+  .option("--output-prompt <path>", "write the generated review prompt to a file")
+  .option("--no-references", "omit implementation reference file contents")
+  .option("--dry-run", "detect the command and prepare handoff files without running the external agent")
+  .action(
+    async (
+      capabilityId: string,
+      options: {
+        command: string;
+        arg: string[];
+        handoff: string;
+        promptFile?: string;
+        transcript?: string;
+        outputPrompt?: string;
+        references: boolean;
+        dryRun?: boolean;
+      }
+    ) => {
+      const review = await buildAgentReviewPrompt(process.cwd(), capabilityId, {
+        includeReferences: options.references
+      });
+
+      if (options.outputPrompt) {
+        const outputPath = path.resolve(process.cwd(), options.outputPrompt);
+        await fs.mkdir(path.dirname(outputPath), { recursive: true });
+        await fs.writeFile(outputPath, review.prompt);
+        console.log(`Review prompt: ${path.relative(process.cwd(), outputPath)}`);
+      }
+
+      const result = await runExternalAgentCommand({
+        command: options.command,
+        args: options.arg,
+        cwd: process.cwd(),
+        input: review.prompt,
+        handoff: parseAgentHandoff(options.handoff),
+        promptFilePath: options.promptFile,
+        transcriptPath: options.transcript,
+        dryRun: options.dryRun
+      });
+
+      console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
+      console.log(`Handoff: ${result.handoff}`);
+      if (result.promptFilePath) {
+        console.log(`Prompt file: ${path.relative(process.cwd(), result.promptFilePath)}`);
+      }
+      if (result.dryRun) {
+        console.log("Result: dry run");
+      } else {
+        console.log(`Exit code: ${result.exitCode ?? "unknown"}`);
+      }
+      if (result.transcriptPath) {
+        console.log(`Transcript: ${path.relative(process.cwd(), result.transcriptPath)}`);
+      }
+      if (review.missingReferences.length > 0) {
+        console.log(`Missing references: ${review.missingReferences.join(", ")}`);
+      }
+      if (result.stdout.trim()) {
+        console.log("");
+        console.log(result.stdout.trimEnd());
+      }
+      if (result.stderr.trim()) {
+        console.error("");
+        console.error(result.stderr.trimEnd());
+      }
+
+      if (!result.dryRun && result.exitCode !== 0) {
+        process.exitCode = result.exitCode ?? 1;
       }
     }
   );

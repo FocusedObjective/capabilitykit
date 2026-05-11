@@ -1,6 +1,6 @@
 id: core/assess-implementation-coverage
 title: Assess implementation coverage
-status: planned
+status: implemented
 area: core
 summary: Compare a capability's acceptance criteria with its referenced
   implementation files to help determine whether the code covers the declared
@@ -31,16 +31,25 @@ agent:
     - uncovered or uncertain acceptance criteria
   depends_on:
     - core/verify-implementation-references
+  implementation:
+    references:
+      - packages/core/src/assessImplementationCoverage.ts
+      - packages/core/src/index.ts
+      - packages/cli/src/index.ts
+      - packages/core/tests/assessImplementationCoverage.test.ts
   verification:
     automated:
       - id: coverage-report-tests
         description: Unit tests cover report generation for covered, uncovered, and
           missing-reference cases.
-        command: npm test
+        command: npm test -- packages/core/tests/assessImplementationCoverage.test.ts
+      - id: dogfood-coverage-report
+        description: The CLI reports implementation coverage for this capability.
+        command: node packages/cli/dist/index.js assess core/assess-implementation-coverage
     manual:
       - Run the coverage report against core/verify-implementation-references
         and confirm the output gives a reviewer enough context to judge the
         implementation.
     gaps:
-      - The first version should not claim semantic correctness without human or
-        explicit AI review.
+      - Deterministic text evidence can identify review targets but cannot prove
+        semantic correctness without human or explicit AI review.
