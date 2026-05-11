@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CapabilityKit | Capabilities as Code</title>
+    <title>CapabilityKit | Build AI-native software from capabilities</title>
     <meta
       name="description"
-      content="CapabilityKit helps developer and product teams define, validate, and verify product capabilities directly in their codebase."
+      content="CapabilityKit is a capabilities-as-code toolkit that helps teams describe product intent, guide AI coding agents, and verify generated code."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
@@ -19,115 +19,380 @@
   <body>
     <header class="site-header">
       <div class="container nav-wrap">
-        <div class="brand">capabilitykit<span>.com</span></div>
-        <a class="nav-link" href="#contact">Get Started</a>
+        <a class="brand" href="#top" aria-label="CapabilityKit home">
+          <span class="brand-mark">CK</span>
+          <span>CapabilityKit</span>
+        </a>
+        <nav class="nav-links" aria-label="Primary navigation">
+          <a href="#problem">Problem</a>
+          <a href="#how">How it works</a>
+          <a href="#example">Example</a>
+          <a class="nav-cta" href="https://github.com/FocusedObjective/capabilitykit">GitHub</a>
+        </nav>
       </div>
     </header>
 
-    <main>
+    <main id="top">
       <section class="hero">
         <div class="container hero-grid">
-          <div>
-            <p class="eyebrow">Capabilities as code</p>
-            <h1>
-              Align product intent and implementation in one source of truth.
-            </h1>
+          <div class="hero-copy">
+            <p class="eyebrow">Capabilities as code for AI-native engineering</p>
+            <h1>Build AI-native software from capabilities, not tickets.</h1>
             <p class="lead">
-              CapabilityKit gives developers and product managers a simple way to
-              define what the system should do, how success is verified, and what
-              still needs confidence.
+              CapabilityKit helps teams describe product intent, guide AI coding agents,
+              and verify that generated code delivers the right behavior.
+            </p>
+            <p class="hero-kicker">
+              Define capabilities. Generate better code. Verify what matters.
             </p>
             <div class="cta-row">
-              <a class="btn btn-primary" href="#goals">Explore Goals</a>
-              <a class="btn btn-secondary" href="#benefits">See Benefits</a>
+              <a class="btn btn-primary" href="#get-started">Get started</a>
+              <a class="btn btn-secondary" href="https://github.com/FocusedObjective/capabilitykit">View on GitHub</a>
             </div>
           </div>
-          <aside class="hero-card" aria-label="Capability snippet">
-            <p class="card-label">Example capability</p>
-            <pre><code>id: account.user-login
-title: User login
-status: implemented
-acceptance:
-  - Users can sign in with email.
+
+          <aside class="product-visual" aria-label="Capability workflow preview">
+            <div class="visual-toolbar">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="capability-map">
+              <div class="capability-node active">
+                <strong>AI Document Summary</strong>
+                <span>intent + behavior</span>
+              </div>
+              <div class="connector"></div>
+              <div class="capability-node">
+                <strong>Agent context</strong>
+                <span>flows + interfaces</span>
+              </div>
+              <div class="connector"></div>
+              <div class="capability-node">
+                <strong>Verification</strong>
+                <span>tests + gaps</span>
+              </div>
+            </div>
+            <pre><code>id: documents.ai-summary
+actors:
+  - workspace user
+interfaces:
+  - upload service
+  - llm provider
 verification:
   automated:
-    - npm test</code></pre>
+    - upload tests
+    - permission tests
+  manual:
+    - summary quality review</code></pre>
           </aside>
         </div>
       </section>
 
-      <section id="goals" class="section">
-        <div class="container">
-          <h2>Goals</h2>
-          <div class="cards">
-            <article class="card">
-              <h3>Make intent explicit</h3>
-              <p>
-                Document product capabilities alongside code so everyone can see
-                the target behavior before implementation changes begin.
-              </p>
-            </article>
-            <article class="card">
-              <h3>Improve AI-assisted delivery</h3>
-              <p>
-                Give AI agents and engineers clear definitions, dependencies, and
-                verification checks that reduce ambiguity and rework.
-              </p>
-            </article>
-            <article class="card">
-              <h3>Reduce review bottlenecks</h3>
-              <p>
-                Shift review from rediscovering context to validating outcomes by
-                making acceptance criteria and test commands visible up front.
-              </p>
-            </article>
+      <section class="intro-band">
+        <div class="container intro-grid">
+          <h2>AI can generate code quickly. The harder problem is making sure it builds the right thing.</h2>
+          <p>
+            CapabilityKit helps teams define product capabilities in a structured,
+            human-readable format that AI agents can understand, implement, validate,
+            and evolve. Instead of managing a backlog of disconnected stories, teams
+            manage a growing map of product capabilities.
+          </p>
+        </div>
+      </section>
+
+      <section id="problem" class="section">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">The problem</p>
+            <h2>AI coding makes delivery faster. It also makes intent easier to lose.</h2>
+            <p>
+              Modern AI coding tools are powerful, but they often work from vague prompts,
+              scattered tickets, outdated docs, and incomplete context.
+            </p>
+          </div>
+          <div class="risk-list">
+            <p>That creates a new kind of software risk:</p>
+            <ul>
+              <li>Code is generated without clear product intent.</li>
+              <li>Requirements live in conversations instead of the repo.</li>
+              <li>Verification is added after the fact, if at all.</li>
+              <li>Product managers lose visibility into what the system can actually do.</li>
+              <li>Developers reverse-engineer intent from tickets and code.</li>
+              <li>AI agents optimize for producing code, not preserving capability.</li>
+            </ul>
           </div>
         </div>
       </section>
 
-      <section id="benefits" class="section section-alt">
+      <section class="section section-alt">
         <div class="container">
-          <h2>Benefits</h2>
-          <ul class="benefits">
-            <li><strong>Developers:</strong> faster onboarding and safer refactors with explicit capability contracts.</li>
-            <li><strong>Product managers:</strong> clear traceability from requirements to shipped behavior.</li>
-            <li><strong>Teams:</strong> fewer regressions through repeatable verification and visible confidence gaps.</li>
-            <li><strong>Organizations:</strong> scalable standards for AI-native software delivery.</li>
-          </ul>
+          <div class="section-heading">
+            <p class="eyebrow">What it is</p>
+            <h2>A capability language for AI-native engineering.</h2>
+            <p>
+              CapabilityKit lets you describe product capabilities as structured files
+              inside your codebase. Each file captures intent, behavior, actors, flows,
+              constraints, interfaces, and verification expectations for a part of your product.
+            </p>
+          </div>
+          <div class="feature-grid">
+            <article class="feature-card">
+              <h3>Product intent</h3>
+              <p>Keep the product goal close to the implementation, where it can influence what gets built.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Agent instructions</h3>
+              <p>Compile capability definitions into consistent context for coding agents and generators.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Verification gaps</h3>
+              <p>Make missing tests, unclear interfaces, and weak acceptance criteria visible early.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Capability discovery</h3>
+              <p>Give humans and agents a map of what the product can do and what it enables next.</p>
+            </article>
+          </div>
         </div>
       </section>
 
       <section class="section">
-        <div class="container split">
+        <div class="container story-panel">
           <div>
-            <h2>What we are trying to solve</h2>
+            <p class="eyebrow">Core positioning</p>
+            <h2>From backlog of stories to backlog of capabilities.</h2>
             <p>
-              Traditional specs and tickets drift away from code, especially in
-              high-velocity AI workflows. CapabilityKit closes that gap by
-              treating capability definitions as versioned, testable artifacts.
+              Traditional backlogs describe work to be done. CapabilityKit describes
+              what the product is becoming.
             </p>
           </div>
-          <div>
-            <h3>The core problem</h3>
-            <p>
-              Teams move quickly with AI coding tools, but confidence often lags.
-              Critical behavior, dependencies, and verification steps become
-              implicit knowledge and are hard to audit.
-            </p>
-            <h3>The CapabilityKit approach</h3>
-            <p>
-              Keep capability definitions in the repository, validate them in CI,
-              and compile them into a consistent map the whole team can trust.
-            </p>
+          <div class="quote-block">
+            <p>A story might say:</p>
+            <blockquote>As a user, I want to upload a document so I can summarize it.</blockquote>
+          </div>
+          <div class="definition-list">
+            <p>A capability defines:</p>
+            <ul>
+              <li>Who can use document upload.</li>
+              <li>What inputs are allowed.</li>
+              <li>What states, outcomes, and edge cases exist.</li>
+              <li>What services or packages are expected.</li>
+              <li>What interfaces AI agents can call.</li>
+              <li>What must be verified.</li>
+            </ul>
           </div>
         </div>
       </section>
 
-      <section id="contact" class="section section-cta">
-        <div class="container cta-block">
-          <h2>Ready to standardize capability-driven delivery?</h2>
-          <p>Run CapabilityKit locally, then deploy this static site directly to Amazon S3.</p>
-          <code>npm install && npm run build</code>
+      <section class="section roles-section">
+        <div class="container role-grid">
+          <article class="role-card">
+            <p class="eyebrow">For product managers</p>
+            <h2>Give AI agents better product intent.</h2>
+            <p>
+              Define capabilities at the right level of detail, then let developers and
+              AI agents elaborate them into working software.
+            </p>
+            <ul>
+              <li>A clearer map of what the product can do.</li>
+              <li>Less dependence on fragile ticket descriptions.</li>
+              <li>Better visibility into gaps, risks, and missing verification.</li>
+              <li>A capability backlog that evolves with the product.</li>
+            </ul>
+          </article>
+          <article class="role-card">
+            <p class="eyebrow">For developers</p>
+            <h2>Give AI coding tools better context.</h2>
+            <p>
+              Turn product intent into structured engineering context that AI agents
+              can use without inferring architecture from scattered files.
+            </p>
+            <ul>
+              <li>A repo-native <code>.capabilities</code> folder.</li>
+              <li>CLI commands to create, compile, and validate capabilities.</li>
+              <li>Warnings for unclear interfaces or weak verification.</li>
+              <li>Support for implementation packages such as AWS Amplify Gen 2 and Convex.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="how" class="section section-alt">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">How it works</p>
+            <h2>Your coding agent should work from capabilities, not vague prompts.</h2>
+          </div>
+          <div class="steps">
+            <article>
+              <span>1</span>
+              <h3>Describe a capability</h3>
+              <p>Create a capability file with actors, behavior, flows, constraints, events, interfaces, and verification expectations.</p>
+            </article>
+            <article>
+              <span>2</span>
+              <h3>Compile capability context</h3>
+              <p>Compile definitions into structured context that AI agents, code generators, and validation tools can use.</p>
+            </article>
+            <article>
+              <span>3</span>
+              <h3>Generate or change code</h3>
+              <p>Use Codex, Cursor-style agents, GitHub Copilot, Claude Code, or custom internal agent workflows.</p>
+            </article>
+            <article>
+              <span>4</span>
+              <h3>Validate what changed</h3>
+              <p>Ask whether behavior is implemented, edge cases are described, interfaces are clear, and tests are missing.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section verification-section">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Verification</p>
+            <h2>Verification is a first-class part of the language.</h2>
+            <p>
+              AI-native engineering needs more than code generation. It needs continuous
+              verification. CapabilityKit treats errors and warnings as signals of missing
+              product or engineering intent.
+            </p>
+          </div>
+          <div class="pill-list" aria-label="Verification examples">
+            <span>Automated tests</span>
+            <span>Manual review steps</span>
+            <span>Acceptance examples</span>
+            <span>Edge cases</span>
+            <span>Security constraints</span>
+            <span>Performance expectations</span>
+            <span>Data handling rules</span>
+            <span>Integration checks</span>
+            <span>Known gaps</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container two-column">
+          <article>
+            <p class="eyebrow">Agentic workflows</p>
+            <h2>Designed for agents that plan, implement, test, and inspect.</h2>
+            <p>
+              Each capability exposes structured intent an agentic framework can use to
+              suggest new capabilities, identify missing details, generate plans, create
+              code, generate tests, detect drift, and find verification gaps.
+            </p>
+          </article>
+          <article>
+            <p class="eyebrow">Architecture</p>
+            <h2>Bring structure without forcing one architecture.</h2>
+            <p>
+              CapabilityKit is not a framework that owns your whole application. It is a
+              capability layer that can sit inside existing apps, greenfield projects,
+              monoliths, modular apps, serverless apps, and AI-generated prototypes.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section section-alt">
+        <div class="container differentiation">
+          <div>
+            <p class="eyebrow">Why it is different</p>
+            <h2>Not UML. Not stories. Not another backlog tool.</h2>
+            <p>
+              Traditional modeling tools often failed because they were separate from
+              delivery. CapabilityKit is designed to be part of delivery.
+            </p>
+          </div>
+          <div class="feature-grid compact">
+            <article class="feature-card">
+              <h3>Repo-native</h3>
+              <p>Capabilities live with the code.</p>
+            </article>
+            <article class="feature-card">
+              <h3>AI-readable</h3>
+              <p>Designed for agents as well as humans.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Product-centered</h3>
+              <p>Describes what the product can do.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Incremental</h3>
+              <p>Start with one capability and grow from there.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="example" class="section">
+        <div class="container example-grid">
+          <div>
+            <p class="eyebrow">Example capability</p>
+            <h2>A shared understanding of what needs to exist.</h2>
+            <p>
+              A capability gives humans and AI agents the same compact view of intent,
+              behavior, constraints, interfaces, and verification.
+            </p>
+          </div>
+          <dl class="example-definition">
+            <div>
+              <dt>Capability</dt>
+              <dd>AI Document Summary</dd>
+            </div>
+            <div>
+              <dt>Intent</dt>
+              <dd>Let a workspace user upload a document and receive a useful summary.</dd>
+            </div>
+            <div>
+              <dt>Actors</dt>
+              <dd>Workspace user, admin, AI summarization service.</dd>
+            </div>
+            <div>
+              <dt>Inputs</dt>
+              <dd>PDF, DOCX, text file.</dd>
+            </div>
+            <div>
+              <dt>Behavior</dt>
+              <dd>Validate file, extract text, summarize content, store result, show status.</dd>
+            </div>
+            <div>
+              <dt>Constraints</dt>
+              <dd>File size limits, workspace permissions, token cost limits.</dd>
+            </div>
+            <div>
+              <dt>Interfaces</dt>
+              <dd>Upload service, document parser, LLM provider, usage meter.</dd>
+            </div>
+            <div>
+              <dt>Verification</dt>
+              <dd>Upload tests, permission tests, unsupported file tests, summary quality review, cost checks.</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section id="get-started" class="section final-cta">
+        <div class="container cta-panel">
+          <div>
+            <p class="eyebrow">Open source</p>
+            <h2>Start building from capabilities.</h2>
+            <p>
+              Define your capabilities. Compile agent-ready context. Generate better
+              code. Validate what matters.
+            </p>
+          </div>
+          <div class="install-box" aria-label="Install commands">
+            <code>npm install -g @capabilitykit/cli</code>
+            <code>capabilitykit init</code>
+          </div>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="https://github.com/FocusedObjective/capabilitykit">View the project on GitHub</a>
+            <a class="btn btn-secondary" href="#how">See how it works</a>
+          </div>
         </div>
       </section>
     </main>
