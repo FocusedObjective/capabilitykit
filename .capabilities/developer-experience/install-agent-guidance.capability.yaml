@@ -1,0 +1,45 @@
+id: developer-experience.install-agent-guidance
+title: Install agent guidance
+status: implemented
+area: developer-experience
+summary: Initialize Codex, Claude, and AGENTS guidance files that point agents to CapabilityKit's package skill guide.
+intent: Make CapabilityKit review and editing workflows reusable across coding agents without copying long instructions into every project file.
+inputs:
+  - terminal command
+  - existing AGENTS.md or CLAUDE.md files
+  - package skill guide path
+outputs:
+  - AGENTS.md managed CapabilityKit block
+  - CLAUDE.md managed CapabilityKit block
+  - .codex/skills/capabilitykit/SKILL.md wrapper
+  - .claude/commands/capabilitykit.md slash command
+depends_on:
+  - developer-experience.cli-workflow
+acceptance:
+  - Provides a CLI command that installs CapabilityKit agent guidance files.
+  - Points generated guidance back to the package SKILL.md file.
+  - Preserves existing AGENTS.md and CLAUDE.md content while replacing any prior CapabilityKit managed block.
+  - Creates Codex skill and Claude slash-command wrapper files for simple prompts.
+  - Covers merge behavior with automated tests.
+verification:
+  automated:
+    - id: agent-guidance-tests
+      description: Unit tests cover managed block append and replacement behavior.
+      command: npm test
+    - id: cli-build
+      description: TypeScript build verifies the installer command and helper imports.
+      command: npm run build
+  manual:
+    - Run capabilitykit install-agent-guidance in a sample project and confirm the generated files reference the package SKILL.md.
+implementation:
+  references:
+    - packages/cli/SKILL.md
+    - packages/cli/src/agentGuidance.ts
+    - packages/cli/src/index.ts
+    - packages/cli/tests/agentGuidance.test.ts
+agent_guidance:
+  build_notes:
+    - Keep managed blocks short and bounded by stable markers.
+    - Prefer referencing the package skill guide over duplicating the full guide into project files.
+  avoid:
+    - Do not overwrite user-authored agent instructions outside the managed CapabilityKit block.

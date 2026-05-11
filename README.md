@@ -107,3 +107,16 @@ Keep changes close to the code, specs, and tests they affect. When behavior chan
 ```bash
 npm run verify
 ```
+
+## Website (capabilitykit.com)
+
+A simple static marketing site is available in `website/` and is ready for Amazon S3 static hosting.
+
+Run locally:
+
+```bash
+cd website
+python3 -m http.server 8080
+```
+
+Then open `http://localhost:8080`.

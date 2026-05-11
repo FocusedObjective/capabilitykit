@@ -28,5 +28,6 @@ implementation:
 agent_guidance:
   build_notes:
     - Prefer specific gap messages tied to capability IDs.
+    - Keep gap detection rules deterministic and covered by automated tests.
   avoid:
     - Do not use AI inference for MVP verification gap detection.

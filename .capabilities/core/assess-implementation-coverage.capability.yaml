@@ -1,0 +1,38 @@
+id: core.assess-implementation-coverage
+title: Assess implementation coverage
+status: planned
+area: core
+summary: Compare a capability's acceptance criteria with its referenced implementation files to help determine whether the code covers the declared behavior.
+intent: Move beyond checking that implementation paths exist by giving humans and agents a focused evidence bundle for capability review.
+inputs:
+  - capability acceptance criteria
+  - capability implementation.references values
+  - referenced source and documentation files
+outputs:
+  - implementation coverage report
+  - uncovered or uncertain acceptance criteria
+depends_on:
+  - core.verify-implementation-references
+acceptance:
+  - Reads the referenced implementation files for one capability.
+  - Presents each acceptance criterion beside relevant implementation evidence.
+  - Marks criteria as covered, uncovered, or uncertain.
+  - Reports missing or unreadable references as uncovered evidence.
+  - Keeps the first version deterministic or review-assisted rather than silently trusting an AI judgment.
+verification:
+  automated:
+    - id: coverage-report-tests
+      description: Unit tests cover report generation for covered, uncovered, and missing-reference cases.
+      command: npm test
+  manual:
+    - Run the coverage report against core.verify-implementation-references and confirm the output gives a reviewer enough context to judge the implementation.
+  gaps:
+    - The first version should not claim semantic correctness without human or explicit AI review.
+implementation:
+  references: []
+agent_guidance:
+  build_notes:
+    - Start with a deterministic evidence report that loads capability details and referenced files.
+    - Add an agentic or LLM review loop only after the report shape is useful and testable.
+  avoid:
+    - Do not mark capabilities verified solely because referenced files contain matching words.

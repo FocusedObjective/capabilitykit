@@ -6,6 +6,8 @@ import type {
   ValidationResult,
   VerificationGap
 } from "./types.js";
+import fs from "node:fs";
+import path from "node:path";
 
 const placeholderPattern = /\b(TODO|TBD|FIXME|placeholder)\b/i;
 
@@ -18,6 +20,10 @@ function hasVerification(capability: Capability): boolean {
 
 function hasImplementationReferences(capability: Capability): boolean {
   return (capability.implementation?.references?.length ?? 0) > 0;
+}
+
+function implementationReferenceExists(rootDir: string, reference: string): boolean {
+  return fs.existsSync(path.resolve(rootDir, reference));
 }
 
 function addGap(gaps: VerificationGap[], capability: ParsedCapability, code: string, message: string): void {
@@ -111,6 +117,19 @@ export function validateLoadedCapabilities(loaded: LoadCapabilitiesResult): Vali
         "missing-implementation-references",
         `${capability.id} is ${capability.status} but has no implementation references`
       );
+    }
+
+    if (requiresImplementation) {
+      for (const reference of capability.implementation?.references ?? []) {
+        if (!implementationReferenceExists(loaded.rootDir, reference)) {
+          addGap(
+            verificationGaps,
+            parsed,
+            "missing-implementation-reference-target",
+            `${capability.id} references missing implementation path "${reference}"`
+          );
+        }
+      }
     }
 
     if (capability.status === "verified" && !hasVerification(capability)) {

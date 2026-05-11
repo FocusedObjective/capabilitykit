@@ -4,6 +4,7 @@ import path from "node:path";
 import { Command } from "commander";
 import YAML from "yaml";
 import { loadCapabilities, validateLoadedCapabilities, writeCompiledCapabilities } from "@capabilitykit/core";
+import { installAgentGuidance } from "./agentGuidance.js";
 
 const program = new Command();
 
@@ -148,6 +149,26 @@ program
     const filePath = path.join(process.cwd(), ".capabilities", slugify(options.area), `${slugify(name)}.capability.yaml`);
     await writeNewFile(filePath, capabilityTemplate(name, options.area), options.force);
     console.log(`Created ${path.relative(process.cwd(), filePath)}`);
+  });
+
+program
+  .command("install-agent-guidance")
+  .description("Create or update Codex, Claude, and AGENTS guidance for CapabilityKit")
+  .option(
+    "--skill-path <path>",
+    "path agents should read for the full CapabilityKit guide",
+    "node_modules/@capabilitykit/cli/SKILL.md"
+  )
+  .action(async (options: { skillPath: string }) => {
+    const result = await installAgentGuidance(process.cwd(), { packageSkillPath: options.skillPath });
+    console.log("Installed CapabilityKit agent guidance:");
+    for (const filePath of result.written) {
+      console.log(`  - ${filePath}`);
+    }
+    console.log("");
+    console.log("Try:");
+    console.log("  /capabilitykit review .capabilities/core/verify-implementation-references.capability.yaml");
+    console.log("  Ask Codex: review this capability against its implementation references");
   });
 
 program

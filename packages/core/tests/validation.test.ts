@@ -79,4 +79,31 @@ describe("validateLoadedCapabilities", () => {
     expect(result.valid).toBe(true);
     expect(result.verificationGaps.some((gap) => gap.code === "missing-implementation-references")).toBe(true);
   });
+
+  it("reports implementation references that do not resolve to files", () => {
+    const result = validateLoadedCapabilities(
+      loaded([
+        parsed("core.done", {
+          status: "implemented",
+          implementation: {
+            references: ["packages/core/src/validateCapabilities.ts", "packages/core/src/missing.ts"]
+          }
+        })
+      ])
+    );
+
+    expect(result.valid).toBe(true);
+    expect(result.verificationGaps).toContainEqual(
+      expect.objectContaining({
+        code: "missing-implementation-reference-target",
+        capabilityId: "core.done",
+        message: 'core.done references missing implementation path "packages/core/src/missing.ts"'
+      })
+    );
+    expect(result.verificationGaps).not.toContainEqual(
+      expect.objectContaining({
+        message: 'core.done references missing implementation path "packages/core/src/validateCapabilities.ts"'
+      })
+    );
+  });
 });
