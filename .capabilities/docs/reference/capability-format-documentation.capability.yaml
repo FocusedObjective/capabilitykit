@@ -1,4 +1,4 @@
-id: docs/capability-format-documentation
+id: docs/reference/capability-format-documentation
 title: Capability format documentation
 status: implemented
 area: docs
@@ -9,6 +9,7 @@ acceptance:
   - README explains what a capability is.
   - README includes an example capability file.
   - README explains verification gaps.
+  - README explains how folder hierarchy and capability IDs should align.
 guidance:
   - Use practical developer language.
   - Avoid UML, enterprise architecture, and governance-heavy framing.
@@ -19,7 +20,7 @@ agent:
   outputs:
     - documented capability format
   depends_on:
-    - core/define-capability-format
+    - core/model/define-capability-format
   implementation:
     references:
       - README.md

@@ -4,12 +4,16 @@ import path from "node:path";
 import { Command } from "commander";
 import YAML from "yaml";
 import {
+  analyzeCapabilityImpact,
   assessImplementationCoverage,
   buildAgentReviewPrompt,
   buildAgentTaskBundle,
+  formatCapabilityImpactReport,
   formatImplementationCoverageReport,
   loadCapabilities,
   runExternalAgentCommand,
+  saveAgentReviewResult,
+  validateAgentReviewResult,
   validateLoadedCapabilities,
   writeCompiledCapabilities
 } from "@capabilitykit/core";
@@ -82,6 +86,30 @@ function printValidationReport(result: ReturnType<typeof validateLoadedCapabilit
       result.verificationGaps.length > 0 ? ` with ${result.verificationGaps.length} verification gaps` : ""
     }`
   );
+}
+
+function printReviewResult(result: Awaited<ReturnType<typeof validateAgentReviewResult>>): void {
+  console.log("CapabilityKit review result");
+  console.log("");
+  console.log(`${result.valid ? "OK" : "!!"} ${result.review.criteria.length} criteria reviewed`);
+  console.log(`Depth: ${result.depth}`);
+  console.log(`Done: ${result.review.done ? "yes" : "no"}`);
+
+  if (result.review.remaining_gaps.length > 0) {
+    console.log("");
+    console.log("Remaining gaps:");
+    for (const gap of result.review.remaining_gaps) {
+      console.log(`  - ${gap}`);
+    }
+  }
+
+  if (result.issues.length > 0) {
+    console.log("");
+    console.log("Issues:");
+    for (const issue of result.issues) {
+      console.log(`  - ${issue.message}`);
+    }
+  }
 }
 
 function parseAgentTaskMode(value: string): "implement" | "review" {
@@ -178,7 +206,7 @@ program
     }
     console.log("");
     console.log("Try:");
-    console.log("  /capabilitykit review .capabilities/core/verify-implementation-references.capability.yaml");
+    console.log("  /capabilitykit review .capabilities/core/validation/verify-implementation-references.capability.yaml");
     console.log("  Ask Codex: review this capability against its agent.implementation.references");
   });
 
@@ -249,6 +277,21 @@ program
     if (gaps.length === 0) {
       console.log("  - none");
     }
+  });
+
+program
+  .command("impact")
+  .description("Analyze downstream capability impact")
+  .argument("<capability-id>", "capability id")
+  .option("--json", "print the impact report as JSON")
+  .action(async (capabilityId: string, options: { json?: boolean }) => {
+    const report = await analyzeCapabilityImpact(process.cwd(), capabilityId);
+    if (options.json) {
+      console.log(JSON.stringify(report, null, 2));
+      return;
+    }
+
+    console.log(formatCapabilityImpactReport(report));
   });
 
 program
@@ -449,6 +492,48 @@ program
       }
     }
   );
+
+program
+  .command("review-result")
+  .description("Validate or save structured agent review output for a capability")
+  .argument("<capability-id>", "capability id")
+  .requiredOption("--input <path>", "path to the agent review JSON output")
+  .option("--save", "save valid review output to the capability agent.review field")
+  .option("--json", "print validation result as JSON")
+  .action(async (capabilityId: string, options: { input: string; save?: boolean; json?: boolean }) => {
+    const inputPath = path.resolve(process.cwd(), options.input);
+    const source = await fs.readFile(inputPath, "utf8");
+
+    if (options.save) {
+      const result = await saveAgentReviewResult(process.cwd(), capabilityId, source);
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        printReviewResult(result.validation);
+        if (result.validation.valid) {
+          console.log(`Saved review evidence to ${path.relative(process.cwd(), result.filePath)}`);
+        }
+      }
+      process.exitCode = result.validation.valid ? 0 : 1;
+      return;
+    }
+
+    const loaded = await loadCapabilities(process.cwd());
+    const match = loaded.capabilities.find((item) => item.capability.id === capabilityId);
+    if (!match) {
+      console.error(`Capability not found: ${capabilityId}`);
+      process.exitCode = 1;
+      return;
+    }
+
+    const validation = await validateAgentReviewResult(process.cwd(), match.capability, source);
+    if (options.json) {
+      console.log(JSON.stringify(validation, null, 2));
+    } else {
+      printReviewResult(validation);
+    }
+    process.exitCode = validation.valid ? 0 : 1;
+  });
 
 program.parseAsync().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));

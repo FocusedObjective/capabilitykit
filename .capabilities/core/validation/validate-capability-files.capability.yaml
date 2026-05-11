@@ -1,4 +1,4 @@
-id: core/validate-capability-files
+id: core/validation/validate-capability-files
 title: Validate capability files
 status: implemented
 area: core
@@ -23,7 +23,7 @@ agent:
     - validation report
     - verification gap list
   depends_on:
-    - core/define-capability-format
+    - core/model/define-capability-format
   implementation:
     references:
       - packages/core/src/validateCapabilities.ts

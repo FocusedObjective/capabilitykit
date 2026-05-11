@@ -1,4 +1,4 @@
-id: core/verify-implementation-references
+id: core/validation/verify-implementation-references
 title: Verify implementation references
 status: implemented
 area: core
@@ -24,7 +24,7 @@ agent:
   outputs:
     - verification gap list
   depends_on:
-    - core/validate-capability-files
+    - core/validation/validate-capability-files
   implementation:
     references:
       - packages/core/src/validateCapabilities.ts

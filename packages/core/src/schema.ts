@@ -24,6 +24,15 @@ export const verificationCheckSchema = z.object({
   command: nonEmptyString.optional()
 });
 
+const agentReviewCriterionStatusSchema = z.enum(["covered", "partial", "uncovered", "uncertain"]);
+
+const agentReviewCriterionSchema = z.object({
+  criterion: nonEmptyString,
+  status: agentReviewCriterionStatusSchema,
+  evidence: z.array(nonEmptyString).optional().default([]),
+  notes: nonEmptyString.optional()
+});
+
 type AgentSection = {
   inputs?: string[];
   outputs?: string[];
@@ -41,6 +50,9 @@ type AgentSection = {
     depth?: "none" | "referenced" | "partial" | "behavioral" | "tested" | "verified" | "unknown";
     gaps?: string[];
     evidence?: string[];
+    intent_summary?: string;
+    criteria?: Array<z.infer<typeof agentReviewCriterionSchema>>;
+    done?: boolean;
   };
   guidance?: {
     notes?: string[];
@@ -70,7 +82,10 @@ const agentSectionSchema = z
       .object({
         depth: z.enum(["none", "referenced", "partial", "behavioral", "tested", "verified", "unknown"]).optional(),
         gaps: z.array(nonEmptyString).optional().default([]),
-        evidence: z.array(nonEmptyString).optional().default([])
+        evidence: z.array(nonEmptyString).optional().default([]),
+        intent_summary: nonEmptyString.optional(),
+        criteria: z.array(agentReviewCriterionSchema).optional().default([]),
+        done: z.boolean().optional()
       })
       .optional(),
     guidance: z

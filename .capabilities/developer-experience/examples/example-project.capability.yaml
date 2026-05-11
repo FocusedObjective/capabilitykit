@@ -1,4 +1,4 @@
-id: developer-experience/example-project
+id: developer-experience/examples/example-project
 title: Example project
 status: implemented
 area: developer-experience
@@ -18,7 +18,7 @@ agent:
   outputs:
     - example capability files
   depends_on:
-    - core/define-capability-format
+    - core/model/define-capability-format
   implementation:
     references:
       - examples/basic-app/.capabilities/capabilitykit.yaml

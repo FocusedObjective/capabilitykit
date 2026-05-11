@@ -1,4 +1,4 @@
-id: developer-experience/cli-workflow
+id: developer-experience/cli/cli-workflow
 title: CLI workflow
 status: implemented
 area: developer-experience
@@ -21,9 +21,9 @@ agent:
     - validation reports
     - compiled JSON
   depends_on:
-    - core/initialize-capability-project
-    - core/validate-capability-files
-    - core/compile-capabilities
+    - core/project/initialize-capability-project
+    - core/validation/validate-capability-files
+    - core/graph/compile-capabilities
   implementation:
     references:
       - packages/cli/src/index.ts

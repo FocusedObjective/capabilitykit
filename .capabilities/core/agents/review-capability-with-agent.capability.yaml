@@ -1,4 +1,4 @@
-id: core/review-capability-with-agent
+id: core/agents/review-capability-with-agent
 title: Review capability with agent
 status: implemented
 area: core
@@ -29,8 +29,8 @@ agent:
     - structured acceptance coverage review
     - unresolved gaps or uncertain criteria
   depends_on:
-    - core/prepare-agent-task-bundle
-    - core/assess-implementation-coverage
+    - core/agents/prepare-agent-task-bundle
+    - core/assessment/assess-implementation-coverage
   implementation:
     references:
       - packages/core/src/agentReview.ts
@@ -47,7 +47,7 @@ agent:
         command: npm test -- packages/core/tests/agentReview.test.ts
       - id: dogfood-agent-review-dry-run
         description: The CLI prepares a Codex review handoff without executing the agent.
-        command: node packages/cli/dist/index.js agent-review core/review-capability-with-agent --command codex --arg exec --handoff stdin --dry-run --no-references
+        command: node packages/cli/dist/index.js agent-review core/agents/review-capability-with-agent --command codex --arg exec --handoff stdin --dry-run --no-references
     manual:
       - Run a review bundle through Codex or Claude Code and confirm the output
         is usable as acceptance evidence.

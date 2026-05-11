@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { buildCapabilityImpactGraph } from "./capabilityImpact.js";
 import { loadCapabilities } from "./loadCapabilities.js";
 import { validateLoadedCapabilities } from "./validateCapabilities.js";
 import type { CompiledCapabilities } from "./types.js";
@@ -19,6 +20,7 @@ export async function compileCapabilities(rootDir = process.cwd()): Promise<Comp
     generated_at: new Date().toISOString(),
     capabilities,
     dependency_graph: Object.fromEntries(capabilities.map((capability) => [capability.id, capability.agent?.depends_on ?? []])),
+    impact_graph: buildCapabilityImpactGraph(loaded),
     verification_summary: {
       automated_checks: capabilities.reduce((total, capability) => total + (capability.agent?.verification?.automated?.length ?? 0), 0),
       manual_checks: capabilities.reduce((total, capability) => total + (capability.agent?.verification?.manual?.length ?? 0), 0),
@@ -29,8 +31,9 @@ export async function compileCapabilities(rootDir = process.cwd()): Promise<Comp
 }
 
 export async function writeCompiledCapabilities(rootDir = process.cwd()): Promise<{ outputPath: string; compiled: CompiledCapabilities }> {
+  const loaded = await loadCapabilities(rootDir);
   const compiled = await compileCapabilities(rootDir);
-  const outputPath = path.resolve(rootDir, ".capabilities", "dist", "capabilities.json");
+  const outputPath = path.resolve(rootDir, loaded.config.output?.path ?? ".capabilities/dist/capabilities.json");
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
   await fs.writeFile(outputPath, `${JSON.stringify(compiled, null, 2)}\n`);
   return { outputPath, compiled };

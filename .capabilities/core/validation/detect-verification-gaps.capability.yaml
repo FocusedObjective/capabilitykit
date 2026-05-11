@@ -1,4 +1,4 @@
-id: core/detect-verification-gaps
+id: core/validation/detect-verification-gaps
 title: Detect verification gaps
 status: implemented
 area: core
@@ -21,7 +21,7 @@ agent:
   outputs:
     - verification gap list
   depends_on:
-    - core/define-capability-format
+    - core/model/define-capability-format
   implementation:
     references:
       - packages/core/src/validateCapabilities.ts

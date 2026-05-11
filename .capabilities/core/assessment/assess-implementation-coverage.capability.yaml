@@ -1,4 +1,4 @@
-id: core/assess-implementation-coverage
+id: core/assessment/assess-implementation-coverage
 title: Assess implementation coverage
 status: implemented
 area: core
@@ -30,7 +30,7 @@ agent:
     - implementation coverage report
     - uncovered or uncertain acceptance criteria
   depends_on:
-    - core/verify-implementation-references
+    - core/validation/verify-implementation-references
   implementation:
     references:
       - packages/core/src/assessImplementationCoverage.ts
@@ -45,9 +45,9 @@ agent:
         command: npm test -- packages/core/tests/assessImplementationCoverage.test.ts
       - id: dogfood-coverage-report
         description: The CLI reports implementation coverage for this capability.
-        command: node packages/cli/dist/index.js assess core/assess-implementation-coverage
+        command: node packages/cli/dist/index.js assess core/assessment/assess-implementation-coverage
     manual:
-      - Run the coverage report against core/verify-implementation-references
+      - Run the coverage report against core/validation/verify-implementation-references
         and confirm the output gives a reviewer enough context to judge the
         implementation.
     gaps:

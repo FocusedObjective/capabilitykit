@@ -13,7 +13,7 @@ Use CapabilityKit to keep product intent, acceptance criteria, agent-maintained 
 2. Read the relevant `*.capability.yaml` files before editing code for that behavior.
 3. When behavior changes, update the matching capability spec in the same change.
 4. Run `capabilitykit validate` to catch schema, dependency, verification, and implementation-reference gaps.
-5. Run `capabilitykit compile` to update `.capabilities/dist/capabilities.json`.
+5. Run `capabilitykit compile` to update the configured compiled capability map.
 
 ## Implementation Review
 
@@ -32,6 +32,30 @@ When asked whether a capability matches implementation behavior:
 capabilitykit create "User login" --area account
 capabilitykit validate
 capabilitykit inspect account/user-login
+capabilitykit impact account/user-login
 capabilitykit compile
 capabilitykit skill
 ```
+
+## Review and Agent Commands
+
+Use these commands when assessing implementation coverage or handing work to an
+external coding agent:
+
+```bash
+capabilitykit assess core/example
+capabilitykit assess core/example --json
+capabilitykit agent-task core/example --mode implement --output tmp/capability-task.md
+capabilitykit agent-task core/example --mode review --no-references
+capabilitykit agent-review core/example --command codex --arg exec --handoff stdin --dry-run --no-references
+capabilitykit review-result core/example --input tmp/review.json
+capabilitykit review-result core/example --input tmp/review.json --save
+capabilitykit agent-run core/example --command codex --arg exec --handoff stdin --mode implement --dry-run
+```
+
+- `assess` produces deterministic criterion-by-criterion implementation evidence.
+- `impact` reports direct and transitive downstream capabilities plus suggested verification.
+- `agent-task` creates an inspectable implementation or review prompt bundle.
+- `agent-review` combines a review bundle with the deterministic coverage report.
+- `review-result` validates or saves structured review JSON under `agent.review`.
+- `agent-run` executes an external CLI with stdin, argument, or prompt-file handoff.

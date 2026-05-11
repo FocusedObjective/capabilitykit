@@ -1,4 +1,4 @@
-id: developer-experience/install-capabilitykit-skill
+id: developer-experience/skills/install-capabilitykit-skill
 title: Install CapabilityKit skill
 status: implemented
 area: developer-experience
@@ -32,7 +32,7 @@ agent:
     - .codex/skills/capabilitykit/SKILL.md wrapper
     - .claude/commands/capabilitykit.md slash command
   depends_on:
-    - developer-experience/cli-workflow
+    - developer-experience/cli/cli-workflow
   implementation:
     references:
       - packages/cli/SKILL.md

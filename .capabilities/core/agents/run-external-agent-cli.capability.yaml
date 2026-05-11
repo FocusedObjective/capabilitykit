@@ -1,4 +1,4 @@
-id: core/run-external-agent-cli
+id: core/agents/run-external-agent-cli
 title: Run external agent CLI
 status: implemented
 area: core
@@ -33,7 +33,7 @@ agent:
     - external agent run transcript
     - actionable installation or configuration error
   depends_on:
-    - core/prepare-agent-task-bundle
+    - core/agents/prepare-agent-task-bundle
   implementation:
     references:
       - packages/core/src/externalAgent.ts

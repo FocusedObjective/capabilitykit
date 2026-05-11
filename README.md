@@ -43,7 +43,18 @@ capabilitykit compile
 
 A capability is a repo-native description of something the system should do. The default format keeps human-authored intent and guidance at the root of the file and puts implementation details, dependencies, and verification that agents can infer or maintain under `agent`.
 
-Humans do not need to invent capability IDs. If `id` is omitted, CapabilityKit derives it as `area/title-with-dashes`.
+Capability IDs should mirror the file path when a project has enough capabilities to benefit from hierarchy. For example, `.capabilities/core/validation/validate-capability-files.capability.yaml` should use `id: core/validation/validate-capability-files`.
+
+Use folders to show ownership and maintenance boundaries:
+
+- `core/model` for schema and format capabilities.
+- `core/validation` for checks that protect capability quality.
+- `core/graph` for compile-time graph and impact analysis.
+- `core/agents` for agent handoff and review workflows.
+- `developer-experience/*` for CLI, examples, skills, and integrations.
+- `docs/*` for user-facing and reference documentation.
+
+Capability dependencies still belong in `agent.depends_on`. Folder hierarchy makes the map easier to scan, but explicit dependencies are the source of truth for impact analysis.
 
 ## Example Capability File
 
@@ -81,6 +92,7 @@ agent:
 - `capabilitykit validate` validates capability files and reports verification gaps.
 - `capabilitykit compile` writes normalized JSON to `.capabilities/dist/capabilities.json`.
 - `capabilitykit inspect <capability-id>` prints one capability and its relationships.
+- `capabilitykit impact <capability-id>` reports direct and transitive downstream capabilities plus suggested verification.
 
 ## Verification Gaps
 

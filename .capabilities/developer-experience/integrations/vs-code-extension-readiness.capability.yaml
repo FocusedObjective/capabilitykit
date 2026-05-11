@@ -1,4 +1,4 @@
-id: developer-experience/vs-code-extension-readiness
+id: developer-experience/integrations/vs-code-extension-readiness
 title: VS Code extension readiness
 status: planned
 area: developer-experience
@@ -18,7 +18,7 @@ agent:
   outputs:
     - future editor integration points
   depends_on:
-    - core/compile-capabilities
+    - core/graph/compile-capabilities
   verification:
     automated:
       - id: compile-tests

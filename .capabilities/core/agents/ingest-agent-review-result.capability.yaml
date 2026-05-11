@@ -1,0 +1,52 @@
+id: core/agents/ingest-agent-review-result
+title: Ingest agent review result
+status: implemented
+area: core
+summary: Validate structured agent review output and optionally save it as
+  capability review evidence.
+intent: Turn external agent review prose into durable, policy-safe evidence
+  without automatically changing capability status.
+acceptance:
+  - Parses the structured JSON output requested by agent-review prompts.
+  - Validates reviewed criteria against the capability acceptance criteria.
+  - Requires file-path evidence for criteria marked covered or partial.
+  - Reports malformed review output, missing criteria, and missing evidence
+    paths as validation issues.
+  - Saves valid review evidence under agent.review without automatically
+    changing capability status.
+guidance:
+  - Keep ingestion separate from verification policy.
+  - Do not mark a capability verified solely because an agent set done true.
+  - Preserve enough criterion-level evidence for later human or automated
+    policy review.
+agent:
+  inputs:
+    - capability ID
+    - structured agent review JSON output
+    - capability acceptance criteria
+    - review evidence paths
+  outputs:
+    - validated review result
+    - agent.review evidence in the capability file
+  depends_on:
+    - core/agents/review-capability-with-agent
+  implementation:
+    references:
+      - packages/core/src/agentReviewResult.ts
+      - packages/core/src/schema.ts
+      - packages/core/src/types.ts
+      - packages/core/src/index.ts
+      - packages/cli/src/index.ts
+      - packages/core/tests/agentReviewResult.test.ts
+  verification:
+    automated:
+      - id: agent-review-result-tests
+        description: Unit tests cover valid review ingestion, validation issues,
+          and saving agent.review without status changes.
+        command: npm test -- packages/core/tests/agentReviewResult.test.ts
+      - id: cli-build
+        description: TypeScript build verifies exported APIs and CLI integration.
+        command: npm run build
+    manual:
+      - Run review-result with a saved agent-review JSON response and confirm
+        the capability status is unchanged while agent.review is populated.

@@ -1,4 +1,4 @@
-id: core/initialize-capability-project
+id: core/project/initialize-capability-project
 title: Initialize capability project
 status: implemented
 area: core
@@ -19,7 +19,7 @@ agent:
     - .capabilities/capabilitykit.yaml
     - .capabilities/example.capability.yaml
   depends_on:
-    - core/define-capability-format
+    - core/model/define-capability-format
   implementation:
     references:
       - packages/cli/src/index.ts

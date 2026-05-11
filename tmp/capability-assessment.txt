@@ -1,0 +1,623 @@
+===== docs/reference/capability-format-documentation
+# Implementation Coverage: Capability format documentation (docs/reference/capability-format-documentation)
+
+## References
+
+- README.md: readable
+
+## Acceptance Criteria
+
+1. uncovered: README explains what a capability is.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+2. uncertain: README includes an example capability file.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - README.md:46: Capability IDs should mirror the file path when a project has enough capabilities to benefit from hierarchy. For example, `.capabilities/core/validation/validate-capability-files.capability.yaml` should use `id: core/validation/validate-capability-files`.
+   - README.md:59: ## Example Capability File
+3. uncovered: README explains verification gaps.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+4. uncertain: README explains how folder hierarchy and capability IDs should align.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - README.md:46: Capability IDs should mirror the file path when a project has enough capabilities to benefit from hierarchy. For example, `.capabilities/core/validation/validate-capability-files.capability.yaml` should use `id: core/validation/validate-capability-files`.
+   - README.md:57: Capability dependencies still belong in `agent.depends_on`. Folder hierarchy makes the map easier to scan, but explicit dependencies are the source of truth for impact analysis.
+===== docs/project/readme
+# Implementation Coverage: README (docs/project/readme)
+
+## References
+
+- README.md: readable
+
+## Acceptance Criteria
+
+1. uncovered: README states the product thesis clearly.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+2. uncovered: README includes install and quick start instructions.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+3. uncertain: README explains how verification reduces manual review bottlenecks.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - README.md:11: The practical goal is to reduce the human bottleneck in review. Humans should not have to rediscover intent or manually invent every regression check after each AI-assisted change. Capability specs make the expected behavior and required verification visible before code changes start.
+   - README.md:99: CapabilityKit treats missing confidence as a first-class signal. Missing automated checks, vague acceptance criteria, broken references, missing `agent.implementation.references`, and manual review gaps are reported as verification gaps.
+4. uncovered: README shows how to organize capability files for easier maintenance.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+===== developer-experience/skills/install-capabilitykit-skill
+# Implementation Coverage: Install CapabilityKit skill (developer-experience/skills/install-capabilitykit-skill)
+
+## References
+
+- packages/cli/SKILL.md: readable
+- packages/cli/src/skillInstall.ts: readable
+- packages/cli/src/index.ts: readable
+- packages/cli/tests/skillInstall.test.ts: readable
+
+## Acceptance Criteria
+
+1. uncertain: Provides `capabilitykit skill` to install CapabilityKit skill files and agent entrypoints.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/cli/SKILL.md:3: description: Work with CapabilityKit capabilities as code. Use when creating, editing, validating, compiling, reviewing, or comparing .capability.yaml files against agent.implementation.references.
+   - packages/cli/src/skillInstall.ts:13: export interface InstallCapabilityKitSkillOptions {
+   - packages/cli/src/skillInstall.ts:17: export interface InstallCapabilityKitSkillResult {
+   - packages/cli/src/skillInstall.ts:34: description: Work with CapabilityKit capabilities as code. Use when creating, editing, validating, compiling, reviewing, or comparing .capability.yaml files against agent.implementation.references.
+   - packages/cli/src/skillInstall.ts:66: export function buildCapabilityKitSkillFiles(options: InstallCapabilityKitSkillOptions = {}): SkillInstallFile[] {
+   - packages/cli/src/skillInstall.ts:94: export async function installCapabilityKitSkill(
+   - packages/cli/src/index.ts:20: import { installCapabilityKitSkill } from "./skillInstall.js";
+   - packages/cli/src/index.ts:195: .description("Create or update CapabilityKit skill files and agent entrypoints")
+   - packages/cli/src/index.ts:202: const result = await installCapabilityKitSkill(process.cwd(), { packageSkillPath: options.skillPath });
+   - packages/cli/src/index.ts:203: console.log("Installed CapabilityKit skill:");
+   - packages/cli/tests/skillInstall.test.ts:2: import { buildCapabilityKitSkillFiles, mergeManagedBlock } from "../src/skillInstall.js";
+   - packages/cli/tests/skillInstall.test.ts:4: describe("CapabilityKit skill installation", () => {
+   - packages/cli/tests/skillInstall.test.ts:42: const files = buildCapabilityKitSkillFiles();
+   - packages/cli/tests/skillInstall.test.ts:49: expect(files.every((file) => file.contents.includes("node_modules/@capabilitykit/cli/SKILL.md"))).toBe(true);
+2. uncertain: Points generated guidance back to the package SKILL.md file.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/cli/src/index.ts:195: .description("Create or update CapabilityKit skill files and agent entrypoints")
+   - packages/cli/tests/skillInstall.test.ts:41: it("builds Codex and Claude entrypoints that reference the package skill", () => {
+3. uncertain: Preserves existing AGENTS.md and CLAUDE.md content while replacing any prior CapabilityKit managed block.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/cli/src/skillInstall.ts:52: export function mergeManagedBlock(existing: string | undefined, block: string): string {
+   - packages/cli/src/skillInstall.ts:106: : mergeManagedBlock(existing, file.block);
+   - packages/cli/tests/skillInstall.test.ts:2: import { buildCapabilityKitSkillFiles, mergeManagedBlock } from "../src/skillInstall.js";
+   - packages/cli/tests/skillInstall.test.ts:6: const result = mergeManagedBlock(undefined, "<!-- capabilitykit:start -->\nbody\n<!-- capabilitykit:end -->");
+   - packages/cli/tests/skillInstall.test.ts:10: it("appends the managed block without removing existing instructions", () => {
+   - packages/cli/tests/skillInstall.test.ts:21: it("replaces only the existing CapabilityKit managed block", () => {
+   - packages/cli/tests/skillInstall.test.ts:30: it("can merge a managed block into an existing skill file", () => {
+4. uncertain: Creates Codex skill and Claude slash-command wrapper files for simple prompts.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/cli/src/skillInstall.ts:43: function claudeCommandContents(packageSkillPath: string): string {
+   - packages/cli/src/skillInstall.ts:88: contents: claudeCommandContents(packageSkillPath),
+   - packages/cli/tests/skillInstall.test.ts:41: it("builds Codex and Claude entrypoints that reference the package skill", () => {
+5. uncovered: Covers merge behavior with automated tests.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+===== core/agents/run-external-agent-cli
+# Implementation Coverage: Run external agent CLI (core/agents/run-external-agent-cli)
+
+## References
+
+- packages/core/src/externalAgent.ts: readable
+- packages/core/src/index.ts: readable
+- packages/cli/src/index.ts: readable
+- packages/core/tests/externalAgent.test.ts: readable
+
+## Acceptance Criteria
+
+1. uncertain: Detects whether the requested agent command is available.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/externalAgent.ts:170: throw new Error(detected.message ?? `External agent command "${options.command}" is not available.`);
+2. uncovered: Lets users configure the executable and arguments instead of hard-coding a VS Code integration.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+3. uncertain: Passes the generated task bundle to the external agent through a documented stdin, argument, or prompt-file strategy.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/externalAgent.ts:6: export type AgentHandoffStrategy = "stdin" | "argument" | "prompt-file";
+   - packages/core/src/index.ts:4: export { buildAgentTaskBundle } from "./agentTask.js";
+   - packages/core/src/index.ts:12: export type { AgentTaskBundle, AgentTaskMode, AgentTaskOptions } from "./agentTask.js";
+   - packages/cli/src/index.ts:10: buildAgentTaskBundle,
+   - packages/cli/src/index.ts:122: function parseAgentHandoff(value: string): "stdin" | "argument" | "prompt-file" {
+   - packages/cli/src/index.ts:123: if (value === "stdin" || value === "argument" || value === "prompt-file") {
+   - packages/cli/src/index.ts:126: throw new Error(`Invalid agent handoff "${value}". Expected "stdin", "argument", or "prompt-file".`);
+   - packages/cli/src/index.ts:314: .description("Generate a prompt bundle for an external coding agent")
+   - packages/core/tests/externalAgent.test.ts:49: it("runs a configured command with the task bundle on stdin", async () => {
+   - packages/core/tests/externalAgent.test.ts:69: input: "prompt file task",
+   - packages/core/tests/externalAgent.test.ts:79: expect(await readFile(path.join(rootDir, "tmp", "prompt.md"), "utf8")).toBe("prompt file task");
+   - packages/core/tests/externalAgent.test.ts:83: it("passes the task bundle as an argument", async () => {
+4. uncertain: Captures the external agent exit code and output path or transcript.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/externalAgent.ts:116: message: `External agent command "${command}" was not found on PATH. Install it or pass --command with a configured executable.`
+   - packages/core/src/externalAgent.ts:131: function renderTranscript(result: ExternalAgentRunResult): string {
+   - packages/core/src/externalAgent.ts:151: async function writeTranscript(result: ExternalAgentRunResult, transcriptPath: string, cwd = process.cwd()): Promise<string> {
+   - packages/cli/src/index.ts:356: .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
+   - packages/cli/src/index.ts:425: .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
+   - packages/cli/src/index.ts:500: .requiredOption("--input <path>", "path to the agent review JSON output")
+   - packages/core/tests/externalAgent.test.ts:10: const rootDir = await mkdtemp(path.join(os.tmpdir(), "capabilitykit-external-agent-"));
+5. uncertain: Fails with an actionable message when the agent CLI is not installed.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/externalAgent.ts:100: message: `External agent command was not found or is not executable: ${command}`
+   - packages/core/src/externalAgent.ts:116: message: `External agent command "${command}" was not found on PATH. Install it or pass --command with a configured executable.`
+   - packages/core/src/externalAgent.ts:170: throw new Error(detected.message ?? `External agent command "${options.command}" is not available.`);
+===== core/agents/review-capability-with-agent
+# Implementation Coverage: Review capability with agent (core/agents/review-capability-with-agent)
+
+## References
+
+- packages/core/src/agentReview.ts: readable
+- packages/core/src/agentTask.ts: readable
+- packages/core/src/assessImplementationCoverage.ts: readable
+- packages/core/src/externalAgent.ts: readable
+- packages/core/src/index.ts: readable
+- packages/cli/src/index.ts: readable
+- packages/core/tests/agentReview.test.ts: readable
+
+## Acceptance Criteria
+
+1. uncertain: Generates a review-mode task bundle for one capability.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/agentReview.ts:48: buildAgentTaskBundle(rootDir, capabilityId, {
+   - packages/core/src/agentTask.ts:6: export type AgentTaskMode = "implement" | "review";
+   - packages/core/src/index.ts:12: export type { AgentTaskBundle, AgentTaskMode, AgentTaskOptions } from "./agentTask.js";
+   - packages/cli/src/index.ts:115: function parseAgentTaskMode(value: string): "implement" | "review" {
+   - packages/cli/src/index.ts:119: throw new Error(`Invalid agent task mode "${value}". Expected "implement" or "review".`);
+   - packages/cli/src/index.ts:316: .option("--mode <mode>", "task mode: implement or review", "implement")
+   - packages/cli/src/index.ts:324: const bundle = await buildAgentTaskBundle(process.cwd(), capabilityId, {
+   - packages/cli/src/index.ts:349: .description("Run an external coding-agent command with a generated capability task bundle")
+2. uncertain: Asks the agent to summarize intent in its own words before judging coverage.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/agentTask.ts:67: "First summarize the capability intent in your own words.",
+3. uncertain: Asks the agent to mark each acceptance criterion covered, partial, uncovered, or uncertain.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/agentReview.ts:26: '      "status": "covered | partial | uncovered | uncertain",',
+   - packages/core/src/agentTask.ts:68: "For each acceptance criterion, mark it as covered, partial, uncovered, or uncertain.",
+   - packages/core/src/assessImplementationCoverage.ts:5: export type AcceptanceCoverageStatus = "covered" | "uncovered" | "uncertain";
+   - packages/core/tests/agentReview.test.ts:70: expect(review.prompt).toContain('"status": "covered | partial | uncovered | uncertain"');
+4. uncertain: Requires file-path evidence for covered or partially covered criteria.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/agentReview.ts:36: "Set `done` to true only when every criterion is covered with concrete file-path evidence.",
+   - packages/core/src/agentTask.ts:69: "Provide concrete file-path evidence for covered or partially covered criteria.",
+   - packages/cli/src/index.ts:514: console.log(`Saved review evidence to ${path.relative(process.cwd(), result.filePath)}`);
+5. uncertain: Keeps status changes policy-controlled and does not automatically mark a capability verified solely from agent prose.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/agentReview.ts:38: "Do not change capability status; this review is evidence for a human or policy-controlled acceptance step."
+   - packages/core/src/agentTask.ts:70: "Do not mark the capability verified solely from prose; report remaining gaps explicitly."
+===== core/validation/verify-implementation-references
+# Implementation Coverage: Verify implementation references (core/validation/verify-implementation-references)
+
+## References
+
+- packages/core/src/validateCapabilities.ts: readable
+- packages/core/tests/validation.test.ts: readable
+
+## Acceptance Criteria
+
+1. uncertain: Checks agent.implementation.references for capabilities marked implemented or verified.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/validateCapabilities.ts:22: return (capability.agent?.implementation?.references?.length ?? 0) > 0;
+   - packages/core/src/validateCapabilities.ts:123: for (const reference of capability.agent?.implementation?.references ?? []) {
+   - packages/core/tests/validation.test.ts:12: require_implementation_references_for_status: ["implemented", "verified"]
+   - packages/core/tests/validation.test.ts:79: it("requires implementation references for implemented capabilities", () => {
+   - packages/core/tests/validation.test.ts:113: message: 'core/done references missing implementation path "packages/core/src/validateCapabilities.ts"'
+2. uncertain: Reports a verification gap when a referenced implementation path does not exist.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/tests/validation.test.ts:64: it("reports verification gaps without making the result invalid", () => {
+   - packages/core/tests/validation.test.ts:82: expect(result.verificationGaps.some((gap) => gap.code === "missing-implementation-references")).toBe(true);
+   - packages/core/tests/validation.test.ts:85: it("reports implementation references that do not resolve to files", () => {
+   - packages/core/tests/validation.test.ts:111: expect(result.verificationGaps).not.toContainEqual(
+3. uncertain: Does not report a gap for agent.implementation.references values that resolve under the project root.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/validateCapabilities.ts:22: return (capability.agent?.implementation?.references?.length ?? 0) > 0;
+   - packages/core/src/validateCapabilities.ts:123: for (const reference of capability.agent?.implementation?.references ?? []) {
+   - packages/core/tests/validation.test.ts:82: expect(result.verificationGaps.some((gap) => gap.code === "missing-implementation-references")).toBe(true);
+   - packages/core/tests/validation.test.ts:85: it("reports implementation references that do not resolve to files", () => {
+===== developer-experience/examples/example-project
+# Implementation Coverage: Example project (developer-experience/examples/example-project)
+
+## References
+
+- examples/basic-app/.capabilities/capabilitykit.yaml: readable
+- examples/basic-app/.capabilities/account/login.capability.yaml: readable
+
+## Acceptance Criteria
+
+1. uncovered: Includes account and checkout capability areas.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+2. uncovered: Example files include agent.verification sections.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+3. uncovered: Example files are valid against the MVP schema.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+===== core/agents/prepare-agent-task-bundle
+# Implementation Coverage: Prepare agent task bundle (core/agents/prepare-agent-task-bundle)
+
+## References
+
+- packages/core/src/agentTask.ts: readable
+- packages/core/src/index.ts: readable
+- packages/cli/src/index.ts: readable
+- packages/core/tests/agentTask.test.ts: readable
+
+## Acceptance Criteria
+
+1. uncovered: Reads one capability by ID from the configured capability map.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+2. uncertain: Includes the capability title, status, summary, intent, acceptance criteria, guidance, dependencies, implementation references, and verification checks.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/agentTask.ts:136: const implementationReferences = capability.agent?.implementation?.references ?? [];
+   - packages/core/src/agentTask.ts:148: section("Acceptance Criteria", numberedList(capability.acceptance)),
+   - packages/core/src/agentTask.ts:154: section("Automated Verification", verificationChecks(capability.agent?.verification?.automated)),
+   - packages/cli/src/index.ts:57: guidance: ["Keep implementation and tests aligned with this capability."]
+   - packages/cli/src/index.ts:161: require_implementation_references_for_status: ["implemented", "verified"]
+   - packages/cli/src/index.ts:209: console.log("  /capabilitykit review .capabilities/core/validation/verify-implementation-references.capability.yaml");
+   - packages/cli/src/index.ts:210: console.log("  Ask Codex: review this capability against its agent.implementation.references");
+3. uncovered: Supports implementation and review task modes.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+4. uncertain: Optionally includes the contents of existing implementation reference files.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/cli/src/index.ts:317: .option("--no-references", "omit implementation reference file contents")
+   - packages/cli/src/index.ts:357: .option("--no-references", "omit implementation reference file contents")
+   - packages/cli/src/index.ts:427: .option("--no-references", "omit implementation reference file contents")
+   - packages/core/tests/agentTask.test.ts:74: it("reports missing implementation reference files in the prompt", async () => {
+5. uncertain: Reports missing implementation reference files in the bundle instead of failing silently.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/cli/src/index.ts:334: if (bundle.missingReferences.length > 0) {
+   - packages/cli/src/index.ts:335: console.log(`Missing references: ${bundle.missingReferences.join(", ")}`);
+   - packages/cli/src/index.ts:341: if (bundle.missingReferences.length > 0) {
+   - packages/cli/src/index.ts:342: console.error(`Missing references: ${bundle.missingReferences.join(", ")}`);
+   - packages/core/tests/agentTask.test.ts:71: expect(bundle.missingReferences).toEqual([]);
+   - packages/core/tests/agentTask.test.ts:74: it("reports missing implementation reference files in the prompt", async () => {
+   - packages/core/tests/agentTask.test.ts:93: const bundle = await buildAgentTaskBundle(rootDir, "core/missing-reference");
+   - packages/core/tests/agentTask.test.ts:95: expect(bundle.missingReferences).toEqual(["src/missing.ts"]);
+===== core/validation/validate-capability-files
+# Implementation Coverage: Validate capability files (core/validation/validate-capability-files)
+
+## References
+
+- packages/core/src/validateCapabilities.ts: readable
+- packages/core/src/loadCapabilities.ts: readable
+- packages/cli/src/index.ts: readable
+
+## Acceptance Criteria
+
+1. uncovered: Reports YAML and schema errors with file paths.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+2. uncovered: Detects duplicate capability IDs.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+3. uncovered: Detects broken agent.depends_on references.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+4. uncertain: Reports missing automated checks, missing manual review guidance, and missing agent.implementation.references values.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/validateCapabilities.ts:22: return (capability.agent?.implementation?.references?.length ?? 0) > 0;
+   - packages/core/src/validateCapabilities.ts:94: `${capability.id} has no automated or manual verification checks`
+   - packages/core/src/validateCapabilities.ts:99: addGap(verificationGaps, parsed, "missing-automated-checks", `${capability.id} has no automated checks`);
+   - packages/core/src/validateCapabilities.ts:103: addGap(verificationGaps, parsed, "missing-manual-review", `${capability.id} has no manual review guidance`);
+   - packages/core/src/validateCapabilities.ts:117: "missing-implementation-references",
+   - packages/cli/src/index.ts:209: console.log("  /capabilitykit review .capabilities/core/validation/verify-implementation-references.capability.yaml");
+   - packages/cli/src/index.ts:210: console.log("  Ask Codex: review this capability against its agent.implementation.references");
+   - packages/cli/src/index.ts:419: .description("Ask an external agent to review a capability against implementation evidence")
+   - packages/cli/src/index.ts:478: if (review.missingReferences.length > 0) {
+   - packages/cli/src/index.ts:479: console.log(`Missing references: ${review.missingReferences.join(", ")}`);
+===== developer-experience/integrations/vs-code-extension-readiness
+# Implementation Coverage: VS Code extension readiness (developer-experience/integrations/vs-code-extension-readiness)
+
+## References
+
+- none
+
+## Acceptance Criteria
+
+1. uncovered: MVP does not include VS Code extension code.
+   Rationale: No readable implementation references were available.
+   Evidence: none
+2. uncovered: Compiled JSON contains enough path and graph data for a future extension.
+   Rationale: No readable implementation references were available.
+   Evidence: none
+===== core/agents/ingest-agent-review-result
+# Implementation Coverage: Ingest agent review result (core/agents/ingest-agent-review-result)
+
+## References
+
+- packages/core/src/agentReviewResult.ts: readable
+- packages/core/src/schema.ts: readable
+- packages/core/src/types.ts: readable
+- packages/core/src/index.ts: readable
+- packages/cli/src/index.ts: readable
+- packages/core/tests/agentReviewResult.test.ts: readable
+
+## Acceptance Criteria
+
+1. uncertain: Parses the structured JSON output requested by agent-review prompts.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/agentReviewResult.ts:63: throw new Error("Review output must be JSON or contain a fenced JSON block.");
+   - packages/cli/src/index.ts:498: .description("Validate or save structured agent review output for a capability")
+   - packages/cli/src/index.ts:500: .requiredOption("--input <path>", "path to the agent review JSON output")
+   - packages/cli/src/index.ts:501: .option("--save", "save valid review output to the capability agent.review field")
+   - packages/core/tests/agentReviewResult.test.ts:80: it("validates structured review output against acceptance criteria and evidence paths", async () => {
+   - packages/core/tests/agentReviewResult.test.ts:122: it("saves valid review output to agent.review without changing capability status", async () => {
+2. uncertain: Validates reviewed criteria against the capability acceptance criteria.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/tests/agentReviewResult.test.ts:80: it("validates structured review output against acceptance criteria and evidence paths", async () => {
+3. uncertain: Requires file-path evidence for criteria marked covered or partial.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/agentReviewResult.ts:134: if ((criterion.status === "covered" || criterion.status === "partial") && criterion.evidence.length === 0) {
+   - packages/core/src/agentReviewResult.ts:137: message: `Criterion marked ${criterion.status} must include file-path evidence.`,
+   - packages/cli/src/index.ts:514: console.log(`Saved review evidence to ${path.relative(process.cwd(), result.filePath)}`);
+   - packages/core/tests/agentReviewResult.test.ts:80: it("validates structured review output against acceptance criteria and evidence paths", async () => {
+4. uncertain: Reports malformed review output, missing criteria, and missing evidence paths as validation issues.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/agentReviewResult.ts:36: issues: AgentReviewValidationIssue[];
+   - packages/core/src/agentReviewResult.ts:86: function computeDepth(review: ParsedAgentReviewResult, issues: AgentReviewValidationIssue[]): "partial" | "verified" {
+   - packages/core/src/agentReviewResult.ts:103: const issues: AgentReviewValidationIssue[] = [];
+   - packages/core/src/agentReviewResult.ts:169: function reviewEvidence(criteria: AgentReviewCriterion[]): string[] {
+   - packages/core/src/agentReviewResult.ts:198: criteria: validation.review.criteria,
+   - packages/core/tests/agentReviewResult.test.ts:80: it("validates structured review output against acceptance criteria and evidence paths", async () => {
+   - packages/core/tests/agentReviewResult.test.ts:92: it("reports missing criterion and missing evidence paths", async () => {
+   - packages/core/tests/agentReviewResult.test.ts:119: expect(result.issues.map((issue) => issue.code)).toContain("missing-evidence-path");
+5. uncertain: Saves valid review evidence under agent.review without automatically changing capability status.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/agentReviewResult.ts:6: import type { AgentReviewCriterion, Capability } from "./types.js";
+   - packages/core/src/agentReviewResult.ts:26: export interface AgentReviewValidationIssue {
+   - packages/core/src/agentReviewResult.ts:33: export interface ValidatedAgentReviewResult {
+   - packages/core/src/agentReviewResult.ts:36: issues: AgentReviewValidationIssue[];
+   - packages/core/src/agentReviewResult.ts:43: validation: ValidatedAgentReviewResult;
+   - packages/core/src/schema.ts:27: const agentReviewCriterionStatusSchema = z.enum(["covered", "partial", "uncovered", "uncertain"]);
+   - packages/core/src/schema.ts:31: status: agentReviewCriterionStatusSchema,
+   - packages/core/src/types.ts:9: export type AgentReviewCriterionStatus = "covered" | "partial" | "uncovered" | "uncertain";
+   - packages/core/src/types.ts:13: status: AgentReviewCriterionStatus;
+   - packages/core/src/index.ts:3: export { saveAgentReviewResult, validateAgentReviewResult } from "./agentReviewResult.js";
+   - packages/core/src/index.ts:22: AgentReviewValidationIssue,
+   - packages/core/src/index.ts:25: ValidatedAgentReviewResult
+   - packages/core/src/index.ts:42: AgentReviewCriterionStatus,
+   - packages/cli/src/index.ts:16: validateAgentReviewResult,
+   - packages/cli/src/index.ts:91: function printReviewResult(result: Awaited<ReturnType<typeof validateAgentReviewResult>>): void {
+   - packages/cli/src/index.ts:119: throw new Error(`Invalid agent task mode "${value}". Expected "implement" or "review".`);
+   - packages/cli/src/index.ts:209: console.log("  /capabilitykit review .capabilities/core/validation/verify-implementation-references.capability.yaml");
+   - packages/cli/src/index.ts:210: console.log("  Ask Codex: review this capability against its agent.implementation.references");
+   - packages/core/tests/agentReviewResult.test.ts:5: import { saveAgentReviewResult, validateAgentReviewResult } from "../src/agentReviewResult.js";
+   - packages/core/tests/agentReviewResult.test.ts:80: it("validates structured review output against acceptance criteria and evidence paths", async () => {
+   - packages/core/tests/agentReviewResult.test.ts:85: const result = await validateAgentReviewResult(rootDir, capability, validReview());
+   - packages/core/tests/agentReviewResult.test.ts:97: const result = await validateAgentReviewResult(
+   - packages/core/tests/agentReviewResult.test.ts:122: it("saves valid review output to agent.review without changing capability status", async () => {
+===== core/validation/detect-verification-gaps
+# Implementation Coverage: Detect verification gaps (core/validation/detect-verification-gaps)
+
+## References
+
+- packages/core/src/validateCapabilities.ts: readable
+
+## Acceptance Criteria
+
+1. uncertain: Reports capabilities with no agent.verification.automated checks.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/validateCapabilities.ts:16: (capability.agent?.verification?.automated?.length ?? 0) > 0 ||
+   - packages/core/src/validateCapabilities.ts:94: `${capability.id} has no automated or manual verification checks`
+   - packages/core/src/validateCapabilities.ts:98: if ((capability.agent?.verification?.automated?.length ?? 0) === 0) {
+   - packages/core/src/validateCapabilities.ts:99: addGap(verificationGaps, parsed, "missing-automated-checks", `${capability.id} has no automated checks`);
+2. uncertain: Reports capabilities with no agent.verification.manual review guidance.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/validateCapabilities.ts:17: (capability.agent?.verification?.manual?.length ?? 0) > 0
+   - packages/core/src/validateCapabilities.ts:102: if ((capability.agent?.verification?.manual?.length ?? 0) === 0) {
+   - packages/core/src/validateCapabilities.ts:103: addGap(verificationGaps, parsed, "missing-manual-review", `${capability.id} has no manual review guidance`);
+3. uncertain: Reports implemented or verified capabilities without agent.implementation.references values.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/validateCapabilities.ts:22: return (capability.agent?.implementation?.references?.length ?? 0) > 0;
+   - packages/core/src/validateCapabilities.ts:123: for (const reference of capability.agent?.implementation?.references ?? []) {
+4. uncertain: Reports declared agent.verification.gaps from capability files.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/validateCapabilities.ts:16: (capability.agent?.verification?.automated?.length ?? 0) > 0 ||
+   - packages/core/src/validateCapabilities.ts:17: (capability.agent?.verification?.manual?.length ?? 0) > 0
+   - packages/core/src/validateCapabilities.ts:29: function addGap(gaps: VerificationGap[], capability: ParsedCapability, code: string, message: string): void {
+   - packages/core/src/validateCapabilities.ts:98: if ((capability.agent?.verification?.automated?.length ?? 0) === 0) {
+   - packages/core/src/validateCapabilities.ts:99: addGap(verificationGaps, parsed, "missing-automated-checks", `${capability.id} has no automated checks`);
+===== developer-experience/cli/cli-workflow
+# Implementation Coverage: CLI workflow (developer-experience/cli/cli-workflow)
+
+## References
+
+- packages/cli/src/index.ts: readable
+
+## Acceptance Criteria
+
+1. uncovered: Supports init, create, validate, compile, and inspect commands.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+2. uncertain: Returns a non-zero exit code for validation failures.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/cli/src/index.ts:230: process.exitCode = compiled.validation.valid ? 0 : 1;
+   - packages/cli/src/index.ts:517: process.exitCode = result.validation.valid ? 0 : 1;
+   - packages/cli/src/index.ts:535: process.exitCode = validation.valid ? 0 : 1;
+3. uncovered: Prints verification gaps in validation and inspect output.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+===== core/project/initialize-capability-project
+# Implementation Coverage: Initialize capability project (core/project/initialize-capability-project)
+
+## References
+
+- packages/cli/src/index.ts: readable
+
+## Acceptance Criteria
+
+1. uncertain: Creates the root capability config file.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/cli/src/index.ts:144: const configPath = path.join(root, ".capabilities", "capabilitykit.yaml");
+2. uncovered: Creates a starter capability file.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+3. uncertain: Refuses to overwrite existing files unless force is requested.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/cli/src/index.ts:141: .option("--force", "overwrite existing files")
+   - packages/cli/src/index.ts:186: .option("--force", "overwrite existing files")
+4. uncovered: Prints practical next steps.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+===== core/model/define-capability-format
+# Implementation Coverage: Define capability format (core/model/define-capability-format)
+
+## References
+
+- packages/core/src/schema.ts: readable
+- packages/core/src/types.ts: readable
+- packages/core/src/parseCapability.ts: readable
+
+## Acceptance Criteria
+
+1. uncertain: Capability files require title, status, area, summary, intent, and acceptance criteria.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/schema.ts:185: id: capability.id ?? `${slugify(capability.area)}/${slugify(capability.title)}`,
+   - packages/core/src/types.ts:67: require_implementation_references_for_status?: CapabilityStatus[];
+2. uncertain: Capability IDs can be omitted and derived from area and title.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/schema.ts:185: id: capability.id ?? `${slugify(capability.area)}/${slugify(capability.title)}`,
+3. uncertain: Agent-maintained fields capture inputs, outputs, dependencies, implementation references, verification, and review evidence.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/schema.ts:164: references: capability.agent?.implementation?.references ?? legacyImplementation?.references ?? [],
+===== core/graph/compile-capabilities
+# Implementation Coverage: Compile capabilities (core/graph/compile-capabilities)
+
+## References
+
+- packages/core/src/compileCapabilities.ts: readable
+- packages/cli/src/index.ts: readable
+
+## Acceptance Criteria
+
+1. uncertain: Writes normalized JSON to the configured output path.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/compileCapabilities.ts:36: const outputPath = path.resolve(rootDir, loaded.config.output?.path ?? ".capabilities/dist/capabilities.json");
+   - packages/core/src/compileCapabilities.ts:38: await fs.writeFile(outputPath, `${JSON.stringify(compiled, null, 2)}\n`);
+   - packages/cli/src/index.ts:500: .requiredOption("--input <path>", "path to the agent review JSON output")
+2. uncovered: Includes project metadata and all parsed capabilities.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+3. uncovered: Includes dependency graph information.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+4. uncovered: Includes validation results and verification summary.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+===== core/graph/analyze-capability-impact
+# Implementation Coverage: Analyze capability impact (core/graph/analyze-capability-impact)
+
+## References
+
+- packages/core/src/capabilityImpact.ts: readable
+- packages/core/src/compileCapabilities.ts: readable
+- packages/core/src/index.ts: readable
+- packages/cli/src/index.ts: readable
+- packages/core/tests/capabilityImpact.test.ts: readable
+- packages/core/tests/compile.test.ts: readable
+
+## Acceptance Criteria
+
+1. uncertain: Builds direct and transitive dependent relationships from agent.depends_on.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/capabilityImpact.ts:83: const impacted = uniqueSorted([capabilityId, ...directDependents, ...transitiveDependents]);
+   - packages/core/tests/capabilityImpact.test.ts:52: it("builds direct and transitive dependents", () => {
+   - packages/core/tests/capabilityImpact.test.ts:72: expect(report.direct_dependents).toContain("core/agents/prepare-agent-task-bundle");
+   - packages/core/tests/compile.test.ts:15: expect(compiled.impact_graph.transitive_dependents["core/graph/compile-capabilities"]).toContain("core/agents/prepare-agent-task-bundle");
+2. uncertain: Reports impacted capabilities for a selected capability.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/capabilityImpact.ts:84: const impactedCapabilities = impacted.map((id) => capabilities.get(id)).filter((capability) => capability !== undefined);
+   - packages/core/src/capabilityImpact.ts:86: const automated = uniqueChecks(impactedCapabilities.flatMap((capability) => capability.agent?.verification?.automated ?? []));
+   - packages/core/src/capabilityImpact.ts:87: const manual = uniqueSorted(impactedCapabilities.flatMap((capability) => capability.agent?.verification?.manual ?? []));
+   - packages/core/tests/capabilityImpact.test.ts:69: it("reports impacted capabilities for the repository capability map", async () => {
+3. uncertain: Includes suggested automated checks from the selected and impacted capabilities.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/capabilityImpact.ts:86: const automated = uniqueChecks(impactedCapabilities.flatMap((capability) => capability.agent?.verification?.automated ?? []));
+   - packages/core/src/capabilityImpact.ts:125: "Suggested automated checks",
+   - packages/core/src/compileCapabilities.ts:25: automated_checks: capabilities.reduce((total, capability) => total + (capability.agent?.verification?.automated?.length ?? 0), 0),
+4. uncertain: Includes manual review guidance and verification gaps for the impacted set.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/capabilityImpact.ts:87: const manual = uniqueSorted(impactedCapabilities.flatMap((capability) => capability.agent?.verification?.manual ?? []));
+   - packages/core/src/capabilityImpact.ts:89: const gaps = validation.verificationGaps.filter((gap) => gap.capabilityId && impactedSet.has(gap.capabilityId));
+   - packages/core/src/capabilityImpact.ts:128: section("Manual review", report.verification.manual);
+5. uncovered: Exposes impact data through the compiled capability artifact and CLI.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none
+===== core/assessment/assess-implementation-coverage
+# Implementation Coverage: Assess implementation coverage (core/assessment/assess-implementation-coverage)
+
+## References
+
+- packages/core/src/assessImplementationCoverage.ts: readable
+- packages/core/src/index.ts: readable
+- packages/cli/src/index.ts: readable
+- packages/core/tests/assessImplementationCoverage.test.ts: readable
+
+## Acceptance Criteria
+
+1. uncertain: Reads the referenced implementation files for one capability.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/assessImplementationCoverage.ts:146: rationale: "No deterministic evidence was found in referenced implementation files."
+2. uncertain: Presents each acceptance criterion beside relevant implementation evidence.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/assessImplementationCoverage.ts:158: rationale: "The criterion text appears directly in referenced implementation evidence."
+3. uncertain: Marks criteria as covered, uncovered, or uncertain.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/src/assessImplementationCoverage.ts:5: export type AcceptanceCoverageStatus = "covered" | "uncovered" | "uncertain";
+   - packages/core/tests/assessImplementationCoverage.test.ts:38: it("marks criteria covered when exact criterion text appears in referenced files", async () => {
+   - packages/core/tests/assessImplementationCoverage.test.ts:68: it("marks criteria uncertain when only partial deterministic evidence exists", async () => {
+   - packages/core/tests/assessImplementationCoverage.test.ts:95: it("marks criteria uncovered when references are missing or no evidence exists", async () => {
+   - packages/core/tests/assessImplementationCoverage.test.ts:122: expect(report.criteria.map((criterion) => criterion.status)).toEqual(["uncovered", "uncovered"]);
+4. uncertain: Reports missing or unreadable references as uncovered evidence.
+   Rationale: Relevant text was found, but deterministic matching cannot prove semantic coverage.
+   Evidence:
+   - packages/core/tests/assessImplementationCoverage.test.ts:95: it("marks criteria uncovered when references are missing or no evidence exists", async () => {
+   - packages/core/tests/assessImplementationCoverage.test.ts:105: - Reports missing or unreadable references.
+5. uncovered: Keeps the first version deterministic or review-assisted rather than silently trusting an AI judgment.
+   Rationale: No deterministic evidence was found in referenced implementation files.
+   Evidence: none

@@ -1,4 +1,4 @@
-id: docs/readme
+id: docs/project/readme
 title: README
 status: implemented
 area: docs
@@ -9,6 +9,7 @@ acceptance:
   - README states the product thesis clearly.
   - README includes install and quick start instructions.
   - README explains how verification reduces manual review bottlenecks.
+  - README shows how to organize capability files for easier maintenance.
 guidance:
   - Keep the docs CLI-first and repo-native.
   - Do not position the MVP as a cloud product.
@@ -20,7 +21,7 @@ agent:
     - quick start
     - CLI command reference
   depends_on:
-    - docs/capability-format-documentation
+    - docs/reference/capability-format-documentation
   implementation:
     references:
       - README.md

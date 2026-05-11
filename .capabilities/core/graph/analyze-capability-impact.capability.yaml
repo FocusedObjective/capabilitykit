@@ -1,0 +1,49 @@
+id: core/graph/analyze-capability-impact
+title: Analyze capability impact
+status: implemented
+area: core
+summary: Report downstream capabilities that may need review or testing when a
+  capability changes.
+intent: Help maintainers and agents understand the blast radius of capability
+  changes by traversing reverse dependency relationships and surfacing relevant
+  verification guidance.
+acceptance:
+  - Builds direct and transitive dependent relationships from agent.depends_on.
+  - Reports impacted capabilities for a selected capability.
+  - Includes suggested automated checks from the selected and impacted
+    capabilities.
+  - Includes manual review guidance and verification gaps for the impacted set.
+  - Exposes impact data through the compiled capability artifact and CLI.
+guidance:
+  - Keep the existing dependency_graph output backward-compatible.
+  - Treat deeper folder hierarchy as navigation and ownership context, not as a
+    replacement for explicit depends_on relationships.
+agent:
+  inputs:
+    - .capabilities/**/*.capability.yaml
+    - capability agent.depends_on values
+  outputs:
+    - impact report
+    - compiled impact graph
+  depends_on:
+    - core/graph/compile-capabilities
+    - core/validation/validate-capability-files
+  implementation:
+    references:
+      - packages/core/src/capabilityImpact.ts
+      - packages/core/src/compileCapabilities.ts
+      - packages/core/src/index.ts
+      - packages/cli/src/index.ts
+      - packages/core/tests/capabilityImpact.test.ts
+      - packages/core/tests/compile.test.ts
+  verification:
+    automated:
+      - id: impact-tests
+        description: Unit tests verify reverse and transitive impact analysis.
+        command: npm test -- packages/core/tests/capabilityImpact.test.ts packages/core/tests/compile.test.ts
+      - id: dogfood-impact
+        description: The CLI reports impact for a core capability.
+        command: npm run capabilitykit -- impact core/graph/compile-capabilities
+    manual:
+      - Change or inspect a foundational capability and confirm the impact
+        report identifies direct and transitive dependents that need review.

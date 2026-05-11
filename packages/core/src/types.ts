@@ -6,6 +6,15 @@ export interface VerificationCheck {
   command?: string;
 }
 
+export type AgentReviewCriterionStatus = "covered" | "partial" | "uncovered" | "uncertain";
+
+export interface AgentReviewCriterion {
+  criterion: string;
+  status: AgentReviewCriterionStatus;
+  evidence: string[];
+  notes?: string;
+}
+
 export interface Capability {
   id: string;
   title: string;
@@ -32,6 +41,9 @@ export interface Capability {
       depth?: "none" | "referenced" | "partial" | "behavioral" | "tested" | "verified" | "unknown";
       gaps?: string[];
       evidence?: string[];
+      intent_summary?: string;
+      criteria?: AgentReviewCriterion[];
+      done?: boolean;
     };
   };
   replacement?: string;
@@ -95,11 +107,31 @@ export interface ValidationResult {
   verificationGaps: VerificationGap[];
 }
 
+export interface CapabilityImpactGraph {
+  dependencies: Record<string, string[]>;
+  dependents: Record<string, string[]>;
+  transitive_dependents: Record<string, string[]>;
+}
+
+export interface CapabilityImpactReport {
+  capability_id: string;
+  dependencies: string[];
+  direct_dependents: string[];
+  transitive_dependents: string[];
+  impacted_capabilities: string[];
+  verification: {
+    automated: VerificationCheck[];
+    manual: string[];
+    gaps: VerificationGap[];
+  };
+}
+
 export interface CompiledCapabilities {
   project: ProjectConfig["project"];
   generated_at: string;
   capabilities: Array<Capability & { path: string; hierarchy: string[] }>;
   dependency_graph: Record<string, string[]>;
+  impact_graph: CapabilityImpactGraph;
   verification_summary: {
     automated_checks: number;
     manual_checks: number;

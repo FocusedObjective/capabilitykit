@@ -1,4 +1,4 @@
-id: core/prepare-agent-task-bundle
+id: core/agents/prepare-agent-task-bundle
 title: Prepare agent task bundle
 status: implemented
 area: core
@@ -29,8 +29,8 @@ agent:
   outputs:
     - agent task prompt bundle
   depends_on:
-    - core/compile-capabilities
-    - core/verify-implementation-references
+    - core/graph/compile-capabilities
+    - core/validation/verify-implementation-references
   implementation:
     references:
       - packages/core/src/agentTask.ts
@@ -44,7 +44,7 @@ agent:
         command: npm test -- packages/core/tests/agentTask.test.ts
       - id: dogfood-agent-task
         description: The CLI generates an implementation bundle for this capability.
-        command: node packages/cli/dist/index.js agent-task core/prepare-agent-task-bundle --mode implement
+        command: node packages/cli/dist/index.js agent-task core/agents/prepare-agent-task-bundle --mode implement
     manual:
       - Generate implement and review bundles and confirm they are clear enough
         to paste into an external coding agent.

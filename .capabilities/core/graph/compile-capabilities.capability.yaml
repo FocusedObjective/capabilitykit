@@ -1,4 +1,4 @@
-id: core/compile-capabilities
+id: core/graph/compile-capabilities
 title: Compile capabilities
 status: implemented
 area: core
@@ -19,10 +19,10 @@ agent:
   inputs:
     - .capabilities/**/*.capability.yaml
   outputs:
-    - .capabilities/dist/capabilities.json
+    - configured compiled capability JSON output
   depends_on:
-    - core/define-capability-format
-    - core/validate-capability-files
+    - core/model/define-capability-format
+    - core/validation/validate-capability-files
   implementation:
     references:
       - packages/core/src/compileCapabilities.ts
@@ -36,5 +36,5 @@ agent:
         description: The CLI compiles CapabilityKit's own capability map.
         command: npm run capabilitykit -- compile
     manual:
-      - Inspect .capabilities/dist/capabilities.json after compile and confirm
+      - Inspect the configured compiled JSON output after compile and confirm
         the graph is readable.
