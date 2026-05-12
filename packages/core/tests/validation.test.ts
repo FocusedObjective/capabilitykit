@@ -76,6 +76,65 @@ describe("validateLoadedCapabilities", () => {
     expect(result.verificationGaps.map((gap) => gap.code)).toContain("declared-gap");
   });
 
+  it("ignores selected verification gaps declared by the capability", () => {
+    const result = validateLoadedCapabilities(
+      loaded([
+        parsed("core/gap", {
+          agent: {
+            verification: {
+              automated: [],
+              manual: [],
+              gaps: ["Needs a real check."],
+              ignore_gaps: [
+                {
+                  code: "missing-automated-checks",
+                  reason: "Manual review is sufficient for this example."
+                },
+                {
+                  code: "declared-gap",
+                  message_contains: "Needs a real check.",
+                  reason: "Tracked separately."
+                }
+              ]
+            }
+          }
+        })
+      ])
+    );
+
+    expect(result.verificationGaps.map((gap) => gap.code)).not.toContain("missing-automated-checks");
+    expect(result.verificationGaps.map((gap) => gap.code)).not.toContain("declared-gap");
+    expect(result.verificationGaps.map((gap) => gap.code)).toContain("missing-manual-review");
+  });
+
+  it("can ignore all verification gaps for one capability", () => {
+    const result = validateLoadedCapabilities(
+      loaded([
+        parsed("core/gap", {
+          agent: {
+            verification: {
+              automated: [],
+              manual: [],
+              gaps: ["Known limitation."],
+              ignore_gaps: [{ code: "*", reason: "Intentional example capability." }]
+            }
+          }
+        }),
+        parsed("core/other", {
+          agent: {
+            verification: {
+              automated: [],
+              manual: []
+            }
+          }
+        })
+      ])
+    );
+
+    expect(result.verificationGaps.some((gap) => gap.capabilityId === "core/gap")).toBe(false);
+    expect(result.verificationGaps.some((gap) => gap.capabilityId === "core/other")).toBe(true);
+  });
+
   it("requires implementation references for implemented capabilities", () => {
     const result = validateLoadedCapabilities(loaded([parsed("core/done", { status: "implemented" })]));
     expect(result.valid).toBe(true);

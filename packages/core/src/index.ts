@@ -1,13 +1,17 @@
 export { assessImplementationCoverage, formatImplementationCoverageReport } from "./assessImplementationCoverage.js";
+export { adviseImplementationCoverage, formatAssessmentAdviceReport } from "./assessmentAdvice.js";
 export { buildAgentReviewPrompt } from "./agentReview.js";
 export { saveAgentReviewResult, validateAgentReviewResult } from "./agentReviewResult.js";
 export { buildAgentTaskBundle } from "./agentTask.js";
 export { analyzeCapabilityImpact, buildCapabilityImpactGraph, formatCapabilityImpactReport } from "./capabilityImpact.js";
+export { diffCapabilities, formatCapabilityDiffReport } from "./capabilityDiff.js";
+export { formatCapabilityStatusReport, summarizeCapabilityStatus } from "./capabilityStatus.js";
 export { compileCapabilities, writeCompiledCapabilities } from "./compileCapabilities.js";
 export { detectExternalAgentCommand, runExternalAgentCommand } from "./externalAgent.js";
 export { loadCapabilities } from "./loadCapabilities.js";
 export { parseCapability } from "./parseCapability.js";
 export { capabilitySchema, projectConfigSchema } from "./schema.js";
+export { formatSyncReviewEvidenceReport, syncReviewEvidence } from "./syncReviewEvidence.js";
 export { validateLoadedCapabilities } from "./validateCapabilities.js";
 export type { AgentTaskBundle, AgentTaskMode, AgentTaskOptions } from "./agentTask.js";
 export type {
@@ -17,7 +21,16 @@ export type {
   ImplementationCoverageReport,
   ImplementationReferenceCoverage
 } from "./assessImplementationCoverage.js";
+export type {
+  AssessmentAdviceAction,
+  AssessmentAdviceReport,
+  AssessmentAdviceStatus,
+  CapabilityAssessmentAdvice,
+  CriterionAssessmentAdvice
+} from "./assessmentAdvice.js";
 export type { AgentReviewPrompt, AgentReviewPromptOptions } from "./agentReview.js";
+export type { CapabilityDiffEntry, CapabilityDiffKind, CapabilityDiffReport, CapabilityFieldDiff } from "./capabilityDiff.js";
+export type { CapabilityHealth, CapabilityStatusReport, CapabilityStatusSummary } from "./capabilityStatus.js";
 export type {
   AgentReviewValidationIssue,
   ParsedAgentReviewResult,
@@ -31,6 +44,7 @@ export type {
   ExternalAgentRunOptions,
   ExternalAgentRunResult
 } from "./externalAgent.js";
+export type { SyncReviewEvidenceReport, SyncReviewEvidenceResult } from "./syncReviewEvidence.js";
 export type {
   Capability,
   CapabilityImpactGraph,
@@ -40,10 +54,12 @@ export type {
   CompiledCapabilities,
   AgentReviewCriterion,
   AgentReviewCriterionStatus,
+  AssessmentFindingIgnore,
   LoadCapabilitiesResult,
   ParsedCapability,
   ProjectConfig,
   ValidationResult,
   VerificationCheck,
+  VerificationGapIgnore,
   VerificationGap
 } from "./types.js";

@@ -26,9 +26,13 @@ agent:
     - core/model/define-capability-format
   implementation:
     references:
+      - packages/core/src/parseCapability.ts
+      - packages/core/src/schema.ts
       - packages/core/src/validateCapabilities.ts
       - packages/core/src/loadCapabilities.ts
       - packages/cli/src/index.ts
+      - packages/core/tests/parser.test.ts
+      - packages/core/tests/validation.test.ts
   verification:
     automated:
       - id: validation-tests

@@ -5,17 +5,25 @@ import { Command } from "commander";
 import YAML from "yaml";
 import {
   analyzeCapabilityImpact,
+  adviseImplementationCoverage,
   assessImplementationCoverage,
   buildAgentReviewPrompt,
   buildAgentTaskBundle,
+  diffCapabilities,
   formatCapabilityImpactReport,
+  formatCapabilityDiffReport,
+  formatCapabilityStatusReport,
+  formatAssessmentAdviceReport,
   formatImplementationCoverageReport,
   loadCapabilities,
   runExternalAgentCommand,
   saveAgentReviewResult,
+  summarizeCapabilityStatus,
+  syncReviewEvidence,
   validateAgentReviewResult,
   validateLoadedCapabilities,
-  writeCompiledCapabilities
+  writeCompiledCapabilities,
+  formatSyncReviewEvidenceReport
 } from "@capabilitykit/core";
 import { installCapabilityKitSkill } from "./skillInstall.js";
 
@@ -130,6 +138,53 @@ function collectOption(value: string, previous: string[] = []): string[] {
   return [...previous, value];
 }
 
+type AdviceReport = Awaited<ReturnType<typeof adviseImplementationCoverage>>;
+
+function noisyScore(capability: AdviceReport["capabilities"][number]): number {
+  return capability.criteria.reduce((score, criterion) => {
+    if (criterion.status === "assessor-limitation") {
+      return score + 4;
+    }
+    if (criterion.status === "weak-evidence") {
+      return score + 2;
+    }
+    if (criterion.status === "implementation-gap") {
+      return score + 1;
+    }
+    return score;
+  }, 0);
+}
+
+function noisyCandidates(report: AdviceReport, limit: number): Array<AdviceReport["capabilities"][number] & { score: number }> {
+  return report.capabilities
+    .map((capability) => ({ ...capability, score: noisyScore(capability) }))
+    .filter((capability) => capability.score > 0)
+    .sort((a, b) => b.score - a.score || a.capabilityId.localeCompare(b.capabilityId))
+    .slice(0, limit);
+}
+
+function formatReviewNoisy(report: AdviceReport, limit: number, command: string): string {
+  const candidates = noisyCandidates(report, limit);
+  const lines = ["CapabilityKit noisy review candidates", "", `Candidates: ${candidates.length}`];
+
+  for (const candidate of candidates) {
+    const weak = candidate.criteria.filter((criterion) => criterion.status === "weak-evidence").length;
+    const limitations = candidate.criteria.filter((criterion) => criterion.status === "assessor-limitation").length;
+    const gaps = candidate.criteria.filter((criterion) => criterion.status === "implementation-gap").length;
+    lines.push(
+      "",
+      `${candidate.capabilityId}`,
+      `  Score: ${candidate.score}`,
+      `  Weak evidence: ${weak}`,
+      `  Assessor limitations: ${limitations}`,
+      `  Implementation gaps: ${gaps}`,
+      `  Review command: capabilitykit agent-review ${candidate.capabilityId} --command ${command} --handoff stdin`
+    );
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
 program
   .name("capabilitykit")
   .description("Capabilities as code for AI-native software teams")
@@ -208,6 +263,21 @@ program
     console.log("Try:");
     console.log("  /capabilitykit review .capabilities/core/validation/verify-implementation-references.capability.yaml");
     console.log("  Ask Codex: review this capability against its agent.implementation.references");
+  });
+
+program
+  .command("status")
+  .description("Show a developer-friendly capability health summary")
+  .argument("[capability-id]", "optional capability id")
+  .option("--json", "print the status report as JSON")
+  .action(async (capabilityId: string | undefined, options: { json?: boolean }) => {
+    const report = await summarizeCapabilityStatus(process.cwd(), capabilityId);
+    if (options.json) {
+      console.log(JSON.stringify(report, null, 2));
+      return;
+    }
+
+    console.log(formatCapabilityStatusReport(report));
   });
 
 program
@@ -295,6 +365,33 @@ program
   });
 
 program
+  .command("diff")
+  .description("Compare capability changes against a Git base")
+  .argument("[capability-id]", "optional capability id")
+  .option("--base <ref>", "git ref to compare against", "HEAD")
+  .option("--include-review", "include saved agent.review evidence changes")
+  .option("--verbose", "print field-level capability diffs")
+  .option("--json", "print the diff report as JSON")
+  .action(
+    async (
+      capabilityId: string | undefined,
+      options: { base: string; includeReview?: boolean; verbose?: boolean; json?: boolean }
+    ) => {
+      const report = await diffCapabilities(process.cwd(), {
+        base: options.base,
+        capabilityId,
+        includeReview: options.includeReview
+      });
+      if (options.json) {
+        console.log(JSON.stringify(report, null, 2));
+        return;
+      }
+
+      console.log(formatCapabilityDiffReport(report, { verbose: options.verbose }));
+    }
+  );
+
+program
   .command("assess")
   .description("Assess implementation coverage for a capability")
   .argument("<capability-id>", "capability id")
@@ -307,6 +404,43 @@ program
     }
 
     console.log(formatImplementationCoverageReport(report));
+  });
+
+program
+  .command("advise")
+  .description("Assess capability coverage and recommend next actions")
+  .argument("[capability-id]", "optional capability id")
+  .option("--json", "print the advisory report as JSON")
+  .action(async (capabilityId: string | undefined, options: { json?: boolean }) => {
+    const report = await adviseImplementationCoverage(process.cwd(), capabilityId);
+    if (options.json) {
+      console.log(JSON.stringify(report, null, 2));
+      return;
+    }
+
+    console.log(formatAssessmentAdviceReport(report));
+  });
+
+program
+  .command("review-noisy")
+  .description("List high-value capabilities for Codex or human semantic review")
+  .option("--limit <count>", "maximum candidates to list", "5")
+  .option("--command <command>", "agent-review executable to show in suggested commands", "codex")
+  .option("--json", "print candidates as JSON")
+  .action(async (options: { limit: string; command: string; json?: boolean }) => {
+    const limit = Number.parseInt(options.limit, 10);
+    if (!Number.isInteger(limit) || limit < 1) {
+      throw new Error(`Invalid limit "${options.limit}". Expected a positive integer.`);
+    }
+
+    const report = await adviseImplementationCoverage(process.cwd());
+    const candidates = noisyCandidates(report, limit);
+    if (options.json) {
+      console.log(JSON.stringify(candidates, null, 2));
+      return;
+    }
+
+    console.log(formatReviewNoisy(report, limit, options.command));
   });
 
 program
@@ -533,6 +667,22 @@ program
       printReviewResult(validation);
     }
     process.exitCode = validation.valid ? 0 : 1;
+  });
+
+program
+  .command("sync-review")
+  .description("Update agent.review from current implementation evidence without changing capability status")
+  .argument("[capability-id]", "optional capability id")
+  .option("--dry-run", "show what would be updated without writing files")
+  .option("--json", "print the sync result as JSON")
+  .action(async (capabilityId: string | undefined, options: { dryRun?: boolean; json?: boolean }) => {
+    const result = await syncReviewEvidence(process.cwd(), capabilityId, { dryRun: options.dryRun });
+    if (options.json) {
+      console.log(JSON.stringify(result, null, 2));
+      return;
+    }
+
+    console.log(formatSyncReviewEvidenceReport(result));
   });
 
 program.parseAsync().catch((error: unknown) => {

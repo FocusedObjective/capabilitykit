@@ -89,16 +89,63 @@ agent:
 - `capabilitykit init` creates a starter `.capabilities/` folder.
 - `capabilitykit create <name> --area <area>` creates a capability file.
 - `capabilitykit skill` creates or updates CapabilityKit skill files and agent entrypoints.
+- `capabilitykit status [capability-id]` shows a developer-friendly capability health summary.
 - `capabilitykit validate` validates capability files and reports verification gaps.
 - `capabilitykit compile` writes normalized JSON to `.capabilities/dist/capabilities.json`.
 - `capabilitykit inspect <capability-id>` prints one capability and its relationships.
 - `capabilitykit impact <capability-id>` reports direct and transitive downstream capabilities plus suggested verification.
+- `capabilitykit diff [capability-id]` compares capability changes against a Git base ref.
+- `capabilitykit assess <capability-id>` compares acceptance criteria with referenced implementation evidence.
+- `capabilitykit advise [capability-id]` groups assessment findings into recommended next actions.
+- `capabilitykit review-noisy --limit 5` lists high-value capabilities for semantic Codex or human review.
+- `capabilitykit sync-review [capability-id]` updates `agent.review` from current implementation evidence without changing capability status.
+
+`status` is the best first command when you want to understand what the
+capability map says about the project:
+
+```bash
+capabilitykit status
+capabilitykit status core/graph/compile-capabilities
+capabilitykit diff --base HEAD
+capabilitykit diff --base HEAD --verbose
+```
 
 ## Verification Gaps
 
 CapabilityKit treats missing confidence as a first-class signal. Missing automated checks, vague acceptance criteria, broken references, missing `agent.implementation.references`, and manual review gaps are reported as verification gaps.
 
 Gaps are warnings by default. They should be fixed or intentionally documented so humans and agents know what still needs review.
+
+When a warning is intentionally accepted, suppress it in the capability with an explicit reason:
+
+```yaml
+agent:
+  verification:
+    ignore_gaps:
+      - code: missing-automated-checks
+        reason: Manual review is the accepted verification path for this documentation-only capability.
+      - code: declared-gap
+        message_contains: Known external dependency.
+        reason: Tracked outside CapabilityKit for this release.
+```
+
+Use `code: "*"` only when every verification gap for that capability is intentionally handled elsewhere.
+
+Advisory assessment findings can also be ignored when a maintainer accepts the
+deterministic assessor's limitation for a specific criterion. Ignored findings
+are removed from recommended actions and `review-noisy` scoring, but remain
+auditable in the capability file:
+
+```yaml
+agent:
+  review:
+    ignore_findings:
+      - status: weak-evidence
+        criterion: README explains what a capability is.
+        reason: Documentation wording was manually reviewed and accepted.
+```
+
+Use `criterion_contains` for a small family of related findings, and `status: "*"` only for intentionally accepted findings across statuses.
 
 ## Dogfooding
 

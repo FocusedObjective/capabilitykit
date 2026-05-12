@@ -12,6 +12,16 @@ acceptance:
   - Presents each acceptance criterion beside relevant implementation evidence.
   - Marks criteria as covered, uncovered, or uncertain.
   - Reports missing or unreadable references as uncovered evidence.
+  - Provides an advisory report that groups coverage findings by recommended
+    action.
+  - Provides a developer-facing status summary that separates needs-action,
+    needs-review, ok, and planned capabilities.
+  - Advisory reports prefer saved agent.review criteria over deterministic text
+    evidence.
+  - Lists noisy capabilities that are good candidates for semantic Codex review.
+  - Can update agent.review from current implementation evidence without
+    changing capability status.
+  - Allows accepted advisory findings to be ignored with an explicit reason.
   - Keeps the first version deterministic or review-assisted rather than
     silently trusting an AI judgment.
 guidance:
@@ -28,28 +38,64 @@ agent:
     - referenced source and documentation files
   outputs:
     - implementation coverage report
+    - actionable assessment advice
+    - synchronized review evidence
     - uncovered or uncertain acceptance criteria
   depends_on:
     - core/validation/verify-implementation-references
   implementation:
     references:
       - packages/core/src/assessImplementationCoverage.ts
+      - packages/core/src/assessmentAdvice.ts
+      - packages/core/src/capabilityStatus.ts
+      - packages/core/src/syncReviewEvidence.ts
+      - packages/core/src/schema.ts
+      - packages/core/src/types.ts
       - packages/core/src/index.ts
       - packages/cli/src/index.ts
       - packages/core/tests/assessImplementationCoverage.test.ts
+      - packages/core/tests/assessmentAdvice.test.ts
+      - packages/core/tests/capabilityStatus.test.ts
+      - packages/core/tests/syncReviewEvidence.test.ts
   verification:
     automated:
       - id: coverage-report-tests
         description: Unit tests cover report generation for covered, uncovered, and
           missing-reference cases.
         command: npm test -- packages/core/tests/assessImplementationCoverage.test.ts
+      - id: advisory-report-tests
+        description: Unit tests cover advisory classification and formatted recommended
+          actions.
+        command: npm test -- packages/core/tests/assessmentAdvice.test.ts
+      - id: capability-status-tests
+        description: Unit tests cover developer-facing capability health summaries.
+        command: npm test -- packages/core/tests/capabilityStatus.test.ts
+      - id: sync-review-tests
+        description: Unit tests cover syncing agent.review without changing capability
+          status.
+        command: npm test -- packages/core/tests/syncReviewEvidence.test.ts
       - id: dogfood-coverage-report
         description: The CLI reports implementation coverage for this capability.
-        command: node packages/cli/dist/index.js assess core/assessment/assess-implementation-coverage
+        command: node packages/cli/dist/index.js assess
+          core/assessment/assess-implementation-coverage
+      - id: dogfood-advisory-report
+        description: The CLI reports actionable advice for this capability.
+        command: node packages/cli/dist/index.js advise
+          core/assessment/assess-implementation-coverage
+      - id: dogfood-sync-review-dry-run
+        description: The CLI can preview review evidence synchronization for this
+          capability.
+        command: node packages/cli/dist/index.js sync-review
+          core/assessment/assess-implementation-coverage --dry-run
     manual:
-      - Run the coverage report against core/validation/verify-implementation-references
-        and confirm the output gives a reviewer enough context to judge the
-        implementation.
+      - Run the coverage report against
+        core/validation/verify-implementation-references and confirm the output
+        gives a reviewer enough context to judge the implementation.
     gaps:
       - Deterministic text evidence can identify review targets but cannot prove
         semantic correctness without human or explicit AI review.
+    ignore_gaps:
+      - code: declared-gap
+        message_contains: Deterministic text evidence can identify review targets
+        reason: This is an accepted limitation of the deterministic assessor; semantic
+          review is handled through agent-review and review-result.

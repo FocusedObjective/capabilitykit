@@ -31,8 +31,17 @@ When asked whether a capability matches implementation behavior:
 ```bash
 capabilitykit create "User login" --area account
 capabilitykit validate
+capabilitykit status
+capabilitykit status core/example
 capabilitykit inspect account/user-login
 capabilitykit impact account/user-login
+capabilitykit diff --base HEAD
+capabilitykit diff account/user-login --base main
+capabilitykit diff --base HEAD --verbose
+capabilitykit assess account/user-login
+capabilitykit advise account/user-login
+capabilitykit review-noisy --limit 5
+capabilitykit sync-review account/user-login --dry-run
 capabilitykit compile
 capabilitykit skill
 ```
@@ -45,6 +54,10 @@ external coding agent:
 ```bash
 capabilitykit assess core/example
 capabilitykit assess core/example --json
+capabilitykit advise
+capabilitykit advise core/example --json
+capabilitykit review-noisy --command codex --limit 5
+capabilitykit sync-review core/example
 capabilitykit agent-task core/example --mode implement --output tmp/capability-task.md
 capabilitykit agent-task core/example --mode review --no-references
 capabilitykit agent-review core/example --command codex --arg exec --handoff stdin --dry-run --no-references
@@ -54,6 +67,11 @@ capabilitykit agent-run core/example --command codex --arg exec --handoff stdin 
 ```
 
 - `assess` produces deterministic criterion-by-criterion implementation evidence.
+- `advise` turns coverage findings into grouped recommended actions and confidence notes.
+- `status` summarizes the capability map into ok, needs-review, needs-action, and planned buckets.
+- `diff` compares current capability intent against a Git base and summarizes added, changed, or removed capabilities.
+- `review-noisy` lists high-value capabilities for semantic human or Codex review.
+- `sync-review` updates `agent.review` from deterministic implementation evidence while leaving status and gaps explicit.
 - `impact` reports direct and transitive downstream capabilities plus suggested verification.
 - `agent-task` creates an inspectable implementation or review prompt bundle.
 - `agent-review` combines a review bundle with the deterministic coverage report.

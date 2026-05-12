@@ -27,6 +27,7 @@ agent:
     references:
       - packages/core/src/compileCapabilities.ts
       - packages/cli/src/index.ts
+      - packages/core/tests/compile.test.ts
   verification:
     automated:
       - id: compile-tests

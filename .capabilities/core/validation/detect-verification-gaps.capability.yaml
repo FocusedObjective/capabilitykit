@@ -11,6 +11,8 @@ acceptance:
   - Reports implemented or verified capabilities without
     agent.implementation.references values.
   - Reports declared agent.verification.gaps from capability files.
+  - Allows capability files to suppress selected verification gap warnings with
+    an explicit reason.
 guidance:
   - Prefer specific gap messages tied to capability IDs.
   - Keep gap detection rules deterministic and covered by automated tests.
@@ -25,6 +27,9 @@ agent:
   implementation:
     references:
       - packages/core/src/validateCapabilities.ts
+      - packages/core/src/schema.ts
+      - packages/core/src/types.ts
+      - packages/core/tests/validation.test.ts
   verification:
     automated:
       - id: verification-gap-tests

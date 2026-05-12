@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseCapability } from "../src/parseCapability.js";
 
@@ -71,5 +73,21 @@ acceptance:
 
     expect(result.capability).toBeUndefined();
     expect(result.errors.some((error) => error.code === "schema-error")).toBe(true);
+  });
+
+  it("parses example project capability files as valid MVP schema", async () => {
+    const files = [
+      "examples/basic-app/.capabilities/account/login.capability.yaml",
+      "examples/basic-app/.capabilities/account/profile.capability.yaml",
+      "examples/basic-app/.capabilities/checkout/cart.capability.yaml",
+      "examples/basic-app/.capabilities/checkout/payment.capability.yaml"
+    ];
+
+    for (const file of files) {
+      const source = await readFile(path.resolve(process.cwd(), file), "utf8");
+      const result = parseCapability(source, file);
+      expect(result.errors, file).toEqual([]);
+      expect(result.capability?.agent?.verification, file).toBeDefined();
+    }
   });
 });

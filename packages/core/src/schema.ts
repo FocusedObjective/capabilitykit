@@ -24,6 +24,19 @@ export const verificationCheckSchema = z.object({
   command: nonEmptyString.optional()
 });
 
+const verificationGapIgnoreSchema = z.object({
+  code: nonEmptyString.default("*"),
+  reason: nonEmptyString,
+  message_contains: nonEmptyString.optional()
+});
+
+const assessmentFindingIgnoreSchema = z.object({
+  status: nonEmptyString.default("*"),
+  reason: nonEmptyString,
+  criterion: nonEmptyString.optional(),
+  criterion_contains: nonEmptyString.optional()
+});
+
 const agentReviewCriterionStatusSchema = z.enum(["covered", "partial", "uncovered", "uncertain"]);
 
 const agentReviewCriterionSchema = z.object({
@@ -45,6 +58,7 @@ type AgentSection = {
     automated?: Array<z.infer<typeof verificationCheckSchema>>;
     manual?: string[];
     gaps?: string[];
+    ignore_gaps?: Array<z.infer<typeof verificationGapIgnoreSchema>>;
   };
   review?: {
     depth?: "none" | "referenced" | "partial" | "behavioral" | "tested" | "verified" | "unknown";
@@ -52,6 +66,7 @@ type AgentSection = {
     evidence?: string[];
     intent_summary?: string;
     criteria?: Array<z.infer<typeof agentReviewCriterionSchema>>;
+    ignore_findings?: Array<z.infer<typeof assessmentFindingIgnoreSchema>>;
     done?: boolean;
   };
   guidance?: {
@@ -75,7 +90,8 @@ const agentSectionSchema = z
       .object({
         automated: z.array(verificationCheckSchema).optional().default([]),
         manual: z.array(nonEmptyString).optional().default([]),
-        gaps: z.array(nonEmptyString).optional().default([])
+        gaps: z.array(nonEmptyString).optional().default([]),
+        ignore_gaps: z.array(verificationGapIgnoreSchema).optional().default([])
       })
       .optional(),
     review: z
@@ -85,6 +101,7 @@ const agentSectionSchema = z
         evidence: z.array(nonEmptyString).optional().default([]),
         intent_summary: nonEmptyString.optional(),
         criteria: z.array(agentReviewCriterionSchema).optional().default([]),
+        ignore_findings: z.array(assessmentFindingIgnoreSchema).optional().default([]),
         done: z.boolean().optional()
       })
       .optional(),
@@ -113,7 +130,8 @@ const rawCapabilitySchema = z.object({
     .object({
       automated: z.array(verificationCheckSchema).optional().default([]),
       manual: z.array(nonEmptyString).optional().default([]),
-      gaps: z.array(nonEmptyString).optional().default([])
+      gaps: z.array(nonEmptyString).optional().default([]),
+      ignore_gaps: z.array(verificationGapIgnoreSchema).optional().default([])
     })
     .optional(),
   agent: agentSectionSchema,
@@ -153,7 +171,8 @@ export const capabilitySchema = rawCapabilitySchema.transform((capability) => {
       ...(capability.agent?.verification ?? {}),
       automated: capability.agent?.verification?.automated ?? capability.verification?.automated ?? [],
       manual: capability.agent?.verification?.manual ?? capability.verification?.manual ?? [],
-      gaps: capability.agent?.verification?.gaps ?? capability.verification?.gaps ?? []
+      gaps: capability.agent?.verification?.gaps ?? capability.verification?.gaps ?? [],
+      ignore_gaps: capability.agent?.verification?.ignore_gaps ?? capability.verification?.ignore_gaps ?? []
     };
   }
 

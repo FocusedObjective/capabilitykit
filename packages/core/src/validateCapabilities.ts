@@ -35,6 +35,14 @@ function addGap(gaps: VerificationGap[], capability: ParsedCapability, code: str
   });
 }
 
+function ignoresGap(capability: Capability, gap: VerificationGap): boolean {
+  return (capability.agent?.verification?.ignore_gaps ?? []).some((ignore) => {
+    const codeMatches = ignore.code === "*" || ignore.code === gap.code;
+    const messageMatches = ignore.message_contains === undefined || gap.message.includes(ignore.message_contains);
+    return codeMatches && messageMatches;
+  });
+}
+
 function containsPlaceholder(value: unknown): boolean {
   if (typeof value === "string") {
     return placeholderPattern.test(value);
@@ -150,11 +158,20 @@ export function validateLoadedCapabilities(loaded: LoadCapabilitiesResult): Vali
     }
   }
 
+  const capabilitiesById = new Map(loaded.capabilities.map((parsed) => [parsed.capability.id, parsed.capability]));
+  const activeVerificationGaps = verificationGaps.filter((gap) => {
+    if (!gap.capabilityId) {
+      return true;
+    }
+    const capability = capabilitiesById.get(gap.capabilityId);
+    return capability ? !ignoresGap(capability, gap) : true;
+  });
+
   return {
     valid: errors.length === 0,
     parsedCount: loaded.capabilities.length,
     uniqueIdCount: ids.size,
     errors,
-    verificationGaps
+    verificationGaps: activeVerificationGaps
   };
 }

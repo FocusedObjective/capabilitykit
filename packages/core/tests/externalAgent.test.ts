@@ -57,6 +57,17 @@ describe("external agent command runner", () => {
     expect(result.stdout).toContain("capability task");
   });
 
+  it("captures stdin write errors when the command exits before reading input", async () => {
+    const result = await runExternalAgentCommand({
+      command: process.execPath,
+      args: ["-e", "process.exit(0)"],
+      input: "capability task".repeat(10000)
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toContain("stdin:");
+  });
+
   it("prepares prompt-file handoff during dry runs", async () => {
     const scriptName = process.platform === "win32" ? "dry-agent.cmd" : "dry-agent";
     const { rootDir, commandPath } = await createExecutable(

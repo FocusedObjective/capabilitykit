@@ -217,16 +217,21 @@ export async function runExternalAgentCommand(options: ExternalAgentRunOptions):
 
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
+    let stdinError: string | undefined;
 
     child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk));
     child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk));
+    child.stdin.on("error", (error) => {
+      stdinError = error instanceof Error ? error.message : String(error);
+    });
     child.on("error", (error) => reject(error));
     child.on("close", (exitCode) => {
+      const stderrText = Buffer.concat(stderr).toString("utf8");
       resolve({
         ...baseResult,
         exitCode,
         stdout: Buffer.concat(stdout).toString("utf8"),
-        stderr: Buffer.concat(stderr).toString("utf8")
+        stderr: stdinError ? `${stderrText}${stderrText ? "\n" : ""}stdin: ${stdinError}` : stderrText
       });
     });
 

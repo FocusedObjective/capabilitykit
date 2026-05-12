@@ -47,6 +47,11 @@ const stopWords = new Set([
   "are",
   "as",
   "by",
+  "explains",
+  "explain",
+  "includes",
+  "include",
+  "information",
   "for",
   "from",
   "in",
@@ -64,14 +69,36 @@ function normalizeText(value: string): string {
 }
 
 function criterionTerms(criterion: string): string[] {
-  return Array.from(
-    new Set(
-      criterion
-        .toLowerCase()
-        .match(/[a-z0-9]+/g)
-        ?.filter((term) => term.length > 2 && !stopWords.has(term)) ?? []
-    )
-  );
+  const rawTerms =
+    criterion
+      .toLowerCase()
+      .match(/[a-z0-9]+/g)
+      ?.filter((term) => (term.length > 2 || term === "id" || term === "ids") && !stopWords.has(term)) ?? [];
+  const terms = rawTerms.flatMap((term) => {
+    const expanded = [term];
+    if (term === "ids") {
+      expanded.push("id");
+    }
+    if (term.endsWith("ies") && term.length > 4) {
+      expanded.push(`${term.slice(0, -3)}y`);
+    }
+    if (term.endsWith("s") && term.length > 3) {
+      expanded.push(term.slice(0, -1));
+    }
+    if (term === "depends") {
+      expanded.push("dependency");
+    }
+    return expanded;
+  });
+  return Array.from(new Set(terms));
+}
+
+function headingTerms(line: string): string[] {
+  const match = line.match(/^#{1,6}\s+(.+)$/);
+  if (!match) {
+    return [];
+  }
+  return criterionTerms(match[1] ?? "");
 }
 
 function lineEvidence(reference: LoadedReference, criterion: string): CoverageEvidence[] {
@@ -87,10 +114,26 @@ function lineEvidence(reference: LoadedReference, criterion: string): CoverageEv
   for (const [index, line] of lines.entries()) {
     const normalizedLine = normalizeText(line);
     const matchingTerms = terms.filter((term) => normalizedLine.includes(term));
+    const matchingHeadingTerms = headingTerms(line).filter((term) => terms.includes(term));
     const isExact = normalizedLine.includes(normalizedCriterion);
-    const hasUsefulOverlap = terms.length > 0 && matchingTerms.length >= Math.min(3, terms.length);
+    const needsYamlSchemaEvidence = /\b(yaml|schema)\b/i.test(criterion);
+    const hasYamlSchemaSignal = /\b(yaml|schema)\b/i.test(line) || /error\.filePath/.test(line);
+    const isAreaEvidence =
+      /\bareas?\b/i.test(criterion) &&
+      /^\s*area:\s*/i.test(line) &&
+      matchingTerms.some((term) => term !== "area" && term !== "areas" && term !== "capability");
+    const hasObjectKeyEvidence =
+      /[_-]/.test(line) && terms.length > 1 && matchingTerms.length >= Math.min(2, terms.length);
+    const hasUsefulOverlap =
+      terms.length > 0 &&
+      matchingTerms.length >= Math.min(3, terms.length) &&
+      (!needsYamlSchemaEvidence || hasYamlSchemaSignal);
+    const isUsefulHeading =
+      matchingHeadingTerms.length > 0 &&
+      matchingHeadingTerms.length >= Math.min(2, terms.length) &&
+      (/\b(explain|explains|include|includes)\b/i.test(criterion) || reference.reference.toLowerCase().endsWith(".md"));
 
-    if (isExact || hasUsefulOverlap) {
+    if (isExact || hasUsefulOverlap || hasObjectKeyEvidence || isUsefulHeading || isAreaEvidence) {
       evidence.push({
         reference: reference.reference,
         line: index + 1,

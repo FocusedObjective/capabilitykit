@@ -6,6 +6,19 @@ export interface VerificationCheck {
   command?: string;
 }
 
+export interface VerificationGapIgnore {
+  code: string;
+  reason: string;
+  message_contains?: string;
+}
+
+export interface AssessmentFindingIgnore {
+  status: string;
+  reason: string;
+  criterion?: string;
+  criterion_contains?: string;
+}
+
 export type AgentReviewCriterionStatus = "covered" | "partial" | "uncovered" | "uncertain";
 
 export interface AgentReviewCriterion {
@@ -36,6 +49,7 @@ export interface Capability {
       automated?: VerificationCheck[];
       manual?: string[];
       gaps?: string[];
+      ignore_gaps?: VerificationGapIgnore[];
     };
     review?: {
       depth?: "none" | "referenced" | "partial" | "behavioral" | "tested" | "verified" | "unknown";
@@ -43,6 +57,7 @@ export interface Capability {
       evidence?: string[];
       intent_summary?: string;
       criteria?: AgentReviewCriterion[];
+      ignore_findings?: AssessmentFindingIgnore[];
       done?: boolean;
     };
   };

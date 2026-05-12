@@ -32,3 +32,22 @@ agent:
     manual:
       - Read README from a new user's perspective and confirm the format is
         clear.
+  review:
+    ignore_findings:
+      - status: weak-evidence
+        criterion: README explains what a capability is.
+        reason: README documentation evidence has been manually reviewed for this
+          criterion.
+      - status: weak-evidence
+        criterion: README includes an example capability file.
+        reason: README documentation evidence has been manually reviewed for this
+          criterion.
+      - status: weak-evidence
+        criterion: README explains verification gaps.
+        reason: README documentation evidence has been manually reviewed for this
+          criterion.
+      - status: weak-evidence
+        criterion: README explains how folder hierarchy and capability IDs should
+          align.
+        reason: README documentation evidence has been manually reviewed for this
+          criterion.
