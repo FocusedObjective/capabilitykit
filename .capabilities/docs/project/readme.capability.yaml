@@ -2,29 +2,41 @@ id: docs/project/readme
 title: README
 status: implemented
 area: docs
-summary: Explain CapabilityKit, quick start, CLI commands, verification gaps,
-  and dogfooding.
-intent: Make the project understandable enough for a developer to try locally.
+summary: Explain CapabilityKit as a developer review loop for capability diffs,
+  implementation coverage, dependency impact, verification gaps, and dogfooding.
+intent: Make the project understandable enough for a developer to review
+  AI-assisted changes by capability intent, implementation evidence, and
+  downstream impact.
 acceptance:
-  - README states the product thesis clearly.
-  - README includes install and quick start instructions.
+  - README says CapabilityKit helps developers review what changed in product
+    behavior, not only what changed in code.
+  - README includes install instructions and a developer review loop with
+    status, diff, assess, and impact commands.
   - README explains how verification reduces manual review bottlenecks.
-  - README shows how to organize capability files for easier maintenance.
+  - README includes Organizing Capabilities guidance for easier maintenance.
+  - README explains why planning documents can diverge from implementation
+    after AI-assisted coding.
+  - README explains capability diff, implementation coverage assessment, and
+    dependency impact workflows.
 guidance:
   - Keep the docs CLI-first and repo-native.
   - Do not position the MVP as a cloud product.
 agent:
   inputs:
     - README.md
+    - website/index.html
+    - website/styles.css
   outputs:
     - project overview
-    - quick start
+    - developer review loop
     - CLI command reference
   depends_on:
     - docs/reference/capability-format-documentation
   implementation:
     references:
       - README.md
+      - website/index.html
+      - website/styles.css
   verification:
     automated:
       - id: dogfood-validate

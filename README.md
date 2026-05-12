@@ -2,63 +2,46 @@
 
 Capabilities as code for AI-native software teams.
 
+CapabilityKit helps developers review what changed in product behavior, not only what changed in code. It keeps capability intent, acceptance criteria, implementation references, dependency relationships, and verification evidence in a repo-native `.capabilities/` folder so a PR can answer three questions quickly:
+
+1. Which capabilities changed?
+2. How deeply are those capabilities verified against implementation?
+3. What other capabilities may be affected by this change?
+
 ## Why CapabilityKit?
 
-AI agents can write more code faster, but teams still need a reliable way to describe what the system is supposed to do and how to verify it.
+AI agents can produce a lot of implementation quickly. The harder engineering problem is preserving the reason the code was written and proving that the resulting system still delivers the intended capability.
 
-CapabilityKit adds a `.capabilities/` folder to your repo so product intent, acceptance criteria, human guidance, implementation review notes, and verification checks live beside the code.
+Planning documents help make code decisions, but they often diverge from implementation. After an AI agent finishes coding, the plan may no longer explain what behavior exists, which files implement it, what checks prove it works, or which downstream behavior depends on it.
 
-The practical goal is to reduce the human bottleneck in review. Humans should not have to rediscover intent or manually invent every regression check after each AI-assisted change. Capability specs make the expected behavior and required verification visible before code changes start.
+CapabilityKit makes that review surface explicit. A capability file is not a one-time plan. It is a living contract between product intent, code, tests, manual review, and future agent work.
 
-## Install
+## The Developer Review Loop
 
-This repository is currently set up as a workspace project:
-
-```bash
-npm install
-npm run build
-```
-
-The package is designed for pnpm workspaces and the CLI package is named `@capabilitykit/cli`.
-
-## Quick Start
+Use CapabilityKit during review when a change is more meaningful than a raw code diff can explain:
 
 ```bash
 npm run build
-npm run capabilitykit -- validate
-npm run capabilitykit -- compile
+npm run capabilitykit -- status
+npm run capabilitykit -- diff HEAD
+npm run capabilitykit -- assess core/assessment/assess-implementation-coverage
+npm run capabilitykit -- impact core/graph/compile-capabilities
 ```
 
-In another repository, the CLI will eventually be used as:
+`status` gives a project-wide health view. It separates capabilities into `ok`, `needs-review`, `needs-action`, and `planned` so reviewers know where confidence is thin.
 
-```bash
-npx @capabilitykit/cli init
-capabilitykit create "User login" --area account
-capabilitykit skill
-capabilitykit validate
-capabilitykit compile
-```
+`diff` compares capability intent against a Git base. Instead of asking reviewers to infer product meaning from YAML or code, it summarizes added, changed, and removed capabilities, highlights changes to intent, acceptance, verification, implementation references, and ignore policy, and includes downstream impact context.
 
-## What Is A Capability?
+`assess` reads the implementation references declared by a capability and places each acceptance criterion beside concrete source, test, or documentation evidence. It marks criteria as `covered`, `uncovered`, or `uncertain`; uncertainty is intentional because deterministic text evidence can identify review targets but cannot prove semantic correctness by itself.
 
-A capability is a repo-native description of something the system should do. The default format keeps human-authored intent and guidance at the root of the file and puts implementation details, dependencies, and verification that agents can infer or maintain under `agent`.
+`impact` traverses explicit `agent.depends_on` relationships to show direct and transitive dependents. A small edit to a foundational capability can affect agent handoff, diff reporting, CLI behavior, and verification commands; the graph makes that visible before review narrows too early.
 
-Capability IDs should mirror the file path when a project has enough capabilities to benefit from hierarchy. For example, `.capabilities/core/validation/validate-capability-files.capability.yaml` should use `id: core/validation/validate-capability-files`.
+## What A Capability Captures
 
-Use folders to show ownership and maintenance boundaries:
-
-- `core/model` for schema and format capabilities.
-- `core/validation` for checks that protect capability quality.
-- `core/graph` for compile-time graph and impact analysis.
-- `core/agents` for agent handoff and review workflows.
-- `developer-experience/*` for CLI, examples, skills, and integrations.
-- `docs/*` for user-facing and reference documentation.
-
-Capability dependencies still belong in `agent.depends_on`. Folder hierarchy makes the map easier to scan, but explicit dependencies are the source of truth for impact analysis.
-
-## Example Capability File
+A capability is a repo-native description of something the system should do and how that claim is checked.
 
 ```yaml
+id: account/user-login
 title: User login
 status: implemented
 area: account
@@ -71,17 +54,96 @@ acceptance:
 guidance:
   - Keep credential errors clear without exposing sensitive details.
 agent:
-  verification:
-    manual:
-      - Review login behavior against the acceptance criteria.
+  depends_on:
+    - account/session-management
   implementation:
     references:
       - src/auth/login.ts
       - src/auth/session.ts
-  review:
-    depth: partial
+      - tests/auth/login.test.ts
+  verification:
+    automated:
+      - id: login-tests
+        description: Covers valid and invalid credential flows.
+        command: npm test -- tests/auth/login.test.ts
+    manual:
+      - Review login copy and lockout behavior against the acceptance criteria.
     gaps:
-      - Add automated tests for invalid credentials.
+      - Add rate-limit tests before marking this verified.
+```
+
+The root fields are human-authored intent. The `agent` section contains the implementation references, dependencies, verification checks, review evidence, and accepted gaps that developers and AI agents use during follow-up work.
+
+## Reviewing Capability Diffs
+
+Code diffs show how files changed. Capability diffs show how declared behavior changed.
+
+CapabilityKit reports:
+
+- Added, changed, and removed capabilities by ID.
+- Intent, summary, status, and acceptance changes.
+- Implementation reference changes.
+- Automated and manual verification changes.
+- Verification gaps and ignore policy changes.
+- Direct and transitive downstream impact.
+
+Review evidence churn is excluded from the default diff because saved review output can be large and stale. Use `--include-review` when review evidence itself is the subject of the change.
+
+## Assessing Verification Depth
+
+CapabilityKit treats verification as part of the capability, not a separate checklist that gets reconstructed during PR review.
+
+Verification depth comes from several signals:
+
+- Acceptance criteria that are specific enough to inspect.
+- Implementation references that point to real files.
+- Automated checks with commands reviewers can run.
+- Manual review steps for behavior that cannot be proven by tests alone.
+- Saved `agent.review` evidence when a human or external agent has reviewed semantic coverage.
+- Declared gaps and ignored findings with explicit reasons.
+
+Missing confidence is visible by design. `validate`, `status`, `assess`, `advise`, `review-noisy`, `agent-review`, `review-result`, and `sync-review` all exist to help teams grow capabilities from planned intent toward properly verified behavior without pretending that filename matches or generated prose are proof.
+
+## Understanding Impact
+
+Capability folders help people navigate ownership, but explicit dependencies are the source of truth for impact analysis.
+
+Use `agent.depends_on` when one capability relies on another:
+
+```yaml
+agent:
+  depends_on:
+    - core/model/define-capability-format
+    - core/validation/validate-capability-files
+```
+
+Then run:
+
+```bash
+npm run capabilitykit -- impact core/graph/compile-capabilities
+```
+
+The report includes dependencies, direct dependents, transitive dependents, impacted capabilities, suggested automated checks, manual review steps, and known verification gaps. This is useful when a simple-looking change affects shared schema, compiled output, agent prompts, CLI behavior, or docs.
+
+## Install
+
+This repository is currently set up as a workspace project:
+
+```bash
+npm install
+npm run build
+```
+
+The package is designed for pnpm workspaces and the CLI package is named `@capabilitykit/cli`.
+
+In another repository, the CLI will eventually be used as:
+
+```bash
+npx @capabilitykit/cli init
+capabilitykit create "User login" --area account
+capabilitykit skill
+capabilitykit validate
+capabilitykit compile
 ```
 
 ## CLI Commands
@@ -90,25 +152,34 @@ agent:
 - `capabilitykit create <name> --area <area>` creates a capability file.
 - `capabilitykit skill` creates or updates CapabilityKit skill files and agent entrypoints.
 - `capabilitykit status [capability-id]` shows a developer-friendly capability health summary.
+- `capabilitykit diff [base]` compares capability changes against a Git base ref.
+- `capabilitykit assess <capability-id>` compares acceptance criteria with referenced implementation evidence.
+- `capabilitykit advise [capability-id]` groups assessment findings into recommended next actions.
+- `capabilitykit impact <capability-id>` reports direct and transitive downstream capabilities plus suggested verification.
 - `capabilitykit validate` validates capability files and reports verification gaps.
 - `capabilitykit compile` writes normalized JSON to `.capabilities/dist/capabilities.json`.
 - `capabilitykit inspect <capability-id>` prints one capability and its relationships.
-- `capabilitykit impact <capability-id>` reports direct and transitive downstream capabilities plus suggested verification.
-- `capabilitykit diff [capability-id]` compares capability changes against a Git base ref.
-- `capabilitykit assess <capability-id>` compares acceptance criteria with referenced implementation evidence.
-- `capabilitykit advise [capability-id]` groups assessment findings into recommended next actions.
 - `capabilitykit review-noisy --limit 5` lists high-value capabilities for semantic Codex or human review.
+- `capabilitykit agent-task <capability-id>` creates an inspectable implementation or review prompt bundle.
+- `capabilitykit agent-review <capability-id>` combines a review bundle with deterministic coverage evidence.
+- `capabilitykit review-result <capability-id>` validates or saves structured review JSON under `agent.review`.
 - `capabilitykit sync-review [capability-id]` updates `agent.review` from current implementation evidence without changing capability status.
 
-`status` is the best first command when you want to understand what the
-capability map says about the project:
+## Organizing Capabilities
 
-```bash
-capabilitykit status
-capabilitykit status core/graph/compile-capabilities
-capabilitykit diff --base HEAD
-capabilitykit diff --base HEAD --verbose
-```
+Capability IDs should mirror the file path when a project has enough capabilities to benefit from hierarchy. For example, `.capabilities/core/validation/validate-capability-files.capability.yaml` should use `id: core/validation/validate-capability-files`.
+
+Use folders to show ownership and maintenance boundaries:
+
+- `core/model` for schema and format capabilities.
+- `core/validation` for checks that protect capability quality.
+- `core/graph` for compile-time graph, diff, and impact analysis.
+- `core/assessment` for implementation coverage and review depth.
+- `core/agents` for agent handoff and review workflows.
+- `developer-experience/*` for CLI, examples, skills, and integrations.
+- `docs/*` for user-facing and reference documentation.
+
+Capability dependencies still belong in `agent.depends_on`. Folder hierarchy makes the map easier to scan, but explicit dependencies power impact analysis.
 
 ## Verification Gaps
 
@@ -129,12 +200,7 @@ agent:
         reason: Tracked outside CapabilityKit for this release.
 ```
 
-Use `code: "*"` only when every verification gap for that capability is intentionally handled elsewhere.
-
-Advisory assessment findings can also be ignored when a maintainer accepts the
-deterministic assessor's limitation for a specific criterion. Ignored findings
-are removed from recommended actions and `review-noisy` scoring, but remain
-auditable in the capability file:
+Advisory assessment findings can also be ignored when a maintainer accepts the deterministic assessor's limitation for a specific criterion:
 
 ```yaml
 agent:
@@ -145,30 +211,21 @@ agent:
         reason: Documentation wording was manually reviewed and accepted.
 ```
 
-Use `criterion_contains` for a small family of related findings, and `status: "*"` only for intentionally accepted findings across statuses.
+Ignored findings are removed from recommended actions and `review-noisy` scoring, but remain auditable in the capability file.
 
 ## Dogfooding
 
-CapabilityKit uses its own `.capabilities/` folder from the first usable version. Each MVP feature has a matching capability spec, and the project verification loop validates and compiles those specs.
+CapabilityKit uses its own `.capabilities/` folder. Current capabilities cover the schema, validation, implementation reference checks, compiled graph output, capability diffing, impact analysis, implementation coverage assessment, external agent handoff, CLI workflow, skill installation, examples, and documentation.
 
-## Roadmap
-
-- Bootstrap the TypeScript CLI and core library.
-- Strengthen validation and verification gap detection.
-- Add richer examples and documentation.
-- Prepare for editor integrations without making the MVP dependent on them.
-
-## Contributing
-
-Keep changes close to the code, specs, and tests they affect. When behavior changes, update the relevant capability spec and run the local verification loop:
+The project verification loop validates and compiles those specs:
 
 ```bash
 npm run verify
 ```
 
-## Website (capabilitykit.com)
+## Website
 
-A simple static marketing site is available in `website/` and is ready for Amazon S3 static hosting.
+A static site is available in `website/` and is ready for Amazon S3 static hosting.
 
 Run locally:
 
