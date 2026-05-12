@@ -18,6 +18,9 @@ acceptance:
     after AI-assisted coding.
   - README explains capability diff, implementation coverage assessment, and
     dependency impact workflows.
+  - Website shows the hierarchical nature of the .capabilities folder.
+  - Website shows the main human-authored parts of a capability without the
+    agent section.
 guidance:
   - Keep the docs CLI-first and repo-native.
   - Do not position the MVP as a cloud product.

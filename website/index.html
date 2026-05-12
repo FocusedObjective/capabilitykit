@@ -181,6 +181,70 @@ Suggested checks: npm test, compile</code></pre>
         </div>
       </section>
 
+      <section class="section section-alt">
+        <div class="container capability-structure-grid">
+          <div>
+            <p class="eyebrow">Repo-native structure</p>
+            <h2>The capability map is hierarchical before it is a graph.</h2>
+            <p>
+              Capability files live in `.capabilities/` using folders that mirror ownership, product areas, or platform layers.
+              The hierarchy gives reviewers a readable map before they inspect dependency edges.
+            </p>
+          </div>
+          <pre class="tree-card" aria-label="Example .capabilities folder tree"><code>.capabilities/
+  capabilitykit.yaml
+  core/
+    model/
+      define-capability-format.capability.yaml
+    validation/
+      validate-capability-files.capability.yaml
+      detect-verification-gaps.capability.yaml
+    graph/
+      compile-capabilities.capability.yaml
+      diff-capabilities.capability.yaml
+      analyze-capability-impact.capability.yaml
+    assessment/
+      assess-implementation-coverage.capability.yaml
+  developer-experience/
+    cli/
+    skills/
+  docs/
+    project/
+    reference/</code></pre>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container capability-structure-grid">
+          <div>
+            <p class="eyebrow">Capability anatomy</p>
+            <h2>The human-facing fields describe the contract.</h2>
+            <p>
+              The top-level capability fields capture identity, current state, purpose, reviewer guidance, and acceptance criteria.
+              Agent-maintained references and verification can live below this, but the first thing a reviewer should see is the
+              product behavior being claimed.
+            </p>
+          </div>
+          <pre class="code-card"><code>id: core/graph/diff-capabilities
+title: Diff capabilities
+status: implemented
+area: core
+summary: Compare current capability files with a Git base and summarize added,
+  changed, and removed capabilities.
+intent: Help developers understand product and agent-facing intent changes
+  without reading raw YAML diffs.
+acceptance:
+  - Compares current capabilities against a configurable Git base ref.
+  - Reports added, changed, and removed capabilities by capability ID.
+  - Summarizes meaningful field changes such as status, intent, acceptance,
+    dependencies, implementation references, verification, and ignore policy.
+  - Includes downstream impact context for changed capabilities.
+guidance:
+  - Compare normalized parsed capabilities, not raw YAML text.
+  - Avoid raw JSON in the default human output.</code></pre>
+        </div>
+      </section>
+
       <section class="section graph-section">
         <div class="container graph-grid">
           <div>
@@ -200,35 +264,6 @@ Suggested checks: npm test, compile</code></pre>
             <div class="node middle">Agent task bundles</div>
             <div class="node lower">CLI workflow</div>
           </div>
-        </div>
-      </section>
-
-      <section class="section section-alt">
-        <div class="container example-grid">
-          <div>
-            <p class="eyebrow">Repo-native contract</p>
-            <h2>A capability file carries intent and review evidence together.</h2>
-            <p>
-              CapabilityKit does not replace source code, tests, or architecture decisions. It keeps the capability contract close
-              enough to the implementation that humans and agents can review whether the product behavior is still true.
-            </p>
-          </div>
-          <pre class="code-card"><code>id: core/graph/diff-capabilities
-intent: Help developers understand product and agent-facing intent changes.
-acceptance:
-  - Summarizes meaningful field changes.
-  - Includes downstream impact context.
-agent:
-  depends_on:
-    - core/graph/compile-capabilities
-  implementation:
-    references:
-      - packages/core/src/capabilityDiff.ts
-  verification:
-    automated:
-      - command: npm test -- packages/core/tests/capabilityDiff.test.ts
-    manual:
-      - Confirm the diff explains intent better than git diff.</code></pre>
         </div>
       </section>
 

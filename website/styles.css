@@ -336,6 +336,7 @@ code {
 
 .steps,
 .three-panel,
+.capability-structure-grid,
 .graph-grid,
 .example-grid,
 .split {
@@ -374,6 +375,7 @@ code {
 }
 
 .split,
+.capability-structure-grid,
 .graph-grid,
 .example-grid {
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -424,6 +426,7 @@ li {
 }
 
 .graph-visual {
+  --graph-node-width: 10.8rem;
   position: relative;
   min-height: 430px;
   border: 1px solid var(--line);
@@ -437,7 +440,7 @@ li {
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 12.4rem;
+  width: var(--graph-node-width);
   min-height: 4.2rem;
   padding: 0.8rem;
   border: 1px solid var(--line);
@@ -450,32 +453,33 @@ li {
 }
 
 .foundation {
-  left: 2rem;
-  top: 10.5rem;
+  left: 5%;
+  top: 10.7rem;
   border-top: 4px solid var(--brand);
 }
 
 .center {
-  left: calc(50% - 6.2rem);
-  top: 10.5rem;
+  left: 50%;
+  top: 10.7rem;
+  transform: translateX(-50%);
   border-top: 4px solid var(--amber);
 }
 
 .upper {
-  right: 2rem;
-  top: 3rem;
+  right: 5%;
+  top: 3.5rem;
   border-top: 4px solid var(--rose);
 }
 
 .middle {
-  right: 2rem;
-  top: 10.5rem;
+  right: 5%;
+  top: 10.7rem;
   border-top: 4px solid var(--blue);
 }
 
 .lower {
-  right: 2rem;
-  bottom: 3rem;
+  right: 5%;
+  top: 17.9rem;
   border-top: 4px solid var(--brand);
 }
 
@@ -487,15 +491,15 @@ li {
 }
 
 .edge-one {
-  left: 14.4rem;
-  right: calc(50% + 6.2rem);
-  top: 12.6rem;
+  left: calc(5% + var(--graph-node-width));
+  right: calc(50% + (var(--graph-node-width) / 2));
+  top: 12.8rem;
 }
 
 .edge-two {
-  left: calc(50% + 6.2rem);
-  right: 14.4rem;
-  top: 12.6rem;
+  left: calc(50% + (var(--graph-node-width) / 2));
+  right: calc(5% + var(--graph-node-width));
+  top: 12.8rem;
 }
 
 .edge-two::before,
@@ -504,7 +508,7 @@ li {
   position: absolute;
   right: 0;
   width: 2px;
-  height: 7.5rem;
+  height: 7.2rem;
   background: var(--line);
 }
 
@@ -518,6 +522,19 @@ li {
 
 .code-card {
   box-shadow: none;
+}
+
+.tree-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 14px 34px rgba(20, 33, 28, 0.06);
+}
+
+.tree-card code {
+  color: var(--brand-dark);
+  font-weight: 700;
 }
 
 .final-cta {
@@ -566,6 +583,7 @@ li {
   .hero-grid,
   .intro-grid,
   .split,
+  .capability-structure-grid,
   .graph-grid,
   .example-grid,
   .cta-panel {
