@@ -73,7 +73,7 @@ The workflow has `id-token: write`, which is required for OIDC trusted publishin
 6. Create and push the version tag:
 
    ```powershell
-   git tag v0.1.2
+   git tag -a v0.1.2 -m "Release 0.1.2"
    git push origin main --follow-tags
    ```
 

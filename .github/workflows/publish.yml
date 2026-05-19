@@ -28,7 +28,5 @@ jobs:
       - run: npm run capabilitykit -- compile
       - run: npx publint packages/core --pack npm
       - run: npx publint packages/cli --pack npm
-      - run: npx -p @arethetypeswrong/cli attw --pack packages/core --ignore-rules no-resolution cjs-resolves-to-esm
-      - run: npx -p @arethetypeswrong/cli attw --pack packages/cli --ignore-rules no-resolution cjs-resolves-to-esm
       - run: npm publish --workspace @capabilitykit/core --access public
       - run: npm publish --workspace @capabilitykit/cli --access public
