@@ -1,0 +1,51 @@
+id: core/graph/generate-dependency-graph-svg
+title: Generate dependency graph SVG
+status: implemented
+area: core
+summary: Generate an interactive SVG visualization of the capability dependency
+  graph from the current capability map.
+intent: Help maintainers and agents understand capability structure, status,
+  verification gaps, and dependency relationships at a glance.
+acceptance:
+  - Provides a `graph` CLI command that writes an SVG dependency graph.
+  - Writes `.capabilities/dependency-graph.svg` by default and supports a
+    custom output path.
+  - Updates compiled capability outputs before graph generation unless the user
+    opts out.
+  - Renders one node per capability with status, area, direct dependent count,
+    and verification gap indicators.
+  - Renders dependency links from `agent.depends_on` relationships.
+  - Includes browser-side interaction for animated layout, dragging,
+    highlighting, zoom, and spacing controls.
+guidance:
+  - Keep the SVG self-contained so users can open it directly in a browser.
+  - Treat the visualization as a navigation and review aid, not as a replacement
+    for `inspect`, `impact`, or validation output.
+  - Preserve script-safe CLI behavior and return a non-zero exit code when
+    validation fails.
+agent:
+  inputs:
+    - .capabilities/**/*.capability.yaml
+    - agent.depends_on relationships
+    - validation verification gaps
+  outputs:
+    - .capabilities/dependency-graph.svg
+    - custom SVG output path
+  depends_on:
+    - core/graph/compile-capabilities
+    - core/graph/analyze-capability-impact
+    - core/validation/validate-capability-files
+  implementation:
+    references:
+      - packages/cli/src/index.ts
+  verification:
+    automated:
+      - id: cli-build
+        description: TypeScript build verifies the graph command and SVG renderer.
+        command: npm run build
+      - id: dogfood-graph
+        description: The CLI generates CapabilityKit's own dependency graph SVG.
+        command: npm run capabilitykit -- graph
+    manual:
+      - Open `.capabilities/dependency-graph.svg` in a browser and confirm nodes,
+        links, highlighting, dragging, zoom, and spacing controls work.

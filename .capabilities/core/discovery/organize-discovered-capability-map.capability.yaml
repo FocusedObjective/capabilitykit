@@ -1,0 +1,56 @@
+id: core/discovery/organize-discovered-capability-map
+title: Organize discovered capability map
+status: planned
+area: core
+summary: Create a readable folder and dependency structure from
+  agent-discovered capabilities so users can browse what the app currently
+  does.
+intent: Make the generated `.capabilities/` tree feel like a product map rather
+  than a dump of source-code observations.
+acceptance:
+  - Groups agent-generated capabilities into meaningful area and subarea
+    folders.
+  - Suggests capability IDs and filenames that are stable, readable, and aligned
+    with the generated folder structure.
+  - Detects likely dependencies between discovered capabilities when code
+    evidence or workflow relationships support them.
+  - Provides a summary index of generated areas and top-level capabilities.
+  - Flags ambiguous grouping decisions for human review instead of hiding them.
+guidance:
+  - Prefer product domains, workflows, and user-visible features over framework
+    folders when naming areas.
+  - Preserve the agent's inspected code evidence when moving or regrouping
+    generated capabilities.
+  - Keep dependency inference conservative.
+  - Avoid creating deep folder trees unless the project has enough behavior to
+    justify them.
+# agent-generated draft
+# review before treating this section as implementation evidence
+agent:
+  inputs:
+    - discovery candidates
+    - generated capability files
+    - inspected code path summary
+    - existing capability IDs
+  outputs:
+    - organized .capabilities folder structure
+    - dependency suggestions
+    - generated capability index summary
+  depends_on:
+    - core/discovery/generate-draft-capability-files
+    - core/graph/compile-capabilities
+    - core/graph/analyze-capability-impact
+  verification:
+    automated:
+      - id: capability-map-organization-tests
+        description: Unit tests verify stable ID, folder, and dependency suggestions for fixture projects.
+        command: npm test -- packages/core/tests/discoveryOrganization.test.ts
+      - id: generated-map-compiles
+        description: Generated capability maps compile after organization.
+        command: npm run build
+    manual:
+      - Review generated folders for a sample app and confirm a maintainer can
+        answer what the app does without reading source code first.
+    gaps:
+      - Dependency inference may need project-specific review for cross-cutting
+        infrastructure and shared services.

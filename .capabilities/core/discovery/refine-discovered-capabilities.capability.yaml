@@ -1,0 +1,62 @@
+id: core/discovery/refine-discovered-capabilities
+title: Refine discovered capabilities
+status: planned
+area: core
+summary: Provide an iterative review workflow that improves generated
+  capability files after creation.
+intent: Help teams turn agent-generated drafts into maintained capability specs
+  by reviewing evidence, gaps, naming, and acceptance criteria over time.
+acceptance:
+  - Reports generated capabilities that still need human review.
+  - Reuses assessment and review commands to compare each generated capability
+    against implementation references.
+  - Prioritizes refinement of capabilities with weak code evidence, shallow
+    inspected path summaries, or acceptance criteria inferred from documentation
+    instead of implementation behavior.
+  - Suggests specific edits for vague acceptance criteria, weak references,
+    missing verification, and poor area placement.
+  - Lets users accept, revise, or remove generated draft capabilities without
+    losing the audit trail of why they were proposed.
+  - Updates status and review evidence only through explicit user or policy
+    action.
+guidance:
+  - Treat generated capability files as the start of a maintenance loop, not a
+    one-time import.
+  - Ask agents to revisit code paths when the draft capability lacks concrete
+    implementation evidence.
+  - Keep recommendations grouped by the smallest useful edit.
+  - Do not automatically promote generated capabilities to implemented or
+    verified status from agent prose alone.
+# agent-generated draft
+# review before treating this section as implementation evidence
+agent:
+  inputs:
+    - generated capability files
+    - implementation references
+    - inspected code path summaries
+    - assessment output
+    - agent review output
+  outputs:
+    - capability refinement recommendations
+    - accepted review evidence
+    - updated capability statuses when explicitly requested
+  depends_on:
+    - core/discovery/generate-draft-capability-files
+    - core/assessment/assess-implementation-coverage
+    - core/agents/review-capability-with-agent
+    - core/agents/ingest-agent-review-result
+  verification:
+    automated:
+      - id: discovery-refinement-tests
+        description: Unit tests verify generated capabilities are surfaced with actionable refinement recommendations.
+        command: npm test -- packages/core/tests/discoveryRefinement.test.ts
+      - id: cli-build
+        description: TypeScript build verifies refinement command integration.
+        command: npm run build
+    manual:
+      - Run refinement against generated draft capabilities and confirm the
+        recommendations help a maintainer improve the map without rereading the
+        whole project.
+    gaps:
+      - Status promotion policy should remain configurable before any automated
+        update workflow is enabled.

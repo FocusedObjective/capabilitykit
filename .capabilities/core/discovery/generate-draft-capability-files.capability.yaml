@@ -1,0 +1,59 @@
+id: core/discovery/generate-draft-capability-files
+title: Generate draft capability files
+status: planned
+area: core
+summary: Turn agent-discovered project capabilities into draft
+  `.capability.yaml` files with implementation references and explicit
+  verification gaps.
+intent: Let a user ask their agent of choice to create a useful first
+  `.capabilities/` map for the main functionality of an existing application.
+acceptance:
+  - Converts selected agent-discovered capability candidates into valid
+    capability files.
+  - Writes files under a neat area and subfolder structure that reflects the
+    application's domains and workflows.
+  - Populates title, status, area, summary, intent, acceptance criteria,
+    implementation references, and verification placeholders.
+  - Requires every generated capability to include concrete implementation
+    references from code inspection, not only documentation or package metadata.
+  - Uses planned or needs-review status for generated files instead of claiming
+    implementation is verified.
+  - Refuses to overwrite existing capability files unless force is requested.
+guidance:
+  - Generated capability files should be useful to navigate even before they are
+    perfect.
+  - Prefer capability IDs that describe product behavior rather than internal
+    module names.
+  - Preserve evidence paths so maintainers can quickly review why each
+    capability was proposed.
+  - Reject or quarantine candidates that lack enough code evidence to be useful
+    as draft capabilities.
+# agent-generated draft
+# review before treating this section as implementation evidence
+agent:
+  inputs:
+    - capability discovery report
+    - selected candidates
+    - inspected code path summary
+    - existing .capabilities folder
+  outputs:
+    - .capabilities/**/*.capability.yaml
+    - generation summary
+  depends_on:
+    - core/discovery/discover-project-capability-candidates
+    - core/validation/validate-capability-files
+    - core/validation/verify-implementation-references
+  verification:
+    automated:
+      - id: generated-capability-validation-tests
+        description: Unit tests verify generated draft files parse and validate.
+        command: npm test -- packages/core/tests/discoveryGeneration.test.ts
+      - id: cli-build
+        description: TypeScript build verifies generation APIs and CLI options.
+        command: npm run build
+    manual:
+      - Generate draft capabilities in a fixture project and confirm the
+        resulting folder structure is understandable to a new maintainer.
+    gaps:
+      - Generated acceptance criteria still need review because source evidence
+        cannot fully explain product intent.

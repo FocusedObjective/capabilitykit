@@ -28,6 +28,7 @@ agent:
     - core/project/initialize-capability-project
     - core/validation/validate-capability-files
     - core/graph/compile-capabilities
+    - core/graph/generate-dependency-graph-svg
   implementation:
     references:
       - packages/cli/src/index.ts

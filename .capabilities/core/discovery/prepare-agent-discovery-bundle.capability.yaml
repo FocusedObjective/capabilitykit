@@ -1,0 +1,66 @@
+id: core/discovery/prepare-agent-discovery-bundle
+title: Prepare agent discovery bundle
+status: planned
+area: core
+summary: Build a project-level prompt bundle that directs Codex, Claude Code,
+  GitHub Copilot, or another coding agent to perform full code discovery before
+  drafting capability files.
+intent: Make CapabilityKit agent-neutral so users can choose the coding agent
+  they already trust to interpret the project and create draft capability specs.
+acceptance:
+  - Generates a discovery-mode task bundle from the project inventory, existing
+    capability map, and discovery goals.
+  - Directs the external agent to inspect implementation code across the
+    project's main entrypoints, user workflows, APIs, data models, tests,
+    scripts, and configuration.
+  - Instructs the external agent to create capability files for the main
+    project functionality, not every implementation detail.
+  - Instructs the external agent not to rely on README, package metadata, or
+    filenames without confirming behavior in code.
+  - Requires the agent to cite source evidence through
+    `agent.implementation.references`.
+  - Requires generated files to include verification gaps where behavior is
+    inferred or not covered by tests.
+  - Supports inspectable dry-run output before invoking an external agent.
+guidance:
+  - Reuse existing external-agent handoff conventions instead of creating a
+    provider-specific integration first.
+  - Keep the prompt explicit about folder structure, status policy, and evidence
+    requirements.
+  - Give the agent a discovery checklist and output contract instead of trying
+    to precompute semantic capabilities from static metadata alone.
+  - Make the bundle inspectable while allowing the external agent to navigate
+    the project directly when its CLI supports workspace access.
+# agent-generated draft
+# review before treating this section as implementation evidence
+agent:
+  inputs:
+    - project inventory
+    - discovery report
+    - existing capability map
+    - agent command configuration
+    - source tree access instructions
+  outputs:
+    - discovery prompt bundle
+    - optional external agent transcript
+    - proposed capability file changes
+    - inspected code path summary
+  depends_on:
+    - core/discovery/discover-project-capability-candidates
+    - core/discovery/generate-draft-capability-files
+    - core/agents/run-external-agent-cli
+  verification:
+    automated:
+      - id: discovery-agent-bundle-tests
+        description: Unit tests verify the discovery bundle includes full-code inspection instructions, evidence requirements, status policy, and output instructions.
+        command: npm test -- packages/core/tests/discoveryAgentTask.test.ts
+      - id: cli-build
+        description: TypeScript build verifies discovery agent command wiring.
+        command: npm run build
+    manual:
+      - Run a dry-run discovery handoff for Codex and Claude Code command
+        configurations and confirm the generated prompt tells the agent to
+        inspect source behavior instead of summarizing docs.
+    gaps:
+      - Provider-specific command defaults can be added later after the generic
+        handoff is proven.

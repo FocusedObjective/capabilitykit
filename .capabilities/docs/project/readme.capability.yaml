@@ -18,6 +18,8 @@ acceptance:
     after AI-assisted coding.
   - README explains capability diff, implementation coverage assessment, and
     dependency impact workflows.
+  - README links to the generated SVG dependency graph and explains how to
+    regenerate it.
   - Website shows the hierarchical nature of the .capabilities folder.
   - Website shows the main human-authored parts of a capability without the
     agent section.
