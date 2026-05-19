@@ -255,14 +255,73 @@ guidance:
               That graph turns a local change into an impact report with checks and manual review guidance.
             </p>
           </div>
-          <div class="graph-visual" aria-label="Capability dependency graph">
-            <div class="node foundation">Capability format</div>
-            <div class="edge edge-one"></div>
-            <div class="node center">Compile capabilities</div>
-            <div class="edge edge-two"></div>
-            <div class="node upper">Diff review</div>
-            <div class="node middle">Agent task bundles</div>
-            <div class="node lower">CLI workflow</div>
+          <div class="graph-visual" aria-label="Capability dependency graph with impact and status">
+            <svg viewBox="0 0 860 520" role="img" aria-labelledby="graph-title graph-desc">
+              <title id="graph-title">Capability dependency and impact graph</title>
+              <desc id="graph-desc">Force-balanced layout where larger nodes impact more downstream capabilities, with color and outline showing status and verification gaps.</desc>
+
+              <defs>
+                <linearGradient id="bg-glow" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#f8fdfb" />
+                  <stop offset="100%" stop-color="#edf5ff" />
+                </linearGradient>
+                <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#a3b3ab" />
+                </marker>
+              </defs>
+
+              <rect x="0" y="0" width="860" height="520" fill="url(#bg-glow)" />
+
+              <g class="graph-links">
+                <path d="M205 190 C 290 160, 335 185, 408 214" marker-end="url(#arrow)" />
+                <path d="M462 216 C 565 180, 630 136, 698 102" marker-end="url(#arrow)" />
+                <path d="M462 232 C 565 228, 635 230, 697 235" marker-end="url(#arrow)" />
+                <path d="M455 246 C 540 285, 611 336, 698 398" marker-end="url(#arrow)" />
+                <path d="M734 118 C 755 162, 760 184, 740 218" marker-end="url(#arrow)" />
+              </g>
+
+              <g class="graph-node node-planned" transform="translate(125 160)">
+                <title>core/schema/define-capability-format • Planned • Foundation spec with no downstream status checks yet.</title>
+                <circle r="80" />
+                <text y="-8">Capability</text>
+                <text y="17">format</text>
+              </g>
+
+              <g class="graph-node node-implemented" transform="translate(430 230)">
+                <title>core/graph/compile-capabilities • Implemented • Highest impact root for compile map consumers and impact tooling.</title>
+                <circle r="110" />
+                <text y="-12">Compile</text>
+                <text y="16">capabilities</text>
+              </g>
+
+              <g class="graph-node node-gap" transform="translate(735 95)">
+                <title>core/graph/diff-capabilities • In progress • Verification gaps: add field-level regression coverage.</title>
+                <circle r="72" />
+                <text y="-8">Diff</text>
+                <text y="17">review</text>
+              </g>
+
+              <g class="graph-node node-review" transform="translate(735 235)">
+                <title>core/agent/agent-task • Implemented • Needs review: prompt output quality varies by task mode.</title>
+                <circle r="62" />
+                <text y="-8">Agent task</text>
+                <text y="17">bundles</text>
+              </g>
+
+              <g class="graph-node node-implemented" transform="translate(735 405)">
+                <title>core/cli/workflow • Implemented • User entrypoint affected by compile, diff, and assessment capabilities.</title>
+                <circle r="82" />
+                <text y="-8">CLI</text>
+                <text y="17">workflow</text>
+              </g>
+            </svg>
+            <div class="graph-legend" aria-label="Graph legend">
+              <span><i class="legend-dot implemented"></i>Implemented</span>
+              <span><i class="legend-dot review"></i>Needs review</span>
+              <span><i class="legend-dot gap"></i>Gap / needs action</span>
+              <span><i class="legend-dot planned"></i>Planned</span>
+              <span><i class="legend-size"></i>Node size = downstream impact</span>
+            </div>
           </div>
         </div>
       </section>

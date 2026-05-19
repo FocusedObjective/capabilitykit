@@ -8,6 +8,8 @@ intent: Make capability management fast enough to stay close to normal
 acceptance:
   - Supports init, create, status, diff, validate, compile, and inspect
     commands.
+  - Supports a graph command that compiles dependency updates and writes an SVG
+    dependency graph to `.capabilities/dependency-graph.svg` by default.
   - Returns a non-zero exit code for validation failures.
   - Prints verification gaps in validation and inspect output.
 guidance:
