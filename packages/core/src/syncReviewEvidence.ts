@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { parseDocument } from "yaml";
 import { adviseImplementationCoverage, type CapabilityAssessmentAdvice, type CriterionAssessmentAdvice } from "./assessmentAdvice.js";
+import { setAgentSectionComment } from "./agentSectionComment.js";
 
 export interface SyncReviewEvidenceResult {
   capabilityId: string;
@@ -81,6 +82,11 @@ export async function syncReviewEvidence(
     if (!options.dryRun) {
       const document = parseDocument(await fs.readFile(resolvedPath, "utf8"));
       document.setIn(["agent", "review"], review);
+      setAgentSectionComment(document, [
+        "machine generated",
+        `test: capabilitykit sync-review ${capability.capabilityId} --dry-run`,
+        `update: capabilitykit sync-review ${capability.capabilityId}`
+      ]);
       await fs.writeFile(resolvedPath, document.toString());
     }
 

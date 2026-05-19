@@ -130,5 +130,8 @@ describe("agent review results", () => {
     expect(source).toContain("depth: verified");
     expect(source).toContain("status: implemented");
     expect(source).toContain("intent_summary: The capability proves review result ingestion.");
+    expect(source).toContain("# machine generated");
+    expect(source).toContain("# test: capabilitykit review-result core/example --input <review.json>");
+    expect(source).toContain("# update: capabilitykit review-result core/example --input <review.json> --save");
   });
 });

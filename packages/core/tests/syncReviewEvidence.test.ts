@@ -71,6 +71,9 @@ describe("syncReviewEvidence", () => {
     expect(parsed.agent.review.done).toBe(false);
     expect(parsed.agent.review.criteria).toHaveLength(2);
     expect(parsed.agent.review.gaps.length).toBeGreaterThan(0);
+    expect(source).toContain("# machine generated");
+    expect(source).toContain("# test: capabilitykit sync-review core/example --dry-run");
+    expect(source).toContain("# update: capabilitykit sync-review core/example");
   });
 
   it("reports dry-run changes without writing files", async () => {

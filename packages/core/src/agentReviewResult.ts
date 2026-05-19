@@ -3,6 +3,7 @@ import path from "node:path";
 import { parseDocument } from "yaml";
 import { z } from "zod";
 import { loadCapabilities } from "./loadCapabilities.js";
+import { setAgentSectionComment } from "./agentSectionComment.js";
 import type { AgentReviewCriterion, Capability } from "./types.js";
 
 const reviewStatusSchema = z.enum(["covered", "partial", "uncovered", "uncertain"]);
@@ -199,6 +200,12 @@ export async function saveAgentReviewResult(
     evidence: reviewEvidence(validation.review.criteria),
     gaps: validation.review.remaining_gaps
   });
+
+  setAgentSectionComment(document, [
+    "machine generated",
+    `test: capabilitykit review-result ${capabilityId} --input <review.json>`,
+    `update: capabilitykit review-result ${capabilityId} --input <review.json> --save`
+  ]);
 
   await fs.writeFile(match.filePath, document.toString());
 
