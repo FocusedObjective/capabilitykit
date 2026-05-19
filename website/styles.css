@@ -426,98 +426,87 @@ li {
 }
 
 .graph-visual {
-  --graph-node-width: 10.8rem;
   position: relative;
-  min-height: 430px;
+  min-height: 520px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
   overflow: hidden;
 }
 
-.node {
-  position: absolute;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  width: var(--graph-node-width);
-  min-height: 4.2rem;
-  padding: 0.8rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--ink);
+.graph-visual svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.graph-links path {
+  fill: none;
+  stroke: #a3b3ab;
+  stroke-width: 2.2;
+  opacity: 0.9;
+}
+
+.graph-node {
+  filter: drop-shadow(0 12px 24px rgba(20, 33, 28, 0.1));
+  cursor: help;
+}
+
+.graph-node circle {
+  fill: #fff;
+  stroke-width: 4;
+}
+
+.graph-node text {
+  font-size: 1rem;
+  text-anchor: middle;
+  fill: var(--ink);
   font-weight: 800;
-  text-align: center;
-  box-shadow: 0 14px 34px rgba(20, 33, 28, 0.09);
 }
 
-.foundation {
-  left: 5%;
-  top: 10.7rem;
-  border-top: 4px solid var(--brand);
-}
+.node-implemented circle { stroke: var(--brand); }
+.node-review circle { stroke: var(--blue); stroke-dasharray: 8 7; }
+.node-gap circle { stroke: var(--rose); }
+.node-planned circle { stroke: var(--amber); stroke-dasharray: 5 6; }
 
-.center {
-  left: 50%;
-  top: 10.7rem;
-  transform: translateX(-50%);
-  border-top: 4px solid var(--amber);
-}
-
-.upper {
-  right: 5%;
-  top: 3.5rem;
-  border-top: 4px solid var(--rose);
-}
-
-.middle {
-  right: 5%;
-  top: 10.7rem;
-  border-top: 4px solid var(--blue);
-}
-
-.lower {
-  right: 5%;
-  top: 17.9rem;
-  border-top: 4px solid var(--brand);
-}
-
-.edge {
+.graph-legend {
   position: absolute;
-  z-index: 1;
-  height: 2px;
-  background: var(--line);
+  left: 0.8rem;
+  right: 0.8rem;
+  bottom: 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid rgba(132, 156, 145, 0.35);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(2px);
+  font-size: 0.84rem;
+  color: #325346;
 }
 
-.edge-one {
-  left: calc(5% + var(--graph-node-width));
-  right: calc(50% + (var(--graph-node-width) / 2));
-  top: 12.8rem;
+.graph-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+
+.legend-dot {
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 999px;
+  border: 3px solid;
+  background: #fff;
 }
 
-.edge-two {
-  left: calc(50% + (var(--graph-node-width) / 2));
-  right: calc(5% + var(--graph-node-width));
-  top: 12.8rem;
-}
+.legend-dot.implemented { border-color: var(--brand); }
+.legend-dot.review { border-color: var(--blue); border-style: dashed; }
+.legend-dot.gap { border-color: var(--rose); }
+.legend-dot.planned { border-color: var(--amber); border-style: dashed; }
 
-.edge-two::before,
-.edge-two::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  width: 2px;
-  height: 7.2rem;
-  background: var(--line);
-}
-
-.edge-two::before {
-  bottom: 0;
-}
-
-.edge-two::after {
-  top: 0;
+.legend-size {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  border: 3px solid #7f8f88;
+  box-shadow: 0 0 0 4px rgba(127, 143, 136, 0.24);
 }
 
 .code-card {
