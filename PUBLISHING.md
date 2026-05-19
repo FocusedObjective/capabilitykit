@@ -5,90 +5,83 @@ CapabilityKit publishes two public npm packages:
 - `@capabilitykit/core`
 - `@capabilitykit/cli`
 
-Publish `@capabilitykit/core` first because `@capabilitykit/cli` depends on it.
+The GitHub Actions publish workflow publishes `@capabilitykit/core` first because `@capabilitykit/cli` depends on it.
 
-## Prerequisites
+## GitHub Actions
 
-Confirm you are logged in as an npm user with publish access to the `@capabilitykit` org:
+### Publish (`.github/workflows/publish.yml`)
 
-```powershell
-npm whoami
-npm access list packages @capabilitykit
-```
+Runs automatically when a tag matching `v*` is pushed.
 
-If needed, log in:
+- Steps: `npm ci` -> `test` -> `build` -> `capabilitykit validate` -> `capabilitykit compile` -> `publint` -> `attw` -> publish both workspaces
+- Publishes `@capabilitykit/core` first, then `@capabilitykit/cli`
+- Uses npm trusted publishing with GitHub Actions OIDC
 
-```powershell
-npm login
-```
+## One-Time npm Setup
 
-## Choose The Version
+Configure trusted publishing on npmjs.com for both packages before relying on the workflow:
 
-Use semantic versioning:
+1. Open each package on npmjs.com.
+2. Go to package settings, then Trusted Publisher.
+3. Add a GitHub Actions trusted publisher with:
+   - Organization/user: `FocusedObjective`
+   - Repository: `capabilitykit`
+   - Workflow filename: `publish.yml`
 
-- Patch: bug fixes, docs/package metadata fixes, internal cleanup with no new API.
-- Minor: new backwards-compatible features.
-- Major: breaking changes.
+The workflow has `id-token: write`, which is required for OIDC trusted publishing. Do not add a long-lived `NODE_AUTH_TOKEN` unless you intentionally choose token-based publishing instead.
 
-Both packages can usually move together while the project is small.
+## Publishing a New Version
 
-## Update Versions
+1. Make sure you are on `main` with a clean working tree.
 
-From the repo root, update both workspace package versions:
+2. Update both workspace package versions:
 
-```powershell
-npm version patch --workspace @capabilitykit/core --no-git-tag-version
-npm version patch --workspace @capabilitykit/cli --no-git-tag-version
-npm install
-```
+   ```powershell
+   npm version patch --workspace @capabilitykit/core --no-git-tag-version
+   npm version patch --workspace @capabilitykit/cli --no-git-tag-version
+   npm install
+   ```
 
-Replace `patch` with `minor` or `major` when appropriate.
+   Replace `patch` with `minor` or `major` when appropriate.
 
-If `@capabilitykit/cli` depends on the exact new core range, update `packages/cli/package.json` before running `npm install`.
+3. If the CLI should depend on the exact new core range, update `packages/cli/package.json` before running `npm install`.
 
-Example:
+   Example:
 
-```json
-"@capabilitykit/core": "^0.1.1"
-```
+   ```json
+   "@capabilitykit/core": "^0.1.2"
+   ```
 
-## Verify Locally
+4. Verify locally:
 
-Run the full verification loop:
+   ```powershell
+   npm run verify
+   npm pack --workspace @capabilitykit/core --dry-run
+   npm pack --workspace @capabilitykit/cli --dry-run
+   ```
 
-```powershell
-npm run verify
-```
+5. Commit the release prep:
 
-Inspect the files that npm will publish:
+   ```powershell
+   git status
+   git add package-lock.json packages/core/package.json packages/cli/package.json
+   git commit -m "Release 0.1.2"
+   ```
 
-```powershell
-npm pack --workspace @capabilitykit/core --dry-run
-npm pack --workspace @capabilitykit/cli --dry-run
-```
+   Adjust the version in the commit message.
 
-The package contents should be limited to `dist/` and `package.json`.
+6. Create and push the version tag:
 
-## Publish
+   ```powershell
+   git tag v0.1.2
+   git push origin main --follow-tags
+   ```
 
-Publish core first:
+7. Monitor the run at:
 
-```powershell
-npm publish --workspace @capabilitykit/core --access public
-```
-
-Then publish the CLI:
-
-```powershell
-npm publish --workspace @capabilitykit/cli --access public
-```
-
-If npm asks for two-factor authentication, rerun the command with the current one-time password:
-
-```powershell
-npm publish --workspace @capabilitykit/core --access public --otp 123456
-npm publish --workspace @capabilitykit/cli --access public --otp 123456
-```
+   ```text
+   https://github.com/FocusedObjective/capabilitykit/actions
+   ```
 
 ## Verify The Published Packages
 
@@ -108,19 +101,9 @@ npm dist-tag ls @capabilitykit/core
 npm dist-tag ls @capabilitykit/cli
 ```
 
-## Commit The Release Prep
-
-Commit the version and lockfile changes:
-
-```powershell
-git status
-git add package.json package-lock.json packages/core/package.json packages/cli/package.json
-git commit -m "Release 0.1.1"
-```
-
-Adjust the version in the commit message.
-
 ## Important Notes
+
+Do not run `npm publish` locally for normal releases. The Action handles publishing.
 
 Published npm versions are immutable. If a package version has already been published, fixes require a new version number.
 

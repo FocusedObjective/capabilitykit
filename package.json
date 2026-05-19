@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@9.15.4",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FocusedObjective/capabilitykit.git"
+  },
   "workspaces": [
     "packages/*"
   ],

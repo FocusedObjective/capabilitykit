@@ -4,8 +4,16 @@
   "description": "Command line tools for CapabilityKit capability specs.",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FocusedObjective/capabilitykit.git",
+    "directory": "packages/cli"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist",
     "SKILL.md"

@@ -1,0 +1,34 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm run capabilitykit -- validate
+      - run: npm run capabilitykit -- compile
+      - run: npx publint packages/core --pack npm
+      - run: npx publint packages/cli --pack npm
+      - run: npx -p @arethetypeswrong/cli attw --pack packages/core --ignore-rules no-resolution cjs-resolves-to-esm
+      - run: npx -p @arethetypeswrong/cli attw --pack packages/cli --ignore-rules no-resolution cjs-resolves-to-esm
+      - run: npm publish --workspace @capabilitykit/core --access public
+      - run: npm publish --workspace @capabilitykit/cli --access public
