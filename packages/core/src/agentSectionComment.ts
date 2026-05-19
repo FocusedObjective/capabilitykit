@@ -1,8 +1,8 @@
-import type { Document } from "yaml";
+import { isNode, type Document } from "yaml";
 
 export function setAgentSectionComment(document: Document, lines: string[]): void {
   const agentNode = document.get("agent", true);
-  if (!agentNode) {
+  if (!isNode(agentNode)) {
     return;
   }
   agentNode.commentBefore = lines.map((line) => ` ${line}`).join("\n");

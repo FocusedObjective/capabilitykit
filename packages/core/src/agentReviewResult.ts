@@ -203,8 +203,8 @@ export async function saveAgentReviewResult(
 
   setAgentSectionComment(document, [
     "machine generated",
-    `test: capabilitykit review-result ${capabilityId} --input <review.json>`,
-    `update: capabilitykit review-result ${capabilityId} --input <review.json> --save`
+    `test: capabilitykit review-result ${capabilityId} --input review.json`,
+    `update: capabilitykit review-result ${capabilityId} --input review.json --save`
   ]);
 
   await fs.writeFile(match.filePath, document.toString());
