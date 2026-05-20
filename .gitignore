@@ -3,4 +3,5 @@ dist/
 coverage/
 tmp/
 .capabilities/dist/
+website/dependency-graph.svg
 *.tsbuildinfo

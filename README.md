@@ -44,7 +44,7 @@ CapabilityKit can generate a self-contained SVG dependency graph:
 npm run capabilitykit -- graph
 ```
 
-The default output is [.capabilities/dependency-graph.svg](.capabilities/dependency-graph.svg). Open it directly in a browser for the animated layout, dragging, highlighting, zoom, and spacing controls.
+The default local output is `.capabilities/dependency-graph.svg`. The website deploy publishes a browser-openable copy at [capabilitykit.com/dependency-graph.svg](https://capabilitykit.com/dependency-graph.svg) for the animated layout, dragging, highlighting, zoom, and spacing controls.
 
 ## What A Capability Captures
 

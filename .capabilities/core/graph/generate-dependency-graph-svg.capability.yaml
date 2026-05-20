@@ -10,6 +10,7 @@ acceptance:
   - Provides a `graph` CLI command that writes an SVG dependency graph.
   - Writes `.capabilities/dependency-graph.svg` by default and supports a
     custom output path.
+  - Supports generating a website-published SVG through the deploy workflow.
   - Updates compiled capability outputs before graph generation unless the user
     opts out.
   - Renders one node per capability with status, area, direct dependent count,
@@ -31,6 +32,7 @@ agent:
   outputs:
     - .capabilities/dependency-graph.svg
     - custom SVG output path
+    - website/dependency-graph.svg during website deploy
   depends_on:
     - core/graph/compile-capabilities
     - core/graph/analyze-capability-impact
@@ -38,6 +40,7 @@ agent:
   implementation:
     references:
       - packages/cli/src/index.ts
+      - .github/workflows/deploy-website.yml
   verification:
     automated:
       - id: cli-build
