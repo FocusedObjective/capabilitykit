@@ -1,7 +1,5 @@
-id: core/agents/run-external-agent-cli
 title: Run external agent CLI
 status: implemented
-area: core
 summary: Invoke an installed external coding-agent CLI with a generated
   CapabilityKit task bundle.
 intent: Let CapabilityKit orchestrate handoff to installed tools such as Codex
@@ -25,6 +23,13 @@ guidance:
   - Prefer stdin handoff for large prompts and Windows command shims when the
     target CLI supports reading prompts from stdin.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - agent task prompt bundle
     - requested agent provider or command
@@ -40,6 +45,7 @@ agent:
       - packages/core/src/index.ts
       - packages/cli/src/index.ts
       - packages/core/tests/externalAgent.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: external-agent-detection-tests
@@ -51,3 +57,5 @@ agent:
     manual:
       - Run a dry-run handoff from a terminal without VS Code and confirm the
         generated command is inspectable before execution.
+    gaps: []
+    ignore_gaps: []

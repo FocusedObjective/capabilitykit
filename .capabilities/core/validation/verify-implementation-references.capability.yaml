@@ -1,7 +1,5 @@
-id: core/validation/verify-implementation-references
 title: Verify implementation references
 status: implemented
-area: core
 summary: Confirm implemented and verified capabilities point to
   agent.implementation.references values that exist in the repository.
 intent: Help maintainers and agents trust that completed capabilities are tied
@@ -18,6 +16,13 @@ guidance:
     advisory by default.
   - Do not require planned capabilities to have agent.implementation.references.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
     - agent.implementation.references values
@@ -29,6 +34,7 @@ agent:
     references:
       - packages/core/src/validateCapabilities.ts
       - packages/core/tests/validation.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: implementation-reference-tests
@@ -41,3 +47,5 @@ agent:
     manual:
       - Break one agent.implementation.references value locally and confirm
         validation reports the missing path.
+    gaps: []
+    ignore_gaps: []

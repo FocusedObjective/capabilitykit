@@ -220,15 +220,12 @@ Suggested checks: npm test, compile</code></pre>
             <p class="eyebrow">Capability anatomy</p>
             <h2>The human-facing fields describe the contract.</h2>
             <p>
-              The top-level capability fields capture identity, current state, purpose, reviewer guidance, and acceptance criteria.
-              Agent-maintained references and verification can live below this, but the first thing a reviewer should see is the
-              product behavior being claimed.
+              Keep the human-authored section short and focused on product behavior. IDs and area can be derived from file paths,
+              and agent-maintained references or review metadata can be appended later.
             </p>
           </div>
-          <pre class="code-card"><code>id: core/graph/diff-capabilities
-title: Diff capabilities
+          <pre class="code-card"><code>title: Diff capabilities
 status: implemented
-area: core
 summary: Compare current capability files with a Git base and summarize added,
   changed, and removed capabilities.
 intent: Help developers understand product and agent-facing intent changes

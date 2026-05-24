@@ -1,7 +1,5 @@
-id: developer-experience/integrations/vs-code-extension-readiness
 title: VS Code extension readiness
 status: planned
-area: developer-experience
 summary: Keep the package structure ready for a future VS Code extension without
   implementing it in the MVP.
 intent: Preserve a path toward editor diagnostics, navigation, and capability
@@ -13,6 +11,13 @@ guidance:
   - Design output data to be editor-friendly.
   - Do not implement extension UI during the MVP.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - compiled capabilities JSON
   outputs:
@@ -27,3 +32,5 @@ agent:
     manual:
       - Review compiled JSON and confirm it contains capability paths and
         dependencies.
+    gaps: []
+    ignore_gaps: []

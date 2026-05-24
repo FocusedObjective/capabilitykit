@@ -1,7 +1,5 @@
-id: core/discovery/generate-draft-capability-files
 title: Generate draft capability files
 status: planned
-area: core
 summary: Turn agent-discovered project capabilities into draft
   `.capability.yaml` files with implementation references and explicit
   verification gaps.
@@ -28,9 +26,14 @@ guidance:
     capability was proposed.
   - Reject or quarantine candidates that lack enough code evidence to be useful
     as draft capabilities.
-# agent-generated draft
-# review before treating this section as implementation evidence
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - capability discovery report
     - selected candidates
@@ -57,3 +60,4 @@ agent:
     gaps:
       - Generated acceptance criteria still need review because source evidence
         cannot fully explain product intent.
+    ignore_gaps: []

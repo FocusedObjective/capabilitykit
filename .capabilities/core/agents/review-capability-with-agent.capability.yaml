@@ -1,7 +1,5 @@
-id: core/agents/review-capability-with-agent
 title: Review capability with agent
 status: implemented
-area: core
 summary: Ask an external agent to compare a capability's declared intent and
   acceptance criteria against implementation evidence.
 intent: Help maintainers decide whether implementation is done by producing
@@ -20,6 +18,13 @@ guidance:
   - Prefer structured JSON output for criterion status and evidence.
   - Reuse the deterministic implementation coverage report when available.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - capability summary and intent
     - acceptance criteria
@@ -40,17 +45,22 @@ agent:
       - packages/core/src/index.ts
       - packages/cli/src/index.ts
       - packages/core/tests/agentReview.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: agent-review-prompt-tests
-        description: Unit tests confirm review bundles request structured criterion-level evidence.
+        description: Unit tests confirm review bundles request structured
+          criterion-level evidence.
         command: npm test -- packages/core/tests/agentReview.test.ts
       - id: dogfood-agent-review-dry-run
         description: The CLI prepares a Codex review handoff without executing the agent.
-        command: node packages/cli/dist/index.js agent-review core/agents/review-capability-with-agent --command codex --arg exec --handoff stdin --dry-run --no-references
+        command: node packages/cli/dist/index.js agent-review
+          core/agents/review-capability-with-agent --command codex --arg exec
+          --handoff stdin --dry-run --no-references
     manual:
       - Run a review bundle through Codex or Claude Code and confirm the output
         is usable as acceptance evidence.
     gaps:
       - Capability status updates from review output need an explicit project
         policy before automation.
+    ignore_gaps: []

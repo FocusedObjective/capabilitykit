@@ -1,7 +1,5 @@
-id: core/validation/validate-capability-files
 title: Validate capability files
 status: implemented
-area: core
 summary: Validate schema correctness, duplicate IDs, broken dependencies, and
   verification gaps.
 intent: Make changes safer by giving humans and agents a repeatable check before
@@ -17,6 +15,13 @@ guidance:
   - Keep validation deterministic in the MVP.
   - Do not silently ignore malformed capability files.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
   outputs:
@@ -33,6 +38,7 @@ agent:
       - packages/cli/src/index.ts
       - packages/core/tests/parser.test.ts
       - packages/core/tests/validation.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: validation-tests
@@ -45,3 +51,5 @@ agent:
     manual:
       - Confirm validation output is actionable enough to reduce manual review
         guesswork.
+    gaps: []
+    ignore_gaps: []

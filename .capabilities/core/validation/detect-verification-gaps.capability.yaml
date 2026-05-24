@@ -1,7 +1,5 @@
-id: core/validation/detect-verification-gaps
 title: Detect verification gaps
 status: implemented
-area: core
 summary: Identify missing or weak verification information in capability specs.
 intent: Reduce the human bottleneck by making review needs explicit before
   maintainers inspect code manually.
@@ -18,6 +16,13 @@ guidance:
   - Keep gap detection rules deterministic and covered by automated tests.
   - Do not use AI inference for MVP verification gap detection.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - parsed capability objects
   outputs:
@@ -30,6 +35,7 @@ agent:
       - packages/core/src/schema.ts
       - packages/core/src/types.ts
       - packages/core/tests/validation.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: verification-gap-tests
@@ -38,3 +44,5 @@ agent:
     manual:
       - Review validation output and confirm gaps explain what a human still
         needs to check.
+    gaps: []
+    ignore_gaps: []

@@ -1,7 +1,5 @@
-id: core/assessment/assess-implementation-coverage
 title: Assess implementation coverage
 status: implemented
-area: core
 summary: Compare a capability's acceptance criteria with its referenced
   implementation files to help determine whether the code covers the declared
   behavior.
@@ -32,6 +30,13 @@ guidance:
   - Do not mark capabilities verified solely because referenced files contain
     matching words.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - capability acceptance criteria
     - capability agent.implementation.references values
@@ -57,6 +62,7 @@ agent:
       - packages/core/tests/assessmentAdvice.test.ts
       - packages/core/tests/capabilityStatus.test.ts
       - packages/core/tests/syncReviewEvidence.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: coverage-report-tests
@@ -96,6 +102,6 @@ agent:
         semantic correctness without human or explicit AI review.
     ignore_gaps:
       - code: declared-gap
-        message_contains: Deterministic text evidence can identify review targets
         reason: This is an accepted limitation of the deterministic assessor; semantic
           review is handled through agent-review and review-result.
+        message_contains: Deterministic text evidence can identify review targets

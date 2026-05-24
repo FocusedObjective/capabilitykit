@@ -1,7 +1,5 @@
-id: docs/project/readme
 title: README
 status: implemented
-area: docs
 summary: Explain CapabilityKit as a developer review loop for capability diffs,
   implementation coverage, dependency impact, verification gaps, and dogfooding.
 intent: Make the project understandable enough for a developer to review
@@ -14,8 +12,8 @@ acceptance:
     status, diff, assess, and impact commands.
   - README explains how verification reduces manual review bottlenecks.
   - README includes Organizing Capabilities guidance for easier maintenance.
-  - README explains why planning documents can diverge from implementation
-    after AI-assisted coding.
+  - README explains why planning documents can diverge from implementation after
+    AI-assisted coding.
   - README explains capability diff, implementation coverage assessment, and
     dependency impact workflows.
   - README links to the website-published SVG dependency graph and explains how
@@ -28,6 +26,13 @@ guidance:
   - Keep the docs CLI-first and repo-native.
   - Do not position the MVP as a cloud product.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - README.md
     - website/index.html
@@ -45,6 +50,7 @@ agent:
       - website/index.html
       - website/styles.css
       - .github/workflows/deploy-website.yml
+    inferred_from: []
   verification:
     automated:
       - id: dogfood-validate
@@ -52,3 +58,5 @@ agent:
         command: npm run capabilitykit -- validate
     manual:
       - Read README and confirm it avoids heavyweight methodology language.
+    gaps: []
+    ignore_gaps: []

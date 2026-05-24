@@ -1,9 +1,7 @@
-id: core/discovery/refine-discovered-capabilities
 title: Refine discovered capabilities
 status: planned
-area: core
-summary: Provide an iterative review workflow that improves generated
-  capability files after creation.
+summary: Provide an iterative review workflow that improves generated capability
+  files after creation.
 intent: Help teams turn agent-generated drafts into maintained capability specs
   by reviewing evidence, gaps, naming, and acceptance criteria over time.
 acceptance:
@@ -27,9 +25,14 @@ guidance:
   - Keep recommendations grouped by the smallest useful edit.
   - Do not automatically promote generated capabilities to implemented or
     verified status from agent prose alone.
-# agent-generated draft
-# review before treating this section as implementation evidence
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - generated capability files
     - implementation references
@@ -48,7 +51,8 @@ agent:
   verification:
     automated:
       - id: discovery-refinement-tests
-        description: Unit tests verify generated capabilities are surfaced with actionable refinement recommendations.
+        description: Unit tests verify generated capabilities are surfaced with
+          actionable refinement recommendations.
         command: npm test -- packages/core/tests/discoveryRefinement.test.ts
       - id: cli-build
         description: TypeScript build verifies refinement command integration.
@@ -60,3 +64,4 @@ agent:
     gaps:
       - Status promotion policy should remain configurable before any automated
         update workflow is enabled.
+    ignore_gaps: []

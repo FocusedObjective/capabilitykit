@@ -1,7 +1,5 @@
-id: developer-experience/skills/install-capabilitykit-skill
 title: Install CapabilityKit skill
 status: implemented
-area: developer-experience
 summary: Initialize CapabilityKit skill files and agent entrypoints that point
   agents to the package skill guide.
 intent: Make CapabilityKit review and editing workflows reusable across coding
@@ -22,6 +20,13 @@ guidance:
   - Do not overwrite user-authored agent instructions outside the managed
     CapabilityKit block.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - terminal command
     - existing AGENTS.md or CLAUDE.md files
@@ -39,6 +44,7 @@ agent:
       - packages/cli/src/skillInstall.ts
       - packages/cli/src/index.ts
       - packages/cli/tests/skillInstall.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: skill-install-tests
@@ -50,3 +56,5 @@ agent:
     manual:
       - Run capabilitykit skill in a sample project and confirm the generated
         files reference the package SKILL.md.
+    gaps: []
+    ignore_gaps: []

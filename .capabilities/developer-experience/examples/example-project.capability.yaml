@@ -1,7 +1,5 @@
-id: developer-experience/examples/example-project
 title: Example project
 status: implemented
-area: developer-experience
 summary: Provide a small example app capability map for users to inspect.
 intent: Show how product capabilities can be grouped by area and connected with
   dependencies.
@@ -13,6 +11,13 @@ guidance:
   - Keep examples realistic but compact.
   - Do not add app code that distracts from capability files.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - examples/basic-app/.capabilities
   outputs:
@@ -27,6 +32,7 @@ agent:
       - examples/basic-app/.capabilities/checkout/cart.capability.yaml
       - examples/basic-app/.capabilities/checkout/payment.capability.yaml
       - packages/core/tests/parser.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: parser-tests
@@ -35,3 +41,5 @@ agent:
     manual:
       - Read the example files and confirm they are understandable without extra
         docs.
+    gaps: []
+    ignore_gaps: []

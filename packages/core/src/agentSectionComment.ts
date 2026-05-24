@@ -5,5 +5,6 @@ export function setAgentSectionComment(document: Document, lines: string[]): voi
   if (!isNode(agentNode)) {
     return;
   }
-  agentNode.commentBefore = lines.map((line) => ` ${line}`).join("\n");
+  const banner = "-----------------------------";
+  agentNode.commentBefore = ["", "", banner, ...lines, banner].map((line) => ` ${line}`).join("\n");
 }

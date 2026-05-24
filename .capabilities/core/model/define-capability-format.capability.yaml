@@ -1,7 +1,5 @@
-id: core/model/define-capability-format
 title: Define capability format
 status: implemented
-area: core
 summary: Define the YAML schema and TypeScript types for repo-native capability specs.
 intent: Give humans and AI coding agents a shared source of intent, scope,
   acceptance criteria, and verification expectations.
@@ -16,6 +14,13 @@ guidance:
   - Update this spec whenever the schema changes.
   - Do not make cloud services required for schema validation.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
   outputs:
@@ -26,6 +31,7 @@ agent:
       - packages/core/src/schema.ts
       - packages/core/src/types.ts
       - packages/core/src/parseCapability.ts
+    inferred_from: []
   verification:
     automated:
       - id: parser-tests
@@ -33,3 +39,5 @@ agent:
         command: npm test
     manual:
       - Review the example capability file in the README for clarity.
+    gaps: []
+    ignore_gaps: []

@@ -90,6 +90,10 @@ export interface ParsedCapability {
   capability: Capability;
   filePath: string;
   relativePath: string;
+  derivedId?: string;
+  derivedArea?: string;
+  hasExplicitId?: boolean;
+  hasExplicitArea?: boolean;
 }
 
 export interface CapabilityIssue {

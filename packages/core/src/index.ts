@@ -8,6 +8,7 @@ export { diffCapabilities, formatCapabilityDiffReport } from "./capabilityDiff.j
 export { formatCapabilityStatusReport, summarizeCapabilityStatus } from "./capabilityStatus.js";
 export { compileCapabilities, writeCompiledCapabilities } from "./compileCapabilities.js";
 export { detectExternalAgentCommand, runExternalAgentCommand } from "./externalAgent.js";
+export { formatCapabilities } from "./formatCapabilities.js";
 export { loadCapabilities } from "./loadCapabilities.js";
 export { parseCapability } from "./parseCapability.js";
 export { capabilitySchema, projectConfigSchema } from "./schema.js";
@@ -44,6 +45,7 @@ export type {
   ExternalAgentRunOptions,
   ExternalAgentRunResult
 } from "./externalAgent.js";
+export type { FormatCapabilitiesResult } from "./formatCapabilities.js";
 export type { SyncReviewEvidenceReport, SyncReviewEvidenceResult } from "./syncReviewEvidence.js";
 export type {
   Capability,

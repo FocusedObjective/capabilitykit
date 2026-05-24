@@ -156,6 +156,24 @@ export function validateLoadedCapabilities(loaded: LoadCapabilitiesResult): Vali
     if (containsPlaceholder(capability)) {
       addGap(verificationGaps, parsed, "placeholder-content", `${capability.id} contains TODO, TBD, FIXME, or placeholder text`);
     }
+
+    if (parsed.hasExplicitId) {
+      addGap(
+        verificationGaps,
+        parsed,
+        "explicit-id-field",
+        `${capability.id} defines explicit id; prefer deriving id from folder path (${parsed.derivedId})`
+      );
+    }
+
+    if (parsed.hasExplicitArea) {
+      addGap(
+        verificationGaps,
+        parsed,
+        "explicit-area-field",
+        `${capability.id} defines explicit area; prefer deriving area from folder path (${parsed.derivedArea})`
+      );
+    }
   }
 
   const capabilitiesById = new Map(loaded.capabilities.map((parsed) => [parsed.capability.id, parsed.capability]));
