@@ -30,13 +30,16 @@ guidance:
     inspection make that useful.
   - Prefer small, navigable candidate groups over a flat list of every file or
     component.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/discovery/discover-project-capability-candidates
+  # review this capability: capabilitykit assess core/discovery/discover-project-capability-candidates
+  # ask an agent to review this capability: capabilitykit agent-review core/discovery/discover-project-capability-candidates --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/discovery/discover-project-capability-candidates --input review.json --save
   # -----------------------------
   inputs:
     - project root
@@ -76,3 +79,101 @@ agent:
         runtime state, production configuration, external services, or code
         paths outside the inspected scope.
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Provides a CLI command that runs from the target project root. Add
+        agent.implementation.references to
+        core/discovery/discover-project-capability-candidates, or lower the
+        status if this capability is only planned.
+      - Invokes or prepares a handoff for the user's selected coding agent to
+        inspect source code, tests, routes, handlers, UI flows, data models,
+        scripts, configuration, and documentation. Add
+        agent.implementation.references to
+        core/discovery/discover-project-capability-candidates, or lower the
+        status if this capability is only planned.
+      - Makes README files, package metadata, and docs supporting context, not
+        the sole or primary basis for capability discovery. Add
+        agent.implementation.references to
+        core/discovery/discover-project-capability-candidates, or lower the
+        status if this capability is only planned.
+      - Requires the agent to propose candidate capability titles, likely areas,
+        source evidence, and confidence notes from concrete code discovery. Add
+        agent.implementation.references to
+        core/discovery/discover-project-capability-candidates, or lower the
+        status if this capability is only planned.
+      - Produces a structured discovery report that records what files and
+        project areas the agent inspected. Add agent.implementation.references
+        to core/discovery/discover-project-capability-candidates, or lower the
+        status if this capability is only planned.
+      - Does not create or overwrite capability files unless the user explicitly
+        requests output generation. Add agent.implementation.references to
+        core/discovery/discover-project-capability-candidates, or lower the
+        status if this capability is only planned.
+      - Labels low-confidence candidates, shallow inspection, and missing code
+        evidence as review gaps. Add agent.implementation.references to
+        core/discovery/discover-project-capability-candidates, or lower the
+        status if this capability is only planned.
+    evidence: []
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/discovery/discover-project-capability-candidates.
+    criteria:
+      - criterion: Provides a CLI command that runs from the target project root.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/discover-project-capability-candidates, or lower the
+          status if this capability is only planned.
+      - criterion: Invokes or prepares a handoff for the user's selected coding agent to
+          inspect source code, tests, routes, handlers, UI flows, data models,
+          scripts, configuration, and documentation.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/discover-project-capability-candidates, or lower the
+          status if this capability is only planned.
+      - criterion: Makes README files, package metadata, and docs supporting context,
+          not the sole or primary basis for capability discovery.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/discover-project-capability-candidates, or lower the
+          status if this capability is only planned.
+      - criterion: Requires the agent to propose candidate capability titles, likely
+          areas, source evidence, and confidence notes from concrete code
+          discovery.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/discover-project-capability-candidates, or lower the
+          status if this capability is only planned.
+      - criterion: Produces a structured discovery report that records what files and
+          project areas the agent inspected.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/discover-project-capability-candidates, or lower the
+          status if this capability is only planned.
+      - criterion: Does not create or overwrite capability files unless the user
+          explicitly requests output generation.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/discover-project-capability-candidates, or lower the
+          status if this capability is only planned.
+      - criterion: Labels low-confidence candidates, shallow inspection, and missing
+          code evidence as review gaps.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/discover-project-capability-candidates, or lower the
+          status if this capability is only planned.
+    ignore_findings: []
+    done: false

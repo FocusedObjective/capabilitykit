@@ -21,13 +21,16 @@ guidance:
     and stale.
   - Include ignore policy changes because they affect assessment behavior.
   - Avoid raw JSON in the default human output.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/graph/diff-capabilities
+  # review this capability: capabilitykit assess core/graph/diff-capabilities
+  # ask an agent to review this capability: capabilitykit agent-review core/graph/diff-capabilities --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/graph/diff-capabilities --input review.json --save
   # -----------------------------
   inputs:
     - current capability files
@@ -59,3 +62,227 @@ agent:
         explains capability intent changes more clearly than git diff.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Compares current capabilities against a configurable Git base ref.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+      - Reports added, changed, and removed capabilities by capability ID.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+      - Summarizes meaningful field changes such as status, intent, acceptance,
+        dependencies, implementation references, verification, and ignore
+        policy. Review the cited evidence. If it is correct, save agent.review
+        evidence or make the criterion/reference wording more explicit.
+      - Excludes saved agent.review evidence churn by default while allowing it
+        to be included explicitly. Review the cited evidence. If it is correct,
+        save agent.review evidence or make the criterion/reference wording more
+        explicit.
+      - Includes downstream impact context for changed capabilities. Review the
+        cited evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Defaults to a concise PR-review-style summary and offers verbose
+        field-level output. Review the cited evidence. If it is correct, save
+        agent.review evidence or make the criterion/reference wording more
+        explicit.
+      - Exposes the report through the CLI with human-readable and JSON output.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+    evidence:
+      - packages/cli/src/index.ts:1040
+      - packages/cli/src/index.ts:1041
+      - packages/cli/src/index.ts:1048
+      - packages/cli/src/index.ts:1122
+      - packages/cli/src/index.ts:1123
+      - packages/cli/src/index.ts:144
+      - packages/cli/src/index.ts:146
+      - packages/cli/src/index.ts:149
+      - packages/cli/src/index.ts:152
+      - packages/cli/src/index.ts:159
+      - packages/cli/src/index.ts:160
+      - packages/cli/src/index.ts:163
+      - packages/cli/src/index.ts:172
+      - packages/cli/src/index.ts:182
+      - packages/cli/src/index.ts:190
+      - packages/cli/src/index.ts:21
+      - packages/cli/src/index.ts:24
+      - packages/cli/src/index.ts:631
+      - packages/cli/src/index.ts:640
+      - packages/cli/src/index.ts:641
+      - packages/cli/src/index.ts:70
+      - packages/cli/src/index.ts:735
+      - packages/cli/src/index.ts:844
+      - packages/cli/src/index.ts:860
+      - packages/cli/src/index.ts:861
+      - packages/cli/src/index.ts:862
+      - packages/cli/src/index.ts:886
+      - packages/cli/src/index.ts:901
+      - packages/cli/src/index.ts:916
+      - packages/core/src/capabilityDiff.ts:10
+      - packages/core/src/capabilityDiff.ts:106
+      - packages/core/src/capabilityDiff.ts:107
+      - packages/core/src/capabilityDiff.ts:161
+      - packages/core/src/capabilityDiff.ts:162
+      - packages/core/src/capabilityDiff.ts:168
+      - packages/core/src/capabilityDiff.ts:169
+      - packages/core/src/capabilityDiff.ts:173
+      - packages/core/src/capabilityDiff.ts:204
+      - packages/core/src/capabilityDiff.ts:336
+      - packages/core/src/capabilityDiff.ts:337
+      - packages/core/src/capabilityDiff.ts:519
+      - packages/core/src/capabilityDiff.ts:54
+      - packages/core/src/capabilityDiff.ts:6
+      - packages/core/src/capabilityDiff.ts:71
+      - packages/core/src/capabilityDiff.ts:77
+      - packages/core/src/capabilityDiff.ts:84
+      - packages/core/src/index.ts:16
+      - packages/core/src/index.ts:19
+      - packages/core/src/index.ts:7
+      - packages/core/src/index.ts:8
+      - packages/core/tests/capabilityDiff.test.ts:121
+      - packages/core/tests/capabilityDiff.test.ts:21
+      - packages/core/tests/capabilityDiff.test.ts:34
+      - packages/core/tests/capabilityDiff.test.ts:57
+      - packages/core/tests/capabilityDiff.test.ts:66
+      - packages/core/tests/capabilityDiff.test.ts:69
+      - packages/core/tests/capabilityDiff.test.ts:7
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/graph/diff-capabilities.
+    criteria:
+      - criterion: Compares current capabilities against a configurable Git base ref.
+        status: partial
+        evidence:
+          - packages/core/src/capabilityDiff.ts:6
+          - packages/core/src/capabilityDiff.ts:54
+          - packages/core/src/capabilityDiff.ts:71
+          - packages/core/src/capabilityDiff.ts:77
+          - packages/core/src/capabilityDiff.ts:84
+          - packages/core/src/index.ts:7
+          - packages/cli/src/index.ts:144
+          - packages/cli/src/index.ts:163
+          - packages/cli/src/index.ts:190
+          - packages/cli/src/index.ts:631
+          - packages/cli/src/index.ts:640
+          - packages/core/tests/capabilityDiff.test.ts:7
+          - packages/core/tests/capabilityDiff.test.ts:21
+          - packages/core/tests/capabilityDiff.test.ts:34
+          - packages/core/tests/capabilityDiff.test.ts:57
+          - packages/core/tests/capabilityDiff.test.ts:66
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Reports added, changed, and removed capabilities by capability ID.
+        status: partial
+        evidence:
+          - packages/core/src/capabilityDiff.ts:6
+          - packages/core/src/capabilityDiff.ts:10
+          - packages/core/src/capabilityDiff.ts:54
+          - packages/core/src/capabilityDiff.ts:71
+          - packages/core/src/capabilityDiff.ts:77
+          - packages/core/src/index.ts:7
+          - packages/core/src/index.ts:16
+          - packages/cli/src/index.ts:24
+          - packages/cli/src/index.ts:70
+          - packages/cli/src/index.ts:144
+          - packages/cli/src/index.ts:159
+          - packages/cli/src/index.ts:160
+          - packages/core/tests/capabilityDiff.test.ts:7
+          - packages/core/tests/capabilityDiff.test.ts:21
+          - packages/core/tests/capabilityDiff.test.ts:34
+          - packages/core/tests/capabilityDiff.test.ts:66
+          - packages/core/tests/capabilityDiff.test.ts:69
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Summarizes meaningful field changes such as status, intent,
+          acceptance, dependencies, implementation references, verification, and
+          ignore policy.
+        status: partial
+        evidence:
+          - packages/core/src/capabilityDiff.ts:168
+          - packages/core/src/capabilityDiff.ts:169
+          - packages/core/src/capabilityDiff.ts:173
+          - packages/core/src/capabilityDiff.ts:336
+          - packages/core/src/capabilityDiff.ts:337
+          - packages/core/src/index.ts:8
+          - packages/core/src/index.ts:19
+          - packages/cli/src/index.ts:21
+          - packages/cli/src/index.ts:146
+          - packages/cli/src/index.ts:149
+          - packages/cli/src/index.ts:152
+          - packages/cli/src/index.ts:172
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Excludes saved agent.review evidence churn by default while allowing
+          it to be included explicitly.
+        status: partial
+        evidence:
+          - packages/core/src/capabilityDiff.ts:106
+          - packages/core/src/capabilityDiff.ts:107
+          - packages/core/src/capabilityDiff.ts:161
+          - packages/core/src/capabilityDiff.ts:162
+          - packages/cli/src/index.ts:182
+          - packages/cli/src/index.ts:860
+          - packages/cli/src/index.ts:916
+          - packages/cli/src/index.ts:1040
+          - packages/cli/src/index.ts:1041
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Includes downstream impact context for changed capabilities.
+        status: partial
+        evidence:
+          - packages/core/src/capabilityDiff.ts:6
+          - packages/core/src/capabilityDiff.ts:54
+          - packages/core/src/capabilityDiff.ts:71
+          - packages/core/src/capabilityDiff.ts:77
+          - packages/core/src/capabilityDiff.ts:204
+          - packages/core/src/index.ts:7
+          - packages/cli/src/index.ts:144
+          - packages/cli/src/index.ts:190
+          - packages/cli/src/index.ts:631
+          - packages/cli/src/index.ts:640
+          - packages/cli/src/index.ts:641
+          - packages/core/tests/capabilityDiff.test.ts:7
+          - packages/core/tests/capabilityDiff.test.ts:21
+          - packages/core/tests/capabilityDiff.test.ts:34
+          - packages/core/tests/capabilityDiff.test.ts:66
+          - packages/core/tests/capabilityDiff.test.ts:69
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Defaults to a concise PR-review-style summary and offers verbose
+          field-level output.
+        status: partial
+        evidence:
+          - packages/core/src/capabilityDiff.ts:519
+          - packages/cli/src/index.ts:861
+          - packages/cli/src/index.ts:1048
+          - packages/cli/src/index.ts:1122
+          - packages/cli/src/index.ts:1123
+          - packages/core/tests/capabilityDiff.test.ts:121
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Exposes the report through the CLI with human-readable and JSON output.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:735
+          - packages/cli/src/index.ts:844
+          - packages/cli/src/index.ts:862
+          - packages/cli/src/index.ts:886
+          - packages/cli/src/index.ts:901
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    ignore_findings: []
+    done: false

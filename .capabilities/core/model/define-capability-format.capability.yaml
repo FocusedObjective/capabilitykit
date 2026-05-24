@@ -13,13 +13,16 @@ guidance:
   - Keep the MVP format small and deterministic.
   - Update this spec whenever the schema changes.
   - Do not make cloud services required for schema validation.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/model/define-capability-format
+  # review this capability: capabilitykit assess core/model/define-capability-format
+  # ask an agent to review this capability: capabilitykit agent-review core/model/define-capability-format --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/model/define-capability-format --input review.json --save
   # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
@@ -41,3 +44,91 @@ agent:
       - Review the example capability file in the README for clarity.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Capability files require title, status, area, summary, intent, and
+        acceptance criteria. Review the cited evidence. If it is correct, save
+        agent.review evidence or make the criterion/reference wording more
+        explicit.
+      - Capability IDs can be omitted and derived from area and title. Review
+        the cited evidence. If it is correct, save agent.review evidence or make
+        the criterion/reference wording more explicit.
+      - Agent-maintained fields capture inputs, outputs, dependencies,
+        implementation references, verification, and review evidence. Review the
+        cited evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+    evidence:
+      - packages/core/src/parseCapability.ts:28
+      - packages/core/src/parseCapability.ts:44
+      - packages/core/src/parseCapability.ts:5
+      - packages/core/src/parseCapability.ts:63
+      - packages/core/src/schema.ts:102
+      - packages/core/src/schema.ts:120
+      - packages/core/src/schema.ts:13
+      - packages/core/src/schema.ts:154
+      - packages/core/src/schema.ts:157
+      - packages/core/src/schema.ts:158
+      - packages/core/src/schema.ts:161
+      - packages/core/src/schema.ts:162
+      - packages/core/src/schema.ts:175
+      - packages/core/src/schema.ts:204
+      - packages/core/src/schema.ts:67
+      - packages/core/src/types.ts:1
+      - packages/core/src/types.ts:136
+      - packages/core/src/types.ts:34
+      - packages/core/src/types.ts:58
+      - packages/core/src/types.ts:79
+      - packages/core/src/types.ts:82
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/model/define-capability-format.
+    criteria:
+      - criterion: Capability files require title, status, area, summary, intent, and
+          acceptance criteria.
+        status: partial
+        evidence:
+          - packages/core/src/schema.ts:13
+          - packages/core/src/schema.ts:67
+          - packages/core/src/schema.ts:102
+          - packages/core/src/schema.ts:120
+          - packages/core/src/schema.ts:204
+          - packages/core/src/types.ts:1
+          - packages/core/src/types.ts:34
+          - packages/core/src/types.ts:58
+          - packages/core/src/types.ts:79
+          - packages/core/src/types.ts:82
+          - packages/core/src/parseCapability.ts:5
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Capability IDs can be omitted and derived from area and title.
+        status: partial
+        evidence:
+          - packages/core/src/schema.ts:154
+          - packages/core/src/schema.ts:204
+          - packages/core/src/types.ts:136
+          - packages/core/src/parseCapability.ts:5
+          - packages/core/src/parseCapability.ts:28
+          - packages/core/src/parseCapability.ts:44
+          - packages/core/src/parseCapability.ts:63
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Agent-maintained fields capture inputs, outputs, dependencies,
+          implementation references, verification, and review evidence.
+        status: partial
+        evidence:
+          - packages/core/src/schema.ts:157
+          - packages/core/src/schema.ts:158
+          - packages/core/src/schema.ts:161
+          - packages/core/src/schema.ts:162
+          - packages/core/src/schema.ts:175
+          - packages/core/src/types.ts:82
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    ignore_findings: []
+    done: false

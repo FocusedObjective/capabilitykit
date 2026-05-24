@@ -10,13 +10,16 @@ acceptance:
 guidance:
   - Generated files should pass capabilitykit validate.
   - Do not overwrite user capability files by default.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/project/initialize-capability-project
+  # review this capability: capabilitykit assess core/project/initialize-capability-project
+  # ask an agent to review this capability: capabilitykit agent-review core/project/initialize-capability-project --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/project/initialize-capability-project --input review.json --save
   # -----------------------------
   inputs:
     - current working directory
@@ -39,3 +42,72 @@ agent:
         are valid.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Creates the root capability config file. Review the cited evidence. If
+        it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Creates a starter capability file. Review the cited evidence. If it is
+        correct, save agent.review evidence or make the criterion/reference
+        wording more explicit.
+      - Refuses to overwrite existing files unless force is requested. Review
+        the cited evidence. If it is correct, save agent.review evidence or make
+        the criterion/reference wording more explicit.
+      - Prints practical next steps. Review the cited evidence. If it is
+        correct, save agent.review evidence or make the criterion/reference
+        wording more explicit.
+    evidence:
+      - packages/cli/src/index.ts:1050
+      - packages/cli/src/index.ts:53
+      - packages/cli/src/index.ts:637
+      - packages/cli/src/index.ts:640
+      - packages/cli/src/index.ts:671
+      - packages/cli/src/index.ts:679
+      - packages/cli/src/index.ts:682
+      - packages/cli/src/index.ts:691
+      - packages/cli/src/index.ts:980
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/project/initialize-capability-project.
+    criteria:
+      - criterion: Creates the root capability config file.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:640
+          - packages/cli/src/index.ts:679
+          - packages/cli/src/index.ts:691
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Creates a starter capability file.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:679
+          - packages/cli/src/index.ts:691
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Refuses to overwrite existing files unless force is requested.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:53
+          - packages/cli/src/index.ts:637
+          - packages/cli/src/index.ts:682
+          - packages/cli/src/index.ts:980
+          - packages/cli/src/index.ts:1050
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Prints practical next steps.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:671
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    ignore_findings: []
+    done: false

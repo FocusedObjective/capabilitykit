@@ -10,13 +10,16 @@ acceptance:
 guidance:
   - Keep examples realistic but compact.
   - Do not add app code that distracts from capability files.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review developer-experience/examples/example-project
+  # review this capability: capabilitykit assess developer-experience/examples/example-project
+  # ask an agent to review this capability: capabilitykit agent-review developer-experience/examples/example-project --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result developer-experience/examples/example-project --input review.json --save
   # -----------------------------
   inputs:
     - examples/basic-app/.capabilities
@@ -43,3 +46,70 @@ agent:
         docs.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Includes account and checkout capability areas. Review the cited
+        evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Example files include agent.verification sections. Review the cited
+        evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Example files are valid against the MVP schema. Review the cited
+        evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+    evidence:
+      - examples/basic-app/.capabilities/account/login.capability.yaml:4
+      - examples/basic-app/.capabilities/account/profile.capability.yaml:27
+      - examples/basic-app/.capabilities/account/profile.capability.yaml:4
+      - examples/basic-app/.capabilities/checkout/cart.capability.yaml:4
+      - examples/basic-app/.capabilities/checkout/payment.capability.yaml:4
+      - packages/core/tests/parser.test.ts:100
+      - packages/core/tests/parser.test.ts:101
+      - packages/core/tests/parser.test.ts:102
+      - packages/core/tests/parser.test.ts:103
+      - packages/core/tests/parser.test.ts:110
+      - packages/core/tests/parser.test.ts:89
+      - packages/core/tests/parser.test.ts:98
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for developer-experience/examples/example-project.
+    criteria:
+      - criterion: Includes account and checkout capability areas.
+        status: partial
+        evidence:
+          - examples/basic-app/.capabilities/account/login.capability.yaml:4
+          - examples/basic-app/.capabilities/account/profile.capability.yaml:4
+          - examples/basic-app/.capabilities/checkout/cart.capability.yaml:4
+          - examples/basic-app/.capabilities/checkout/payment.capability.yaml:4
+          - packages/core/tests/parser.test.ts:100
+          - packages/core/tests/parser.test.ts:101
+          - packages/core/tests/parser.test.ts:102
+          - packages/core/tests/parser.test.ts:103
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Example files include agent.verification sections.
+        status: partial
+        evidence:
+          - examples/basic-app/.capabilities/account/profile.capability.yaml:27
+          - packages/core/tests/parser.test.ts:98
+          - packages/core/tests/parser.test.ts:101
+          - packages/core/tests/parser.test.ts:110
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Example files are valid against the MVP schema.
+        status: partial
+        evidence:
+          - examples/basic-app/.capabilities/account/profile.capability.yaml:27
+          - packages/core/tests/parser.test.ts:89
+          - packages/core/tests/parser.test.ts:98
+          - packages/core/tests/parser.test.ts:101
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    ignore_findings: []
+    done: false

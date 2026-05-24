@@ -15,13 +15,16 @@ guidance:
   - Prefer specific gap messages tied to capability IDs.
   - Keep gap detection rules deterministic and covered by automated tests.
   - Do not use AI inference for MVP verification gap detection.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/validation/detect-verification-gaps
+  # review this capability: capabilitykit assess core/validation/detect-verification-gaps
+  # ask an agent to review this capability: capabilitykit agent-review core/validation/detect-verification-gaps --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/validation/detect-verification-gaps --input review.json --save
   # -----------------------------
   inputs:
     - parsed capability objects
@@ -46,3 +49,208 @@ agent:
         needs to check.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Reports capabilities with no agent.verification.automated checks. Review
+        the cited evidence. If it is correct, save agent.review evidence or make
+        the criterion/reference wording more explicit.
+      - Reports capabilities with no agent.verification.manual review guidance.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+      - Reports implemented or verified capabilities without
+        agent.implementation.references values. Review the cited evidence. If it
+        is correct, save agent.review evidence or make the criterion/reference
+        wording more explicit.
+      - Reports declared agent.verification.gaps from capability files. Review
+        the cited evidence. If it is correct, save agent.review evidence or make
+        the criterion/reference wording more explicit.
+      - Allows capability files to suppress selected verification gap warnings
+        with an explicit reason. Review the cited evidence. If it is correct,
+        save agent.review evidence or make the criterion/reference wording more
+        explicit.
+    evidence:
+      - packages/core/src/schema.ts:131
+      - packages/core/src/schema.ts:134
+      - packages/core/src/schema.ts:143
+      - packages/core/src/schema.ts:154
+      - packages/core/src/schema.ts:165
+      - packages/core/src/schema.ts:166
+      - packages/core/src/schema.ts:169
+      - packages/core/src/schema.ts:174
+      - packages/core/src/schema.ts:175
+      - packages/core/src/schema.ts:179
+      - packages/core/src/schema.ts:21
+      - packages/core/src/schema.ts:58
+      - packages/core/src/schema.ts:61
+      - packages/core/src/schema.ts:91
+      - packages/core/src/schema.ts:94
+      - packages/core/src/types.ts:1
+      - packages/core/src/types.ts:117
+      - packages/core/src/types.ts:126
+      - packages/core/src/types.ts:140
+      - packages/core/src/types.ts:142
+      - packages/core/src/types.ts:144
+      - packages/core/src/types.ts:151
+      - packages/core/src/types.ts:49
+      - packages/core/src/types.ts:52
+      - packages/core/src/types.ts:81
+      - packages/core/src/types.ts:82
+      - packages/core/src/validateCapabilities.ts:107
+      - packages/core/src/validateCapabilities.ts:111
+      - packages/core/src/validateCapabilities.ts:16
+      - packages/core/src/validateCapabilities.ts:17
+      - packages/core/src/validateCapabilities.ts:21
+      - packages/core/src/validateCapabilities.ts:22
+      - packages/core/src/validateCapabilities.ts:29
+      - packages/core/src/validateCapabilities.ts:38
+      - packages/core/src/validateCapabilities.ts:39
+      - packages/core/src/validateCapabilities.ts:64
+      - packages/core/src/validateCapabilities.ts:86
+      - packages/core/tests/validation.test.ts:11
+      - packages/core/tests/validation.test.ts:12
+      - packages/core/tests/validation.test.ts:3
+      - packages/core/tests/validation.test.ts:41
+      - packages/core/tests/validation.test.ts:59
+      - packages/core/tests/validation.test.ts:64
+      - packages/core/tests/validation.test.ts:68
+      - packages/core/tests/validation.test.ts:74
+      - packages/core/tests/validation.test.ts:75
+      - packages/core/tests/validation.test.ts:76
+      - packages/core/tests/validation.test.ts:79
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/validation/detect-verification-gaps.
+    criteria:
+      - criterion: Reports capabilities with no agent.verification.automated checks.
+        status: partial
+        evidence:
+          - packages/core/src/validateCapabilities.ts:16
+          - packages/core/src/validateCapabilities.ts:17
+          - packages/core/src/validateCapabilities.ts:39
+          - packages/core/src/validateCapabilities.ts:64
+          - packages/core/src/validateCapabilities.ts:86
+          - packages/core/src/schema.ts:21
+          - packages/core/src/schema.ts:58
+          - packages/core/src/schema.ts:91
+          - packages/core/src/schema.ts:131
+          - packages/core/src/schema.ts:154
+          - packages/core/src/types.ts:49
+          - packages/core/src/types.ts:117
+          - packages/core/src/types.ts:140
+          - packages/core/src/types.ts:142
+          - packages/core/src/types.ts:151
+          - packages/core/tests/validation.test.ts:3
+          - packages/core/tests/validation.test.ts:41
+          - packages/core/tests/validation.test.ts:59
+          - packages/core/tests/validation.test.ts:64
+          - packages/core/tests/validation.test.ts:68
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Reports capabilities with no agent.verification.manual review guidance.
+        status: partial
+        evidence:
+          - packages/core/src/validateCapabilities.ts:16
+          - packages/core/src/validateCapabilities.ts:17
+          - packages/core/src/validateCapabilities.ts:39
+          - packages/core/src/validateCapabilities.ts:64
+          - packages/core/src/validateCapabilities.ts:86
+          - packages/core/src/schema.ts:143
+          - packages/core/src/schema.ts:154
+          - packages/core/src/schema.ts:165
+          - packages/core/src/schema.ts:166
+          - packages/core/src/schema.ts:169
+          - packages/core/src/types.ts:117
+          - packages/core/src/types.ts:140
+          - packages/core/src/types.ts:151
+          - packages/core/tests/validation.test.ts:3
+          - packages/core/tests/validation.test.ts:41
+          - packages/core/tests/validation.test.ts:59
+          - packages/core/tests/validation.test.ts:64
+          - packages/core/tests/validation.test.ts:68
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Reports implemented or verified capabilities without
+          agent.implementation.references values.
+        status: partial
+        evidence:
+          - packages/core/src/validateCapabilities.ts:21
+          - packages/core/src/validateCapabilities.ts:22
+          - packages/core/src/validateCapabilities.ts:39
+          - packages/core/src/validateCapabilities.ts:64
+          - packages/core/src/validateCapabilities.ts:86
+          - packages/core/src/schema.ts:154
+          - packages/core/src/schema.ts:165
+          - packages/core/src/schema.ts:166
+          - packages/core/src/schema.ts:175
+          - packages/core/src/schema.ts:179
+          - packages/core/src/types.ts:1
+          - packages/core/src/types.ts:82
+          - packages/core/src/types.ts:117
+          - packages/core/src/types.ts:140
+          - packages/core/src/types.ts:151
+          - packages/core/tests/validation.test.ts:3
+          - packages/core/tests/validation.test.ts:12
+          - packages/core/tests/validation.test.ts:41
+          - packages/core/tests/validation.test.ts:59
+          - packages/core/tests/validation.test.ts:64
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Reports declared agent.verification.gaps from capability files.
+        status: partial
+        evidence:
+          - packages/core/src/validateCapabilities.ts:16
+          - packages/core/src/validateCapabilities.ts:17
+          - packages/core/src/validateCapabilities.ts:29
+          - packages/core/src/validateCapabilities.ts:38
+          - packages/core/src/validateCapabilities.ts:39
+          - packages/core/src/schema.ts:61
+          - packages/core/src/schema.ts:94
+          - packages/core/src/schema.ts:134
+          - packages/core/src/schema.ts:154
+          - packages/core/src/schema.ts:165
+          - packages/core/src/types.ts:52
+          - packages/core/src/types.ts:81
+          - packages/core/src/types.ts:126
+          - packages/core/src/types.ts:144
+          - packages/core/tests/validation.test.ts:11
+          - packages/core/tests/validation.test.ts:64
+          - packages/core/tests/validation.test.ts:68
+          - packages/core/tests/validation.test.ts:74
+          - packages/core/tests/validation.test.ts:75
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Allows capability files to suppress selected verification gap
+          warnings with an explicit reason.
+        status: partial
+        evidence:
+          - packages/core/src/validateCapabilities.ts:29
+          - packages/core/src/validateCapabilities.ts:38
+          - packages/core/src/validateCapabilities.ts:39
+          - packages/core/src/validateCapabilities.ts:107
+          - packages/core/src/validateCapabilities.ts:111
+          - packages/core/src/schema.ts:61
+          - packages/core/src/schema.ts:94
+          - packages/core/src/schema.ts:134
+          - packages/core/src/schema.ts:174
+          - packages/core/src/schema.ts:175
+          - packages/core/src/types.ts:52
+          - packages/core/src/types.ts:81
+          - packages/core/tests/validation.test.ts:11
+          - packages/core/tests/validation.test.ts:74
+          - packages/core/tests/validation.test.ts:75
+          - packages/core/tests/validation.test.ts:76
+          - packages/core/tests/validation.test.ts:79
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    ignore_findings: []
+    done: false

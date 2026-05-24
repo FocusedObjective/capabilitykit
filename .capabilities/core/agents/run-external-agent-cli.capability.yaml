@@ -22,13 +22,16 @@ guidance:
     argument and "{promptFile}" for CLIs that accept a prompt file path.
   - Prefer stdin handoff for large prompts and Windows command shims when the
     target CLI supports reading prompts from stdin.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/agents/run-external-agent-cli
+  # review this capability: capabilitykit assess core/agents/run-external-agent-cli
+  # ask an agent to review this capability: capabilitykit agent-review core/agents/run-external-agent-cli --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/agents/run-external-agent-cli --input review.json --save
   # -----------------------------
   inputs:
     - agent task prompt bundle
@@ -59,3 +62,149 @@ agent:
         generated command is inspectable before execution.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Detects whether the requested agent command is available. Review the
+        cited evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Lets users configure the executable and arguments instead of hard-coding
+        a VS Code integration. Review the cited evidence. If it is correct, save
+        agent.review evidence or make the criterion/reference wording more
+        explicit.
+      - Passes the generated task bundle to the external agent through a
+        documented stdin, argument, or prompt-file strategy. Review the cited
+        evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Captures the external agent exit code and output path or transcript.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+      - Fails with an actionable message when the agent CLI is not installed.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+    evidence:
+      - packages/cli/src/index.ts:11
+      - packages/cli/src/index.ts:131
+      - packages/cli/src/index.ts:132
+      - packages/cli/src/index.ts:135
+      - packages/cli/src/index.ts:182
+      - packages/cli/src/index.ts:64
+      - packages/cli/src/index.ts:769
+      - packages/cli/src/index.ts:916
+      - packages/cli/src/index.ts:935
+      - packages/cli/src/index.ts:940
+      - packages/cli/src/index.ts:970
+      - packages/cli/src/index.ts:971
+      - packages/cli/src/index.ts:973
+      - packages/core/src/externalAgent.ts:100
+      - packages/core/src/externalAgent.ts:116
+      - packages/core/src/externalAgent.ts:123
+      - packages/core/src/externalAgent.ts:131
+      - packages/core/src/externalAgent.ts:151
+      - packages/core/src/externalAgent.ts:166
+      - packages/core/src/externalAgent.ts:170
+      - packages/core/src/externalAgent.ts:173
+      - packages/core/src/externalAgent.ts:6
+      - packages/core/src/externalAgent.ts:77
+      - packages/core/src/index.ts:10
+      - packages/core/src/index.ts:17
+      - packages/core/src/index.ts:5
+      - packages/core/tests/externalAgent.test.ts:10
+      - packages/core/tests/externalAgent.test.ts:25
+      - packages/core/tests/externalAgent.test.ts:32
+      - packages/core/tests/externalAgent.test.ts:41
+      - packages/core/tests/externalAgent.test.ts:49
+      - packages/core/tests/externalAgent.test.ts:5
+      - packages/core/tests/externalAgent.test.ts:60
+      - packages/core/tests/externalAgent.test.ts:71
+      - packages/core/tests/externalAgent.test.ts:80
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/agents/run-external-agent-cli.
+    criteria:
+      - criterion: Detects whether the requested agent command is available.
+        status: partial
+        evidence:
+          - packages/core/src/externalAgent.ts:77
+          - packages/core/src/externalAgent.ts:116
+          - packages/core/src/externalAgent.ts:166
+          - packages/core/src/externalAgent.ts:170
+          - packages/core/src/index.ts:10
+          - packages/cli/src/index.ts:182
+          - packages/cli/src/index.ts:916
+          - packages/cli/src/index.ts:935
+          - packages/cli/src/index.ts:970
+          - packages/cli/src/index.ts:971
+          - packages/core/tests/externalAgent.test.ts:5
+          - packages/core/tests/externalAgent.test.ts:25
+          - packages/core/tests/externalAgent.test.ts:32
+          - packages/core/tests/externalAgent.test.ts:41
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Lets users configure the executable and arguments instead of
+          hard-coding a VS Code integration.
+        status: partial
+        evidence:
+          - packages/core/src/externalAgent.ts:116
+          - packages/cli/src/index.ts:64
+          - packages/cli/src/index.ts:916
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Passes the generated task bundle to the external agent through a
+          documented stdin, argument, or prompt-file strategy.
+        status: partial
+        evidence:
+          - packages/core/src/externalAgent.ts:6
+          - packages/core/src/externalAgent.ts:116
+          - packages/core/src/externalAgent.ts:123
+          - packages/core/src/externalAgent.ts:173
+          - packages/core/src/index.ts:5
+          - packages/core/src/index.ts:17
+          - packages/cli/src/index.ts:11
+          - packages/cli/src/index.ts:131
+          - packages/cli/src/index.ts:132
+          - packages/cli/src/index.ts:135
+          - packages/cli/src/index.ts:182
+          - packages/core/tests/externalAgent.test.ts:10
+          - packages/core/tests/externalAgent.test.ts:41
+          - packages/core/tests/externalAgent.test.ts:49
+          - packages/core/tests/externalAgent.test.ts:71
+          - packages/core/tests/externalAgent.test.ts:80
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Captures the external agent exit code and output path or transcript.
+        status: partial
+        evidence:
+          - packages/core/src/externalAgent.ts:116
+          - packages/core/src/externalAgent.ts:123
+          - packages/core/src/externalAgent.ts:131
+          - packages/core/src/externalAgent.ts:151
+          - packages/cli/src/index.ts:769
+          - packages/cli/src/index.ts:916
+          - packages/cli/src/index.ts:940
+          - packages/cli/src/index.ts:971
+          - packages/cli/src/index.ts:973
+          - packages/core/tests/externalAgent.test.ts:10
+          - packages/core/tests/externalAgent.test.ts:41
+          - packages/core/tests/externalAgent.test.ts:60
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Fails with an actionable message when the agent CLI is not installed.
+        status: partial
+        evidence:
+          - packages/core/src/externalAgent.ts:100
+          - packages/core/src/externalAgent.ts:116
+          - packages/core/src/externalAgent.ts:170
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    ignore_findings: []
+    done: false

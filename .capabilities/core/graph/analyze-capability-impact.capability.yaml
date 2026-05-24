@@ -16,13 +16,16 @@ guidance:
   - Keep the existing dependency_graph output backward-compatible.
   - Treat deeper folder hierarchy as navigation and ownership context, not as a
     replacement for explicit depends_on relationships.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/graph/analyze-capability-impact
+  # review this capability: capabilitykit assess core/graph/analyze-capability-impact
+  # ask an agent to review this capability: capabilitykit agent-review core/graph/analyze-capability-impact --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/graph/analyze-capability-impact --input review.json --save
   # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
@@ -56,3 +59,214 @@ agent:
         report identifies direct and transitive dependents that need review.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Builds direct and transitive dependent relationships from
+        agent.depends_on. Review the cited evidence. If it is correct, save
+        agent.review evidence or make the criterion/reference wording more
+        explicit.
+      - Reports impacted capabilities for a selected capability. Review the
+        cited evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Includes suggested automated checks from the selected and impacted
+        capabilities. Review the cited evidence. If it is correct, save
+        agent.review evidence or make the criterion/reference wording more
+        explicit.
+      - Includes manual review guidance and verification gaps for the impacted
+        set. Review the cited evidence. If it is correct, save agent.review
+        evidence or make the criterion/reference wording more explicit.
+      - Exposes impact data through the compiled capability artifact and CLI.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+    evidence:
+      - packages/cli/src/index.ts:107
+      - packages/cli/src/index.ts:144
+      - packages/cli/src/index.ts:159
+      - packages/cli/src/index.ts:160
+      - packages/cli/src/index.ts:190
+      - packages/cli/src/index.ts:194
+      - packages/cli/src/index.ts:203
+      - packages/cli/src/index.ts:225
+      - packages/cli/src/index.ts:294
+      - packages/cli/src/index.ts:295
+      - packages/cli/src/index.ts:631
+      - packages/cli/src/index.ts:640
+      - packages/cli/src/index.ts:641
+      - packages/cli/src/index.ts:695
+      - packages/cli/src/index.ts:70
+      - packages/cli/src/index.ts:84
+      - packages/cli/src/index.ts:86
+      - packages/cli/src/index.ts:87
+      - packages/cli/src/index.ts:95
+      - packages/core/src/capabilityImpact.ts:119
+      - packages/core/src/capabilityImpact.ts:128
+      - packages/core/src/capabilityImpact.ts:130
+      - packages/core/src/capabilityImpact.ts:131
+      - packages/core/src/capabilityImpact.ts:15
+      - packages/core/src/capabilityImpact.ts:16
+      - packages/core/src/capabilityImpact.ts:26
+      - packages/core/src/capabilityImpact.ts:29
+      - packages/core/src/capabilityImpact.ts:33
+      - packages/core/src/capabilityImpact.ts:45
+      - packages/core/src/capabilityImpact.ts:51
+      - packages/core/src/capabilityImpact.ts:75
+      - packages/core/src/capabilityImpact.ts:77
+      - packages/core/src/capabilityImpact.ts:84
+      - packages/core/src/capabilityImpact.ts:87
+      - packages/core/src/capabilityImpact.ts:89
+      - packages/core/src/compileCapabilities.ts:12
+      - packages/core/src/compileCapabilities.ts:22
+      - packages/core/src/compileCapabilities.ts:23
+      - packages/core/src/compileCapabilities.ts:25
+      - packages/core/src/compileCapabilities.ts:26
+      - packages/core/src/compileCapabilities.ts:27
+      - packages/core/src/index.ts:7
+      - packages/core/tests/capabilityImpact.test.ts:11
+      - packages/core/tests/capabilityImpact.test.ts:18
+      - packages/core/tests/capabilityImpact.test.ts:3
+      - packages/core/tests/capabilityImpact.test.ts:31
+      - packages/core/tests/capabilityImpact.test.ts:41
+      - packages/core/tests/capabilityImpact.test.ts:52
+      - packages/core/tests/capabilityImpact.test.ts:64
+      - packages/core/tests/capabilityImpact.test.ts:69
+      - packages/core/tests/capabilityImpact.test.ts:70
+      - packages/core/tests/capabilityImpact.test.ts:72
+      - packages/core/tests/capabilityImpact.test.ts:73
+      - packages/core/tests/compile.test.ts:13
+      - packages/core/tests/compile.test.ts:14
+      - packages/core/tests/compile.test.ts:15
+      - packages/core/tests/compile.test.ts:16
+      - packages/core/tests/compile.test.ts:25
+      - packages/core/tests/compile.test.ts:40
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/graph/analyze-capability-impact.
+    criteria:
+      - criterion: Builds direct and transitive dependent relationships from
+          agent.depends_on.
+        status: partial
+        evidence:
+          - packages/core/src/capabilityImpact.ts:26
+          - packages/core/src/capabilityImpact.ts:29
+          - packages/core/src/capabilityImpact.ts:33
+          - packages/core/src/capabilityImpact.ts:45
+          - packages/core/src/capabilityImpact.ts:51
+          - packages/core/src/compileCapabilities.ts:22
+          - packages/cli/src/index.ts:194
+          - packages/cli/src/index.ts:203
+          - packages/cli/src/index.ts:225
+          - packages/cli/src/index.ts:294
+          - packages/cli/src/index.ts:295
+          - packages/core/tests/capabilityImpact.test.ts:18
+          - packages/core/tests/capabilityImpact.test.ts:31
+          - packages/core/tests/capabilityImpact.test.ts:52
+          - packages/core/tests/capabilityImpact.test.ts:64
+          - packages/core/tests/capabilityImpact.test.ts:72
+          - packages/core/tests/compile.test.ts:13
+          - packages/core/tests/compile.test.ts:14
+          - packages/core/tests/compile.test.ts:15
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Reports impacted capabilities for a selected capability.
+        status: partial
+        evidence:
+          - packages/core/src/capabilityImpact.ts:15
+          - packages/core/src/capabilityImpact.ts:16
+          - packages/core/src/capabilityImpact.ts:75
+          - packages/core/src/capabilityImpact.ts:77
+          - packages/core/src/capabilityImpact.ts:84
+          - packages/core/src/compileCapabilities.ts:12
+          - packages/core/src/compileCapabilities.ts:22
+          - packages/core/src/compileCapabilities.ts:25
+          - packages/core/src/compileCapabilities.ts:26
+          - packages/core/src/index.ts:7
+          - packages/cli/src/index.ts:70
+          - packages/cli/src/index.ts:144
+          - packages/cli/src/index.ts:159
+          - packages/cli/src/index.ts:160
+          - packages/cli/src/index.ts:190
+          - packages/core/tests/capabilityImpact.test.ts:3
+          - packages/core/tests/capabilityImpact.test.ts:41
+          - packages/core/tests/capabilityImpact.test.ts:69
+          - packages/core/tests/capabilityImpact.test.ts:70
+          - packages/core/tests/capabilityImpact.test.ts:73
+          - packages/core/tests/compile.test.ts:14
+          - packages/core/tests/compile.test.ts:15
+          - packages/core/tests/compile.test.ts:25
+          - packages/core/tests/compile.test.ts:40
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Includes suggested automated checks from the selected and impacted
+          capabilities.
+        status: partial
+        evidence:
+          - packages/core/src/capabilityImpact.ts:15
+          - packages/core/src/capabilityImpact.ts:16
+          - packages/core/src/capabilityImpact.ts:75
+          - packages/core/src/capabilityImpact.ts:77
+          - packages/core/src/capabilityImpact.ts:84
+          - packages/core/src/compileCapabilities.ts:12
+          - packages/core/src/compileCapabilities.ts:22
+          - packages/core/src/compileCapabilities.ts:25
+          - packages/core/src/compileCapabilities.ts:26
+          - packages/core/src/index.ts:7
+          - packages/cli/src/index.ts:144
+          - packages/cli/src/index.ts:190
+          - packages/cli/src/index.ts:631
+          - packages/cli/src/index.ts:640
+          - packages/cli/src/index.ts:641
+          - packages/core/tests/capabilityImpact.test.ts:3
+          - packages/core/tests/capabilityImpact.test.ts:41
+          - packages/core/tests/capabilityImpact.test.ts:69
+          - packages/core/tests/capabilityImpact.test.ts:70
+          - packages/core/tests/capabilityImpact.test.ts:73
+          - packages/core/tests/compile.test.ts:14
+          - packages/core/tests/compile.test.ts:15
+          - packages/core/tests/compile.test.ts:16
+          - packages/core/tests/compile.test.ts:25
+          - packages/core/tests/compile.test.ts:40
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Includes manual review guidance and verification gaps for the
+          impacted set.
+        status: partial
+        evidence:
+          - packages/core/src/capabilityImpact.ts:87
+          - packages/core/src/capabilityImpact.ts:89
+          - packages/core/src/capabilityImpact.ts:128
+          - packages/core/src/capabilityImpact.ts:130
+          - packages/core/src/capabilityImpact.ts:131
+          - packages/core/src/compileCapabilities.ts:26
+          - packages/core/src/compileCapabilities.ts:27
+          - packages/cli/src/index.ts:84
+          - packages/cli/src/index.ts:86
+          - packages/cli/src/index.ts:87
+          - packages/cli/src/index.ts:95
+          - packages/cli/src/index.ts:107
+          - packages/core/tests/capabilityImpact.test.ts:11
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Exposes impact data through the compiled capability artifact and CLI.
+        status: partial
+        evidence:
+          - packages/core/src/capabilityImpact.ts:119
+          - packages/core/src/compileCapabilities.ts:23
+          - packages/cli/src/index.ts:695
+          - packages/core/tests/capabilityImpact.test.ts:70
+          - packages/core/tests/compile.test.ts:13
+          - packages/core/tests/compile.test.ts:14
+          - packages/core/tests/compile.test.ts:15
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    ignore_findings: []
+    done: false

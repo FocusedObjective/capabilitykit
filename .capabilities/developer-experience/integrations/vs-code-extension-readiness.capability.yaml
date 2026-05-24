@@ -10,13 +10,16 @@ acceptance:
 guidance:
   - Design output data to be editor-friendly.
   - Do not implement extension UI during the MVP.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review developer-experience/integrations/vs-code-extension-readiness
+  # review this capability: capabilitykit assess developer-experience/integrations/vs-code-extension-readiness
+  # ask an agent to review this capability: capabilitykit agent-review developer-experience/integrations/vs-code-extension-readiness --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result developer-experience/integrations/vs-code-extension-readiness --input review.json --save
   # -----------------------------
   inputs:
     - compiled capabilities JSON
@@ -34,3 +37,36 @@ agent:
         dependencies.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - MVP does not include VS Code extension code. Add
+        agent.implementation.references to
+        developer-experience/integrations/vs-code-extension-readiness, or lower
+        the status if this capability is only planned.
+      - Compiled JSON contains enough path and graph data for a future
+        extension. Add agent.implementation.references to
+        developer-experience/integrations/vs-code-extension-readiness, or lower
+        the status if this capability is only planned.
+    evidence: []
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for
+      developer-experience/integrations/vs-code-extension-readiness.
+    criteria:
+      - criterion: MVP does not include VS Code extension code.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to developer-experience/integrations/vs-code-extension-readiness, or
+          lower the status if this capability is only planned.
+      - criterion: Compiled JSON contains enough path and graph data for a future
+          extension.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to developer-experience/integrations/vs-code-extension-readiness, or
+          lower the status if this capability is only planned.
+    ignore_findings: []
+    done: false

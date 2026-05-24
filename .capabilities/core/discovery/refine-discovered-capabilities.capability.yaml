@@ -25,13 +25,16 @@ guidance:
   - Keep recommendations grouped by the smallest useful edit.
   - Do not automatically promote generated capabilities to implemented or
     verified status from agent prose alone.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/discovery/refine-discovered-capabilities
+  # review this capability: capabilitykit assess core/discovery/refine-discovered-capabilities
+  # ask an agent to review this capability: capabilitykit agent-review core/discovery/refine-discovered-capabilities --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/discovery/refine-discovered-capabilities --input review.json --save
   # -----------------------------
   inputs:
     - generated capability files
@@ -65,3 +68,89 @@ agent:
       - Status promotion policy should remain configurable before any automated
         update workflow is enabled.
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Reports generated capabilities that still need human review. Add
+        agent.implementation.references to
+        core/discovery/refine-discovered-capabilities, or lower the status if
+        this capability is only planned.
+      - Reuses assessment and review commands to compare each generated
+        capability against implementation references. Add
+        agent.implementation.references to
+        core/discovery/refine-discovered-capabilities, or lower the status if
+        this capability is only planned.
+      - Prioritizes refinement of capabilities with weak code evidence, shallow
+        inspected path summaries, or acceptance criteria inferred from
+        documentation instead of implementation behavior. Add
+        agent.implementation.references to
+        core/discovery/refine-discovered-capabilities, or lower the status if
+        this capability is only planned.
+      - Suggests specific edits for vague acceptance criteria, weak references,
+        missing verification, and poor area placement. Add
+        agent.implementation.references to
+        core/discovery/refine-discovered-capabilities, or lower the status if
+        this capability is only planned.
+      - Lets users accept, revise, or remove generated draft capabilities
+        without losing the audit trail of why they were proposed. Add
+        agent.implementation.references to
+        core/discovery/refine-discovered-capabilities, or lower the status if
+        this capability is only planned.
+      - Updates status and review evidence only through explicit user or policy
+        action. Add agent.implementation.references to
+        core/discovery/refine-discovered-capabilities, or lower the status if
+        this capability is only planned.
+    evidence: []
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/discovery/refine-discovered-capabilities.
+    criteria:
+      - criterion: Reports generated capabilities that still need human review.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/refine-discovered-capabilities, or lower the status
+          if this capability is only planned.
+      - criterion: Reuses assessment and review commands to compare each generated
+          capability against implementation references.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/refine-discovered-capabilities, or lower the status
+          if this capability is only planned.
+      - criterion: Prioritizes refinement of capabilities with weak code evidence,
+          shallow inspected path summaries, or acceptance criteria inferred from
+          documentation instead of implementation behavior.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/refine-discovered-capabilities, or lower the status
+          if this capability is only planned.
+      - criterion: Suggests specific edits for vague acceptance criteria, weak
+          references, missing verification, and poor area placement.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/refine-discovered-capabilities, or lower the status
+          if this capability is only planned.
+      - criterion: Lets users accept, revise, or remove generated draft capabilities
+          without losing the audit trail of why they were proposed.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/refine-discovered-capabilities, or lower the status
+          if this capability is only planned.
+      - criterion: Updates status and review evidence only through explicit user or
+          policy action.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/refine-discovered-capabilities, or lower the status
+          if this capability is only planned.
+    ignore_findings: []
+    done: false

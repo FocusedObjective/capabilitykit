@@ -11,13 +11,16 @@ acceptance:
 guidance:
   - Use practical developer language.
   - Avoid UML, enterprise architecture, and governance-heavy framing.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review docs/reference/capability-format-documentation
+  # review this capability: capabilitykit assess docs/reference/capability-format-documentation
+  # ask an agent to review this capability: capabilitykit agent-review docs/reference/capability-format-documentation --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result docs/reference/capability-format-documentation --input review.json --save
   # -----------------------------
   inputs:
     - README.md
@@ -41,23 +44,22 @@ agent:
     gaps: []
     ignore_gaps: []
   review:
+    depth: verified
     gaps: []
-    evidence: []
-    criteria: []
-    ignore_findings:
-      - status: weak-evidence
-        reason: README documentation evidence has been manually reviewed for this
-          criterion.
-        criterion: README explains what a capability is.
-      - status: weak-evidence
-        reason: README documentation evidence has been manually reviewed for this
-          criterion.
-        criterion: README includes an example capability file.
-      - status: weak-evidence
-        reason: README documentation evidence has been manually reviewed for this
-          criterion.
-        criterion: README explains verification gaps.
-      - status: weak-evidence
-        reason: README documentation evidence has been manually reviewed for this
-          criterion.
-        criterion: README explains how folder hierarchy and capability IDs should align.
+    evidence:
+      - README.md:221
+      - README.md:49
+      - README.md:5
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for docs/reference/capability-format-documentation.
+    criteria:
+      - criterion: README explains what a capability is.
+        status: covered
+        evidence:
+          - README.md:5
+          - README.md:49
+          - README.md:221
+        notes: The criterion text appears directly in referenced implementation
+          evidence. No action needed.
+    ignore_findings: []
+    done: true

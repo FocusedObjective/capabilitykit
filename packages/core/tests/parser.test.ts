@@ -19,11 +19,31 @@ agent:
     manual:
       - Review it.
 `,
-      "example.capability.yaml"
+      "core/example.capability.yaml"
     );
 
     expect(result.errors).toEqual([]);
     expect(result.capability?.id).toBe("core/example");
+  });
+
+  it("derives omitted identity fields from the file path", () => {
+    const result = parseCapability(
+      `
+title: Derived
+status: planned
+summary: Derived summary.
+intent: Derived intent.
+acceptance:
+  - It derives identity from the path.
+`,
+      ".capabilities/core/model/derived.capability.yaml"
+    );
+
+    expect(result.errors).toEqual([]);
+    expect(result.capability?.id).toBe("core/model/derived");
+    expect(result.capability?.area).toBe("core");
+    expect(result.hasExplicitId).toBe(false);
+    expect(result.hasExplicitArea).toBe(false);
   });
 
   it("normalizes legacy implementation fields into the agent section", () => {

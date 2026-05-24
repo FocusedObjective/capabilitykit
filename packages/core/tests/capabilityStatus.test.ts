@@ -47,10 +47,8 @@ describe("summarizeCapabilityStatus", () => {
   it("summarizes capability health into action-oriented buckets", async () => {
     const rootDir = await createProject({
       review: `
-id: core/review
 title: Review
 status: implemented
-area: core
 summary: Review summary.
 intent: Review intent.
 acceptance:
@@ -68,10 +66,8 @@ agent:
       - Review it.
 `,
       action: `
-id: core/action
 title: Action
 status: implemented
-area: core
 summary: Action summary.
 intent: Action intent.
 acceptance:
@@ -82,10 +78,8 @@ agent:
       - Review it.
 `,
       planned: `
-id: core/planned
 title: Planned
 status: planned
-area: core
 summary: Planned summary.
 intent: Planned intent.
 acceptance:
@@ -115,10 +109,8 @@ agent:
   it("formats one capability as a purpose-first detail view", async () => {
     const rootDir = await createProject({
       example: `
-id: core/example
 title: Example
 status: implemented
-area: core
 summary: Example summary.
 intent: Example intent.
 acceptance:

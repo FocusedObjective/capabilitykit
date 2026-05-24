@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { parseDocument } from "yaml";
-import { parseCapability } from "./parseCapability.js";
+import { deriveCapabilityIdentity, parseCapability } from "./parseCapability.js";
 import { projectConfigSchema } from "./schema.js";
 import type { CapabilityIssue, LoadCapabilitiesResult, ProjectConfig } from "./types.js";
 
@@ -30,15 +30,6 @@ async function walk(dir: string): Promise<string[]> {
 
 function normalizeRelative(filePath: string): string {
   return filePath.split(path.sep).join("/");
-}
-
-function deriveFromRelativePath(relativePath: string): { derivedId: string; derivedArea: string } {
-  const withoutSuffix = relativePath.replace(/\.capability\.yaml$/, "");
-  const parts = withoutSuffix.split("/").filter(Boolean);
-  return {
-    derivedId: withoutSuffix,
-    derivedArea: parts[0] ?? "general"
-  };
 }
 
 function isExcluded(relativePath: string, excludes: string[]): boolean {
@@ -136,7 +127,7 @@ export async function loadCapabilities(rootDir = process.cwd()): Promise<LoadCap
   const parsed = await Promise.all(
     files.map(async ({ filePath, relativePath }) => {
       const source = await fs.readFile(filePath, "utf8");
-      const { derivedId, derivedArea } = deriveFromRelativePath(relativePath);
+      const { derivedId, derivedArea } = deriveCapabilityIdentity(relativePath);
       const result = parseCapability(source, filePath, { derivedId, derivedArea });
       return {
         filePath,

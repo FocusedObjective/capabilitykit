@@ -29,13 +29,16 @@ guidance:
     to precompute semantic capabilities from static metadata alone.
   - Make the bundle inspectable while allowing the external agent to navigate
     the project directly when its CLI supports workspace access.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/discovery/prepare-agent-discovery-bundle
+  # review this capability: capabilitykit assess core/discovery/prepare-agent-discovery-bundle
+  # ask an agent to review this capability: capabilitykit agent-review core/discovery/prepare-agent-discovery-bundle --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/discovery/prepare-agent-discovery-bundle --input review.json --save
   # -----------------------------
   inputs:
     - project inventory
@@ -70,3 +73,100 @@ agent:
       - Provider-specific command defaults can be added later after the generic
         handoff is proven.
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Generates a discovery-mode task bundle from the project inventory,
+        existing capability map, and discovery goals. Add
+        agent.implementation.references to
+        core/discovery/prepare-agent-discovery-bundle, or lower the status if
+        this capability is only planned.
+      - Directs the external agent to inspect implementation code across the
+        project's main entrypoints, user workflows, APIs, data models, tests,
+        scripts, and configuration. Add agent.implementation.references to
+        core/discovery/prepare-agent-discovery-bundle, or lower the status if
+        this capability is only planned.
+      - Instructs the external agent to create capability files for the main
+        project functionality, not every implementation detail. Add
+        agent.implementation.references to
+        core/discovery/prepare-agent-discovery-bundle, or lower the status if
+        this capability is only planned.
+      - Instructs the external agent not to rely on README, package metadata, or
+        filenames without confirming behavior in code. Add
+        agent.implementation.references to
+        core/discovery/prepare-agent-discovery-bundle, or lower the status if
+        this capability is only planned.
+      - Requires the agent to cite source evidence through
+        `agent.implementation.references`. Add agent.implementation.references
+        to core/discovery/prepare-agent-discovery-bundle, or lower the status if
+        this capability is only planned.
+      - Requires generated files to include verification gaps where behavior is
+        inferred or not covered by tests. Add agent.implementation.references to
+        core/discovery/prepare-agent-discovery-bundle, or lower the status if
+        this capability is only planned.
+      - Supports inspectable dry-run output before invoking an external agent.
+        Add agent.implementation.references to
+        core/discovery/prepare-agent-discovery-bundle, or lower the status if
+        this capability is only planned.
+    evidence: []
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/discovery/prepare-agent-discovery-bundle.
+    criteria:
+      - criterion: Generates a discovery-mode task bundle from the project inventory,
+          existing capability map, and discovery goals.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/prepare-agent-discovery-bundle, or lower the status
+          if this capability is only planned.
+      - criterion: Directs the external agent to inspect implementation code across the
+          project's main entrypoints, user workflows, APIs, data models, tests,
+          scripts, and configuration.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/prepare-agent-discovery-bundle, or lower the status
+          if this capability is only planned.
+      - criterion: Instructs the external agent to create capability files for the main
+          project functionality, not every implementation detail.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/prepare-agent-discovery-bundle, or lower the status
+          if this capability is only planned.
+      - criterion: Instructs the external agent not to rely on README, package metadata,
+          or filenames without confirming behavior in code.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/prepare-agent-discovery-bundle, or lower the status
+          if this capability is only planned.
+      - criterion: Requires the agent to cite source evidence through
+          `agent.implementation.references`.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/prepare-agent-discovery-bundle, or lower the status
+          if this capability is only planned.
+      - criterion: Requires generated files to include verification gaps where behavior
+          is inferred or not covered by tests.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/prepare-agent-discovery-bundle, or lower the status
+          if this capability is only planned.
+      - criterion: Supports inspectable dry-run output before invoking an external agent.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/prepare-agent-discovery-bundle, or lower the status
+          if this capability is only planned.
+    ignore_findings: []
+    done: false

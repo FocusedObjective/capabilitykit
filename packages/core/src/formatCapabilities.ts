@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import YAML from "yaml";
 import { loadCapabilities } from "./loadCapabilities.js";
+import { agentMetadataCommentLines } from "./agentMetadataComments.js";
 import { setAgentSectionComment } from "./agentSectionComment.js";
 import type { Capability } from "./types.js";
 
@@ -56,11 +57,7 @@ export async function formatCapabilities(rootDir: string, options: { write?: boo
     const includeArea = Boolean(entry.hasExplicitArea && entry.capability.area !== entry.derivedArea);
     const document = YAML.parseDocument(YAML.stringify(canonicalCapability(entry.capability, { includeId, includeArea })));
     if (entry.capability.agent) {
-      setAgentSectionComment(document, [
-        "machine managed agent metadata",
-        "refresh this section with: capabilitykit sync-review <capability-id>",
-        "or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save"
-      ]);
+      setAgentSectionComment(document, agentMetadataCommentLines(entry.capability.id));
     }
     const formatted = document.toString();
     if (formatted !== source) {

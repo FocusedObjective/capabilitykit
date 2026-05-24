@@ -13,13 +13,16 @@ guidance:
   - Include validation output in the compiled artifact so downstream tools can
     detect risk.
   - Do not emit partial JSON without surfacing validation failures.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/graph/compile-capabilities
+  # review this capability: capabilitykit assess core/graph/compile-capabilities
+  # ask an agent to review this capability: capabilitykit agent-review core/graph/compile-capabilities --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/graph/compile-capabilities --input review.json --save
   # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
@@ -47,3 +50,118 @@ agent:
         the graph is readable.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Writes normalized JSON to the configured output path. Review the cited
+        evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Includes project metadata and all parsed capabilities. Review the cited
+        evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Includes dependency graph information. Review the cited evidence. If it
+        is correct, save agent.review evidence or make the criterion/reference
+        wording more explicit.
+      - Includes validation results and verification summary. Review the cited
+        evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+    evidence:
+      - packages/cli/src/index.ts:1124
+      - packages/cli/src/index.ts:144
+      - packages/cli/src/index.ts:190
+      - packages/cli/src/index.ts:234
+      - packages/cli/src/index.ts:294
+      - packages/cli/src/index.ts:53
+      - packages/cli/src/index.ts:631
+      - packages/cli/src/index.ts:640
+      - packages/cli/src/index.ts:73
+      - packages/cli/src/index.ts:760
+      - packages/cli/src/index.ts:762
+      - packages/cli/src/index.ts:768
+      - packages/cli/src/index.ts:769
+      - packages/cli/src/index.ts:785
+      - packages/cli/src/index.ts:940
+      - packages/core/src/compileCapabilities.ts:12
+      - packages/core/src/compileCapabilities.ts:22
+      - packages/core/src/compileCapabilities.ts:24
+      - packages/core/src/compileCapabilities.ts:25
+      - packages/core/src/compileCapabilities.ts:26
+      - packages/core/src/compileCapabilities.ts:33
+      - packages/core/src/compileCapabilities.ts:36
+      - packages/core/src/compileCapabilities.ts:38
+      - packages/core/tests/compile.test.ts:13
+      - packages/core/tests/compile.test.ts:14
+      - packages/core/tests/compile.test.ts:15
+      - packages/core/tests/compile.test.ts:16
+      - packages/core/tests/compile.test.ts:19
+      - packages/core/tests/compile.test.ts:25
+      - packages/core/tests/compile.test.ts:40
+      - packages/core/tests/compile.test.ts:60
+      - packages/core/tests/compile.test.ts:61
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/graph/compile-capabilities.
+    criteria:
+      - criterion: Writes normalized JSON to the configured output path.
+        status: partial
+        evidence:
+          - packages/core/src/compileCapabilities.ts:33
+          - packages/core/src/compileCapabilities.ts:36
+          - packages/core/src/compileCapabilities.ts:38
+          - packages/cli/src/index.ts:53
+          - packages/cli/src/index.ts:760
+          - packages/cli/src/index.ts:769
+          - packages/cli/src/index.ts:785
+          - packages/cli/src/index.ts:940
+          - packages/core/tests/compile.test.ts:19
+          - packages/core/tests/compile.test.ts:60
+          - packages/core/tests/compile.test.ts:61
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Includes project metadata and all parsed capabilities.
+        status: partial
+        evidence:
+          - packages/core/src/compileCapabilities.ts:12
+          - packages/core/src/compileCapabilities.ts:22
+          - packages/core/src/compileCapabilities.ts:25
+          - packages/core/src/compileCapabilities.ts:26
+          - packages/cli/src/index.ts:73
+          - packages/cli/src/index.ts:144
+          - packages/cli/src/index.ts:190
+          - packages/cli/src/index.ts:631
+          - packages/cli/src/index.ts:640
+          - packages/core/tests/compile.test.ts:14
+          - packages/core/tests/compile.test.ts:15
+          - packages/core/tests/compile.test.ts:25
+          - packages/core/tests/compile.test.ts:40
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Includes dependency graph information.
+        status: partial
+        evidence:
+          - packages/core/src/compileCapabilities.ts:22
+          - packages/cli/src/index.ts:234
+          - packages/cli/src/index.ts:294
+          - packages/cli/src/index.ts:768
+          - packages/cli/src/index.ts:769
+          - packages/core/tests/compile.test.ts:13
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Includes validation results and verification summary.
+        status: partial
+        evidence:
+          - packages/core/src/compileCapabilities.ts:24
+          - packages/cli/src/index.ts:762
+          - packages/cli/src/index.ts:1124
+          - packages/core/tests/compile.test.ts:16
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    ignore_findings: []
+    done: false

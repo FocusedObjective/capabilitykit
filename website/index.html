@@ -49,29 +49,28 @@
             </div>
           </div>
 
-          <aside class="terminal-visual" aria-label="CapabilityKit review preview">
+          <aside class="terminal-visual capability-preview" aria-label="Capability file preview">
             <div class="terminal-toolbar">
               <span></span>
               <span></span>
               <span></span>
-              <strong>capabilitykit diff HEAD</strong>
+              <strong>.capabilities/core/graph/diff-capabilities.capability.yaml</strong>
             </div>
             <div class="terminal-body">
-              <p class="terminal-title">CapabilityKit Diff: HEAD..working-tree</p>
-              <div class="diff-summary">
-                <span>Changed 3</span>
-                <span>Impacted 9</span>
-                <span>Needs review 5</span>
-              </div>
-              <div class="diff-entry">
-                <strong>~ core/graph/compile-capabilities</strong>
-                <p>acceptance +1/-0; verification +2/-0; refs +1/-0</p>
-                <small>Impact: 5 direct, 9 transitive</small>
-              </div>
-              <div class="diff-entry muted-entry">
-                <strong>Suggested review</strong>
-                <p>capabilitykit impact core/graph/compile-capabilities</p>
-                <p>capabilitykit assess core/graph/compile-capabilities</p>
+              <pre><code>title: Diff capabilities
+status: implemented
+summary: Compare current capability files with a Git base and summarize added,
+  changed, and removed capabilities.
+intent: Help developers understand product and agent-facing intent changes
+  without reading raw YAML diffs.
+acceptance:
+  - Compares current capabilities against a configurable Git base ref.
+  - Reports added, changed, and removed capabilities by capability ID.
+  - Summarizes meaningful field changes such as status, intent, acceptance,
+    dependencies, implementation references, verification, and ignore policy.</code></pre>
+              <div class="preview-commands" aria-label="Useful commands for this capability">
+                <code>capabilitykit diff --base HEAD</code>
+                <code>capabilitykit assess core/graph/diff-capabilities</code>
               </div>
             </div>
           </aside>

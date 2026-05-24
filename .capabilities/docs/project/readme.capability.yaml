@@ -25,13 +25,16 @@ acceptance:
 guidance:
   - Keep the docs CLI-first and repo-native.
   - Do not position the MVP as a cloud product.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review docs/project/readme
+  # review this capability: capabilitykit assess docs/project/readme
+  # ask an agent to review this capability: capabilitykit agent-review docs/project/readme --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result docs/project/readme --input review.json --save
   # -----------------------------
   inputs:
     - README.md
@@ -60,3 +63,295 @@ agent:
       - Read README and confirm it avoids heavyweight methodology language.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - README says CapabilityKit helps developers review what changed in
+        product behavior, not only what changed in code. Review the cited
+        evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - README includes install instructions and a developer review loop with
+        status, diff, assess, and impact commands. Review the cited evidence. If
+        it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - README explains how verification reduces manual review bottlenecks.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+      - README includes Organizing Capabilities guidance for easier maintenance.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+      - README explains why planning documents can diverge from implementation
+        after AI-assisted coding. Review the cited evidence. If it is correct,
+        save agent.review evidence or make the criterion/reference wording more
+        explicit.
+      - README explains capability diff, implementation coverage assessment, and
+        dependency impact workflows. Review the cited evidence. If it is
+        correct, save agent.review evidence or make the criterion/reference
+        wording more explicit.
+      - README links to the website-published SVG dependency graph and explains
+        how to regenerate it locally. Review the cited evidence. If it is
+        correct, save agent.review evidence or make the criterion/reference
+        wording more explicit.
+      - Website links to the published interactive dependency graph SVG. Review
+        the cited evidence. If it is correct, save agent.review evidence or make
+        the criterion/reference wording more explicit.
+      - Website shows the hierarchical nature of the .capabilities folder.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+      - Website shows the main human-authored parts of a capability without the
+        agent section. Review the cited evidence. If it is correct, save
+        agent.review evidence or make the criterion/reference wording more
+        explicit.
+    evidence:
+      - .github/workflows/deploy-website.yml:12
+      - .github/workflows/deploy-website.yml:42
+      - .github/workflows/deploy-website.yml:43
+      - .github/workflows/deploy-website.yml:8
+      - README.md:15
+      - README.md:169
+      - README.md:17
+      - README.md:19
+      - README.md:21
+      - README.md:25
+      - README.md:26
+      - README.md:27
+      - README.md:28
+      - README.md:3
+      - README.md:31
+      - README.md:33
+      - README.md:35
+      - README.md:37
+      - README.md:39
+      - README.md:41
+      - README.md:47
+      - README.md:5
+      - README.md:63
+      - README.md:85
+      - README.md:96
+      - website/index.html:130
+      - website/index.html:149
+      - website/index.html:173
+      - website/index.html:174
+      - website/index.html:222
+      - website/index.html:223
+      - website/index.html:254
+      - website/index.html:257
+      - website/index.html:258
+      - website/index.html:259
+      - website/index.html:26
+      - website/index.html:260
+      - website/index.html:345
+      - website/index.html:39
+      - website/index.html:40
+      - website/index.html:42
+      - website/index.html:48
+      - website/index.html:57
+      - website/index.html:6
+      - website/index.html:67
+      - website/index.html:68
+      - website/index.html:69
+      - website/index.html:71
+      - website/index.html:72
+      - website/index.html:73
+      - website/index.html:9
+      - website/styles.css:251
+      - website/styles.css:256
+      - website/styles.css:262
+      - website/styles.css:472
+      - website/styles.css:478
+      - website/styles.css:61
+      - website/styles.css:83
+      - website/styles.css:89
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for docs/project/readme.
+    criteria:
+      - criterion: README says CapabilityKit helps developers review what changed in
+          product behavior, not only what changed in code.
+        status: partial
+        evidence:
+          - README.md:5
+          - README.md:15
+          - README.md:17
+          - README.md:19
+          - README.md:21
+          - website/index.html:6
+          - website/index.html:9
+          - website/index.html:39
+          - website/index.html:40
+          - website/index.html:42
+          - website/styles.css:251
+          - website/styles.css:262
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: README includes install instructions and a developer review loop with
+          status, diff, assess, and impact commands.
+        status: partial
+        evidence:
+          - README.md:5
+          - README.md:19
+          - README.md:25
+          - README.md:27
+          - README.md:31
+          - website/index.html:9
+          - website/index.html:48
+          - website/index.html:69
+          - website/index.html:71
+          - website/index.html:73
+          - website/styles.css:256
+          - website/styles.css:262
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: README explains how verification reduces manual review bottlenecks.
+        status: partial
+        evidence:
+          - README.md:5
+          - README.md:17
+          - README.md:37
+          - README.md:85
+          - README.md:96
+          - website/index.html:9
+          - website/index.html:174
+          - website/index.html:260
+          - website/index.html:345
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: README includes Organizing Capabilities guidance for easier
+          maintenance.
+        status: partial
+        evidence:
+          - README.md:3
+          - README.md:5
+          - README.md:28
+          - README.md:31
+          - README.md:33
+          - website/index.html:39
+          - website/index.html:57
+          - website/index.html:67
+          - website/index.html:68
+          - website/index.html:73
+          - .github/workflows/deploy-website.yml:8
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: README explains why planning documents can diverge from
+          implementation after AI-assisted coding.
+        status: partial
+        evidence:
+          - README.md:5
+          - README.md:15
+          - README.md:35
+          - website/index.html:130
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: README explains capability diff, implementation coverage assessment,
+          and dependency impact workflows.
+        status: partial
+        evidence:
+          - README.md:5
+          - README.md:26
+          - README.md:27
+          - README.md:28
+          - README.md:33
+          - website/index.html:9
+          - website/index.html:57
+          - website/index.html:72
+          - website/index.html:73
+          - website/index.html:149
+          - .github/workflows/deploy-website.yml:12
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: README links to the website-published SVG dependency graph and
+          explains how to regenerate it locally.
+        status: partial
+        evidence:
+          - README.md:37
+          - README.md:39
+          - README.md:41
+          - README.md:47
+          - README.md:169
+          - website/index.html:26
+          - website/index.html:254
+          - website/index.html:257
+          - website/index.html:258
+          - website/index.html:259
+          - website/styles.css:61
+          - website/styles.css:83
+          - website/styles.css:89
+          - website/styles.css:472
+          - website/styles.css:478
+          - .github/workflows/deploy-website.yml:42
+          - .github/workflows/deploy-website.yml:43
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Website links to the published interactive dependency graph SVG.
+        status: partial
+        evidence:
+          - README.md:39
+          - README.md:41
+          - README.md:47
+          - README.md:169
+          - website/index.html:26
+          - website/index.html:254
+          - website/index.html:257
+          - website/index.html:258
+          - website/index.html:259
+          - website/styles.css:61
+          - website/styles.css:83
+          - website/styles.css:89
+          - website/styles.css:472
+          - website/styles.css:478
+          - .github/workflows/deploy-website.yml:42
+          - .github/workflows/deploy-website.yml:43
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Website shows the hierarchical nature of the .capabilities folder.
+        status: partial
+        evidence:
+          - README.md:3
+          - README.md:5
+          - README.md:28
+          - README.md:31
+          - README.md:33
+          - website/index.html:39
+          - website/index.html:57
+          - website/index.html:67
+          - website/index.html:68
+          - website/index.html:73
+          - .github/workflows/deploy-website.yml:8
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Website shows the main human-authored parts of a capability without
+          the agent section.
+        status: partial
+        evidence:
+          - README.md:17
+          - README.md:37
+          - README.md:47
+          - README.md:63
+          - README.md:85
+          - website/index.html:173
+          - website/index.html:222
+          - website/index.html:223
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    ignore_findings: []
+    done: false

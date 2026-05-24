@@ -71,9 +71,14 @@ describe("syncReviewEvidence", () => {
     expect(parsed.agent.review.done).toBe(false);
     expect(parsed.agent.review.criteria).toHaveLength(2);
     expect(parsed.agent.review.gaps.length).toBeGreaterThan(0);
-    expect(source).toContain("# machine generated");
-    expect(source).toContain("# test: capabilitykit sync-review core/example --dry-run");
-    expect(source).toContain("# update: capabilitykit sync-review core/example");
+    expect(source).toContain("# machine managed agent metadata");
+    expect(source).toContain("# refresh all review evidence: capabilitykit sync-review");
+    expect(source).toContain("# refresh this review evidence: capabilitykit sync-review core/example");
+    expect(source).toContain("# review this capability: capabilitykit assess core/example");
+    expect(source).toContain(
+      "# ask an agent to review this capability: capabilitykit agent-review core/example --command codex --handoff stdin"
+    );
+    expect(source).toContain("# save agent review output: capabilitykit review-result core/example --input review.json --save");
   });
 
   it("reports dry-run changes without writing files", async () => {

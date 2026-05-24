@@ -22,13 +22,16 @@ guidance:
     for `inspect`, `impact`, or validation output.
   - Preserve script-safe CLI behavior and return a non-zero exit code when
     validation fails.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/graph/generate-dependency-graph-svg
+  # review this capability: capabilitykit assess core/graph/generate-dependency-graph-svg
+  # ask an agent to review this capability: capabilitykit agent-review core/graph/generate-dependency-graph-svg --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/graph/generate-dependency-graph-svg --input review.json --save
   # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
@@ -60,3 +63,157 @@ agent:
         nodes, links, highlighting, dragging, zoom, and spacing controls work.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Provides a `graph` CLI command that writes an SVG dependency graph.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+      - Writes `.capabilities/dependency-graph.svg` by default and supports a
+        custom output path. Review the cited evidence. If it is correct, save
+        agent.review evidence or make the criterion/reference wording more
+        explicit.
+      - Supports generating a website-published SVG through the deploy workflow.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+      - Updates compiled capability outputs before graph generation unless the
+        user opts out. Review the cited evidence. If it is correct, save
+        agent.review evidence or make the criterion/reference wording more
+        explicit.
+      - Renders one node per capability with status, area, direct dependent
+        count, and verification gap indicators. Review the cited evidence. If it
+        is correct, save agent.review evidence or make the criterion/reference
+        wording more explicit.
+      - Renders dependency links from `agent.depends_on` relationships. Review
+        the cited evidence. If it is correct, save agent.review evidence or make
+        the criterion/reference wording more explicit.
+      - Includes browser-side interaction for animated layout, dragging,
+        highlighting, zoom, and spacing controls. Review the cited evidence. If
+        it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+    evidence:
+      - .github/workflows/deploy-website.yml:12
+      - .github/workflows/deploy-website.yml:42
+      - .github/workflows/deploy-website.yml:43
+      - .github/workflows/deploy-website.yml:8
+      - packages/cli/src/index.ts:144
+      - packages/cli/src/index.ts:146
+      - packages/cli/src/index.ts:149
+      - packages/cli/src/index.ts:15
+      - packages/cli/src/index.ts:152
+      - packages/cli/src/index.ts:189
+      - packages/cli/src/index.ts:190
+      - packages/cli/src/index.ts:194
+      - packages/cli/src/index.ts:21
+      - packages/cli/src/index.ts:225
+      - packages/cli/src/index.ts:235
+      - packages/cli/src/index.ts:25
+      - packages/cli/src/index.ts:294
+      - packages/cli/src/index.ts:295
+      - packages/cli/src/index.ts:304
+      - packages/cli/src/index.ts:305
+      - packages/cli/src/index.ts:306
+      - packages/cli/src/index.ts:312
+      - packages/cli/src/index.ts:53
+      - packages/cli/src/index.ts:681
+      - packages/cli/src/index.ts:712
+      - packages/cli/src/index.ts:734
+      - packages/cli/src/index.ts:768
+      - packages/cli/src/index.ts:769
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/graph/generate-dependency-graph-svg.
+    criteria:
+      - criterion: Provides a `graph` CLI command that writes an SVG dependency graph.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:294
+          - packages/cli/src/index.ts:768
+          - packages/cli/src/index.ts:769
+          - .github/workflows/deploy-website.yml:42
+          - .github/workflows/deploy-website.yml:43
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Writes `.capabilities/dependency-graph.svg` by default and supports a
+          custom output path.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:25
+          - packages/cli/src/index.ts:53
+          - packages/cli/src/index.ts:144
+          - packages/cli/src/index.ts:189
+          - packages/cli/src/index.ts:190
+          - .github/workflows/deploy-website.yml:8
+          - .github/workflows/deploy-website.yml:42
+          - .github/workflows/deploy-website.yml:43
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Supports generating a website-published SVG through the deploy
+          workflow.
+        status: partial
+        evidence:
+          - .github/workflows/deploy-website.yml:12
+          - .github/workflows/deploy-website.yml:43
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Updates compiled capability outputs before graph generation unless
+          the user opts out.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:235
+          - packages/cli/src/index.ts:294
+          - packages/cli/src/index.ts:681
+          - packages/cli/src/index.ts:712
+          - packages/cli/src/index.ts:734
+          - .github/workflows/deploy-website.yml:43
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Renders one node per capability with status, area, direct dependent
+          count, and verification gap indicators.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:15
+          - packages/cli/src/index.ts:21
+          - packages/cli/src/index.ts:146
+          - packages/cli/src/index.ts:149
+          - packages/cli/src/index.ts:152
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Renders dependency links from `agent.depends_on` relationships.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:194
+          - packages/cli/src/index.ts:225
+          - packages/cli/src/index.ts:294
+          - packages/cli/src/index.ts:295
+          - packages/cli/src/index.ts:769
+          - .github/workflows/deploy-website.yml:42
+          - .github/workflows/deploy-website.yml:43
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Includes browser-side interaction for animated layout, dragging,
+          highlighting, zoom, and spacing controls.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:295
+          - packages/cli/src/index.ts:304
+          - packages/cli/src/index.ts:305
+          - packages/cli/src/index.ts:306
+          - packages/cli/src/index.ts:312
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    ignore_findings: []
+    done: false

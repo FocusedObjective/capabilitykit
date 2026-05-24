@@ -130,8 +130,13 @@ describe("agent review results", () => {
     expect(source).toContain("depth: verified");
     expect(source).toContain("status: implemented");
     expect(source).toContain("intent_summary: The capability proves review result ingestion.");
-    expect(source).toContain("# machine generated");
-    expect(source).toContain("# test: capabilitykit review-result core/example --input review.json");
-    expect(source).toContain("# update: capabilitykit review-result core/example --input review.json --save");
+    expect(source).toContain("# machine managed agent metadata");
+    expect(source).toContain("# refresh all review evidence: capabilitykit sync-review");
+    expect(source).toContain("# refresh this review evidence: capabilitykit sync-review core/example");
+    expect(source).toContain("# review this capability: capabilitykit assess core/example");
+    expect(source).toContain(
+      "# ask an agent to review this capability: capabilitykit agent-review core/example --command codex --handoff stdin"
+    );
+    expect(source).toContain("# save agent review output: capabilitykit review-result core/example --input review.json --save");
   });
 });

@@ -26,13 +26,16 @@ guidance:
     capability was proposed.
   - Reject or quarantine candidates that lack enough code evidence to be useful
     as draft capabilities.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/discovery/generate-draft-capability-files
+  # review this capability: capabilitykit assess core/discovery/generate-draft-capability-files
+  # ask an agent to review this capability: capabilitykit agent-review core/discovery/generate-draft-capability-files --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/discovery/generate-draft-capability-files --input review.json --save
   # -----------------------------
   inputs:
     - capability discovery report
@@ -61,3 +64,87 @@ agent:
       - Generated acceptance criteria still need review because source evidence
         cannot fully explain product intent.
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Converts selected agent-discovered capability candidates into valid
+        capability files. Add agent.implementation.references to
+        core/discovery/generate-draft-capability-files, or lower the status if
+        this capability is only planned.
+      - Writes files under a neat area and subfolder structure that reflects the
+        application's domains and workflows. Add agent.implementation.references
+        to core/discovery/generate-draft-capability-files, or lower the status
+        if this capability is only planned.
+      - Populates title, status, area, summary, intent, acceptance criteria,
+        implementation references, and verification placeholders. Add
+        agent.implementation.references to
+        core/discovery/generate-draft-capability-files, or lower the status if
+        this capability is only planned.
+      - Requires every generated capability to include concrete implementation
+        references from code inspection, not only documentation or package
+        metadata. Add agent.implementation.references to
+        core/discovery/generate-draft-capability-files, or lower the status if
+        this capability is only planned.
+      - Uses planned or needs-review status for generated files instead of
+        claiming implementation is verified. Add agent.implementation.references
+        to core/discovery/generate-draft-capability-files, or lower the status
+        if this capability is only planned.
+      - Refuses to overwrite existing capability files unless force is
+        requested. Add agent.implementation.references to
+        core/discovery/generate-draft-capability-files, or lower the status if
+        this capability is only planned.
+    evidence: []
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/discovery/generate-draft-capability-files.
+    criteria:
+      - criterion: Converts selected agent-discovered capability candidates into valid
+          capability files.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/generate-draft-capability-files, or lower the status
+          if this capability is only planned.
+      - criterion: Writes files under a neat area and subfolder structure that reflects
+          the application's domains and workflows.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/generate-draft-capability-files, or lower the status
+          if this capability is only planned.
+      - criterion: Populates title, status, area, summary, intent, acceptance criteria,
+          implementation references, and verification placeholders.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/generate-draft-capability-files, or lower the status
+          if this capability is only planned.
+      - criterion: Requires every generated capability to include concrete
+          implementation references from code inspection, not only documentation
+          or package metadata.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/generate-draft-capability-files, or lower the status
+          if this capability is only planned.
+      - criterion: Uses planned or needs-review status for generated files instead of
+          claiming implementation is verified.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/generate-draft-capability-files, or lower the status
+          if this capability is only planned.
+      - criterion: Refuses to overwrite existing capability files unless force is
+          requested.
+        status: uncovered
+        evidence: []
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/discovery/generate-draft-capability-files, or lower the status
+          if this capability is only planned.
+    ignore_findings: []
+    done: false

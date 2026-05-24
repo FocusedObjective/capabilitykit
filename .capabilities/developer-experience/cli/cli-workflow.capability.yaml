@@ -13,13 +13,16 @@ acceptance:
 guidance:
   - Keep command output concise and script-friendly.
   - Do not hide verification gaps behind verbose flags.
+#
+#
 agent:
-  #
-  #
   # -----------------------------
   # machine managed agent metadata
-  # refresh this section with: capabilitykit sync-review <capability-id>
-  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review developer-experience/cli/cli-workflow
+  # review this capability: capabilitykit assess developer-experience/cli/cli-workflow
+  # ask an agent to review this capability: capabilitykit agent-review developer-experience/cli/cli-workflow --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result developer-experience/cli/cli-workflow --input review.json --save
   # -----------------------------
   inputs:
     - terminal commands
@@ -46,3 +49,97 @@ agent:
       - Run each CLI command against the dogfooded capability map before release.
     gaps: []
     ignore_gaps: []
+  review:
+    depth: partial
+    gaps:
+      - Supports init, create, status, diff, validate, compile, and inspect
+        commands. Review the cited evidence. If it is correct, save agent.review
+        evidence or make the criterion/reference wording more explicit.
+      - Supports a graph command that compiles dependency updates and writes an
+        animated, draggable SVG dependency graph to
+        `.capabilities/dependency-graph.svg` by default. Review the cited
+        evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Returns a non-zero exit code for validation failures. Review the cited
+        evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Prints verification gaps in validation and inspect output. Review the
+        cited evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+    evidence:
+      - packages/cli/src/index.ts:1047
+      - packages/cli/src/index.ts:107
+      - packages/cli/src/index.ts:1139
+      - packages/cli/src/index.ts:144
+      - packages/cli/src/index.ts:146
+      - packages/cli/src/index.ts:149
+      - packages/cli/src/index.ts:152
+      - packages/cli/src/index.ts:172
+      - packages/cli/src/index.ts:173
+      - packages/cli/src/index.ts:182
+      - packages/cli/src/index.ts:189
+      - packages/cli/src/index.ts:190
+      - packages/cli/src/index.ts:25
+      - packages/cli/src/index.ts:763
+      - packages/cli/src/index.ts:788
+      - packages/cli/src/index.ts:84
+      - packages/cli/src/index.ts:86
+      - packages/cli/src/index.ts:87
+      - packages/cli/src/index.ts:95
+      - packages/cli/src/index.ts:978
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for developer-experience/cli/cli-workflow.
+    criteria:
+      - criterion: Supports init, create, status, diff, validate, compile, and inspect
+          commands.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:146
+          - packages/cli/src/index.ts:149
+          - packages/cli/src/index.ts:152
+          - packages/cli/src/index.ts:172
+          - packages/cli/src/index.ts:173
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Supports a graph command that compiles dependency updates and writes
+          an animated, draggable SVG dependency graph to
+          `.capabilities/dependency-graph.svg` by default.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:25
+          - packages/cli/src/index.ts:144
+          - packages/cli/src/index.ts:182
+          - packages/cli/src/index.ts:189
+          - packages/cli/src/index.ts:190
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Returns a non-zero exit code for validation failures.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:763
+          - packages/cli/src/index.ts:788
+          - packages/cli/src/index.ts:978
+          - packages/cli/src/index.ts:1047
+          - packages/cli/src/index.ts:1139
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Prints verification gaps in validation and inspect output.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:84
+          - packages/cli/src/index.ts:86
+          - packages/cli/src/index.ts:87
+          - packages/cli/src/index.ts:95
+          - packages/cli/src/index.ts:107
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    ignore_findings: []
+    done: false
