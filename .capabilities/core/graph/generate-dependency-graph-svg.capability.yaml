@@ -1,15 +1,13 @@
-id: core/graph/generate-dependency-graph-svg
 title: Generate dependency graph SVG
 status: implemented
-area: core
 summary: Generate an interactive SVG visualization of the capability dependency
   graph from the current capability map.
 intent: Help maintainers and agents understand capability structure, status,
   verification gaps, and dependency relationships at a glance.
 acceptance:
   - Provides a `graph` CLI command that writes an SVG dependency graph.
-  - Writes `.capabilities/dependency-graph.svg` by default and supports a
-    custom output path.
+  - Writes `.capabilities/dependency-graph.svg` by default and supports a custom
+    output path.
   - Supports generating a website-published SVG through the deploy workflow.
   - Updates compiled capability outputs before graph generation unless the user
     opts out.
@@ -25,6 +23,13 @@ guidance:
   - Preserve script-safe CLI behavior and return a non-zero exit code when
     validation fails.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
     - agent.depends_on relationships
@@ -41,6 +46,7 @@ agent:
     references:
       - packages/cli/src/index.ts
       - .github/workflows/deploy-website.yml
+    inferred_from: []
   verification:
     automated:
       - id: cli-build
@@ -50,5 +56,7 @@ agent:
         description: The CLI generates CapabilityKit's own dependency graph SVG.
         command: npm run capabilitykit -- graph
     manual:
-      - Open `.capabilities/dependency-graph.svg` in a browser and confirm nodes,
-        links, highlighting, dragging, zoom, and spacing controls work.
+      - Open `.capabilities/dependency-graph.svg` in a browser and confirm
+        nodes, links, highlighting, dragging, zoom, and spacing controls work.
+    gaps: []
+    ignore_gaps: []

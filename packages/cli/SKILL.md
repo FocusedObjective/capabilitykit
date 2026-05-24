@@ -7,6 +7,13 @@ description: Work with CapabilityKit capabilities as code. Use when creating, ed
 
 Use CapabilityKit to keep product intent, acceptance criteria, agent-maintained implementation references, and verification checks close to the code.
 
+## Human-owned vs derived fields
+
+- Human-authored capability content should focus on: `title`, `status`, `summary`, `intent`, `acceptance`, optional `guidance`, optional `agent`, and optional `replacement`.
+- `id` and `area` are derived from the capability file path and should normally be omitted from YAML files.
+- Run `capabilitykit format` to remove non-custom `id`/`area` fields and keep canonical section order.
+- `capabilitykit validate` reports warnings when explicit `id` or `area` fields are present.
+
 ## Workflow
 
 1. Read `.capabilities/capabilitykit.yaml` to understand project settings.

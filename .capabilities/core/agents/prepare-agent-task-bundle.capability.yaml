@@ -1,7 +1,5 @@
-id: core/agents/prepare-agent-task-bundle
 title: Prepare agent task bundle
 status: implemented
-area: core
 summary: Generate a deterministic prompt bundle for an external coding agent
   from one capability file.
 intent: Let maintainers hand a capability's intent, acceptance criteria,
@@ -22,6 +20,13 @@ guidance:
     generating it.
   - Make the CLI usable from any terminal, CI job, or editor integration.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - capability ID
     - .capabilities/**/*.capability.yaml
@@ -37,6 +42,7 @@ agent:
       - packages/core/src/index.ts
       - packages/cli/src/index.ts
       - packages/core/tests/agentTask.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: agent-task-tests
@@ -44,7 +50,10 @@ agent:
         command: npm test -- packages/core/tests/agentTask.test.ts
       - id: dogfood-agent-task
         description: The CLI generates an implementation bundle for this capability.
-        command: node packages/cli/dist/index.js agent-task core/agents/prepare-agent-task-bundle --mode implement
+        command: node packages/cli/dist/index.js agent-task
+          core/agents/prepare-agent-task-bundle --mode implement
     manual:
       - Generate implement and review bundles and confirm they are clear enough
         to paste into an external coding agent.
+    gaps: []
+    ignore_gaps: []

@@ -32,6 +32,15 @@ function normalizeRelative(filePath: string): string {
   return filePath.split(path.sep).join("/");
 }
 
+function deriveFromRelativePath(relativePath: string): { derivedId: string; derivedArea: string } {
+  const withoutSuffix = relativePath.replace(/\.capability\.yaml$/, "");
+  const parts = withoutSuffix.split("/").filter(Boolean);
+  return {
+    derivedId: withoutSuffix,
+    derivedArea: parts[0] ?? "general"
+  };
+}
+
 function isExcluded(relativePath: string, excludes: string[]): boolean {
   return excludes.some((pattern) => {
     const clean = pattern.replace(/^\.\//, "");
@@ -127,10 +136,13 @@ export async function loadCapabilities(rootDir = process.cwd()): Promise<LoadCap
   const parsed = await Promise.all(
     files.map(async ({ filePath, relativePath }) => {
       const source = await fs.readFile(filePath, "utf8");
-      const result = parseCapability(source, filePath);
+      const { derivedId, derivedArea } = deriveFromRelativePath(relativePath);
+      const result = parseCapability(source, filePath, { derivedId, derivedArea });
       return {
         filePath,
         relativePath,
+        derivedId,
+        derivedArea,
         result
       };
     })
@@ -145,7 +157,11 @@ export async function loadCapabilities(rootDir = process.cwd()): Promise<LoadCap
       .map((item) => ({
         capability: item.result.capability!,
         filePath: item.filePath,
-        relativePath: item.relativePath
+        relativePath: item.relativePath,
+        derivedId: item.derivedId,
+        derivedArea: item.derivedArea,
+        hasExplicitId: item.result.hasExplicitId,
+        hasExplicitArea: item.result.hasExplicitArea
       })),
     errors: [...configResult.errors, ...parsed.flatMap((item) => item.result.errors)]
   };

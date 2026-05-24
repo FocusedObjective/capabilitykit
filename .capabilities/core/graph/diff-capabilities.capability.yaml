@@ -1,7 +1,5 @@
-id: core/graph/diff-capabilities
 title: Diff capabilities
 status: implemented
-area: core
 summary: Compare current capability files with a Git base and summarize added,
   changed, and removed capabilities.
 intent: Help developers understand product and agent-facing intent changes
@@ -14,16 +12,23 @@ acceptance:
   - Excludes saved agent.review evidence churn by default while allowing it to
     be included explicitly.
   - Includes downstream impact context for changed capabilities.
-  - Defaults to a concise PR-review-style summary and offers verbose
-    field-level output.
+  - Defaults to a concise PR-review-style summary and offers verbose field-level
+    output.
   - Exposes the report through the CLI with human-readable and JSON output.
 guidance:
   - Compare normalized parsed capabilities, not raw YAML text.
-  - Keep review evidence diffs out of the default view because they can be
-    large and stale.
+  - Keep review evidence diffs out of the default view because they can be large
+    and stale.
   - Include ignore policy changes because they affect assessment behavior.
   - Avoid raw JSON in the default human output.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - current capability files
     - Git base ref
@@ -40,6 +45,7 @@ agent:
       - packages/core/src/index.ts
       - packages/cli/src/index.ts
       - packages/core/tests/capabilityDiff.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: capability-diff-tests
@@ -51,3 +57,5 @@ agent:
     manual:
       - Run capabilitykit diff during a working-tree change and confirm it
         explains capability intent changes more clearly than git diff.
+    gaps: []
+    ignore_gaps: []

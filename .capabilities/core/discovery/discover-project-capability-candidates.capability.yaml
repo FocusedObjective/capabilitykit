@@ -1,7 +1,5 @@
-id: core/discovery/discover-project-capability-candidates
 title: Discover project capability candidates
 status: planned
-area: core
 summary: Add a CLI command that asks a coding agent to investigate an installed
   project's full codebase and propose the first draft of what the app currently
   does.
@@ -11,8 +9,8 @@ intent: Give users a practical starting point after installing CapabilityKit in
 acceptance:
   - Provides a CLI command that runs from the target project root.
   - Invokes or prepares a handoff for the user's selected coding agent to
-    inspect source code, tests, routes, handlers, UI flows, data models, scripts,
-    configuration, and documentation.
+    inspect source code, tests, routes, handlers, UI flows, data models,
+    scripts, configuration, and documentation.
   - Makes README files, package metadata, and docs supporting context, not the
     sole or primary basis for capability discovery.
   - Requires the agent to propose candidate capability titles, likely areas,
@@ -32,9 +30,14 @@ guidance:
     inspection make that useful.
   - Prefer small, navigable candidate groups over a flat list of every file or
     component.
-# agent-generated draft
-# review before treating this section as implementation evidence
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - project root
     - source files
@@ -58,7 +61,8 @@ agent:
   verification:
     automated:
       - id: discovery-report-tests
-        description: Unit tests cover discovery report parsing, required evidence fields, and shallow-inspection warnings.
+        description: Unit tests cover discovery report parsing, required evidence
+          fields, and shallow-inspection warnings.
         command: npm test -- packages/core/tests/discovery.test.ts
       - id: cli-build
         description: TypeScript build verifies the discovery command integration.
@@ -69,5 +73,6 @@ agent:
         package metadata, before proposing capabilities.
     gaps:
       - Initial agent discovery may miss behavior that is only visible through
-        runtime state, production configuration, external services, or code paths
-        outside the inspected scope.
+        runtime state, production configuration, external services, or code
+        paths outside the inspected scope.
+    ignore_gaps: []

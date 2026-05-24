@@ -1,7 +1,5 @@
-id: core/graph/compile-capabilities
 title: Compile capabilities
 status: implemented
-area: core
 summary: Compile capability YAML files into normalized JSON with validation and
   verification summary data.
 intent: Provide a machine-readable capability map that tools and agents can
@@ -16,6 +14,13 @@ guidance:
     detect risk.
   - Do not emit partial JSON without surfacing validation failures.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
   outputs:
@@ -28,6 +33,7 @@ agent:
       - packages/core/src/compileCapabilities.ts
       - packages/cli/src/index.ts
       - packages/core/tests/compile.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: compile-tests
@@ -39,3 +45,5 @@ agent:
     manual:
       - Inspect the configured compiled JSON output after compile and confirm
         the graph is readable.
+    gaps: []
+    ignore_gaps: []

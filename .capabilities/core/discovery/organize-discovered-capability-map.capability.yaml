@@ -1,15 +1,11 @@
-id: core/discovery/organize-discovered-capability-map
 title: Organize discovered capability map
 status: planned
-area: core
-summary: Create a readable folder and dependency structure from
-  agent-discovered capabilities so users can browse what the app currently
-  does.
+summary: Create a readable folder and dependency structure from agent-discovered
+  capabilities so users can browse what the app currently does.
 intent: Make the generated `.capabilities/` tree feel like a product map rather
   than a dump of source-code observations.
 acceptance:
-  - Groups agent-generated capabilities into meaningful area and subarea
-    folders.
+  - Groups agent-generated capabilities into meaningful area and subarea folders.
   - Suggests capability IDs and filenames that are stable, readable, and aligned
     with the generated folder structure.
   - Detects likely dependencies between discovered capabilities when code
@@ -24,9 +20,14 @@ guidance:
   - Keep dependency inference conservative.
   - Avoid creating deep folder trees unless the project has enough behavior to
     justify them.
-# agent-generated draft
-# review before treating this section as implementation evidence
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - discovery candidates
     - generated capability files
@@ -43,7 +44,8 @@ agent:
   verification:
     automated:
       - id: capability-map-organization-tests
-        description: Unit tests verify stable ID, folder, and dependency suggestions for fixture projects.
+        description: Unit tests verify stable ID, folder, and dependency suggestions for
+          fixture projects.
         command: npm test -- packages/core/tests/discoveryOrganization.test.ts
       - id: generated-map-compiles
         description: Generated capability maps compile after organization.
@@ -54,3 +56,4 @@ agent:
     gaps:
       - Dependency inference may need project-specific review for cross-cutting
         infrastructure and shared services.
+    ignore_gaps: []

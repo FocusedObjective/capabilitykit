@@ -24,6 +24,8 @@ import {
   validateLoadedCapabilities,
   writeCompiledCapabilities,
   formatSyncReviewEvidenceReport
+  ,
+  formatCapabilities
 } from "@capabilitykit/core";
 import { installCapabilityKitSkill } from "./skillInstall.js";
 
@@ -54,11 +56,10 @@ async function writeNewFile(filePath: string, contents: string, force = false): 
   await fs.writeFile(filePath, contents);
 }
 
-function capabilityTemplate(name: string, area: string): string {
+function capabilityTemplate(name: string): string {
   return YAML.stringify({
     title: name,
     status: "planned",
-    area,
     summary: `Describe the ${name} capability.`,
     intent: "Explain why this capability matters to users, maintainers, and AI coding agents.",
     acceptance: [`${name} has clear acceptance criteria.`],
@@ -661,14 +662,14 @@ program
     });
 
     await writeNewFile(configPath, config, options.force);
-    await writeNewFile(examplePath, capabilityTemplate("Example capability", "example"), options.force);
+    await writeNewFile(examplePath, capabilityTemplate("Example capability"), options.force);
 
     console.log("Created .capabilities/");
     console.log("Created .capabilities/capabilitykit.yaml");
     console.log("Created .capabilities/example.capability.yaml");
     console.log("");
     console.log("Next steps:");
-    console.log('  capabilitykit create "User login" --area account');
+    console.log('  capabilitykit create "User login"');
     console.log("  capabilitykit validate");
     console.log("  capabilitykit compile");
   });
@@ -681,7 +682,7 @@ program
   .option("--force", "overwrite existing files")
   .action(async (name: string, options: { area: string; force?: boolean }) => {
     const filePath = path.join(process.cwd(), ".capabilities", slugify(options.area), `${slugify(name)}.capability.yaml`);
-    await writeNewFile(filePath, capabilityTemplate(name, options.area), options.force);
+    await writeNewFile(filePath, capabilityTemplate(name), options.force);
     console.log(`Created ${path.relative(process.cwd(), filePath)}`);
   });
 
@@ -703,6 +704,28 @@ program
     console.log("Try:");
     console.log("  /capabilitykit review .capabilities/core/validation/verify-implementation-references.capability.yaml");
     console.log("  Ask Codex: review this capability against its agent.implementation.references");
+  });
+
+program
+  .command("format")
+  .description("Format capability files into canonical section order and refresh agent section comments")
+  .option("--check", "check formatting without writing changes")
+  .action(async (options: { check?: boolean }) => {
+    const result = await formatCapabilities(process.cwd(), { write: !options.check });
+    if (options.check) {
+      if (result.changed === 0) {
+        console.log(`All ${result.checked} capability files are formatted.`);
+        return;
+      }
+      console.log(`${result.changed} of ${result.checked} capability files need formatting.`);
+      for (const filePath of result.files) {
+        console.log(`  - ${path.relative(process.cwd(), filePath)}`);
+      }
+      process.exitCode = 1;
+      return;
+    }
+
+    console.log(`Formatted ${result.changed} of ${result.checked} capability files.`);
   });
 
 program

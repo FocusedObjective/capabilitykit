@@ -1,13 +1,10 @@
-id: developer-experience/cli/cli-workflow
 title: CLI workflow
 status: implemented
-area: developer-experience
 summary: Provide CLI commands for init, create, validate, compile, and inspect.
 intent: Make capability management fast enough to stay close to normal
   development workflows.
 acceptance:
-  - Supports init, create, status, diff, validate, compile, and inspect
-    commands.
+  - Supports init, create, status, diff, validate, compile, and inspect commands.
   - Supports a graph command that compiles dependency updates and writes an
     animated, draggable SVG dependency graph to
     `.capabilities/dependency-graph.svg` by default.
@@ -17,6 +14,13 @@ guidance:
   - Keep command output concise and script-friendly.
   - Do not hide verification gaps behind verbose flags.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - terminal commands
     - capability files
@@ -32,6 +36,7 @@ agent:
   implementation:
     references:
       - packages/cli/src/index.ts
+    inferred_from: []
   verification:
     automated:
       - id: cli-build
@@ -39,3 +44,5 @@ agent:
         command: npm run build
     manual:
       - Run each CLI command against the dogfooded capability map before release.
+    gaps: []
+    ignore_gaps: []

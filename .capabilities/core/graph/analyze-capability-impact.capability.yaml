@@ -1,7 +1,5 @@
-id: core/graph/analyze-capability-impact
 title: Analyze capability impact
 status: implemented
-area: core
 summary: Report downstream capabilities that may need review or testing when a
   capability changes.
 intent: Help maintainers and agents understand the blast radius of capability
@@ -19,6 +17,13 @@ guidance:
   - Treat deeper folder hierarchy as navigation and ownership context, not as a
     replacement for explicit depends_on relationships.
 agent:
+  #
+  #
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh this section with: capabilitykit sync-review <capability-id>
+  # or save agent review output with: capabilitykit review-result <capability-id> --input review.json --save
+  # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
     - capability agent.depends_on values
@@ -36,14 +41,18 @@ agent:
       - packages/cli/src/index.ts
       - packages/core/tests/capabilityImpact.test.ts
       - packages/core/tests/compile.test.ts
+    inferred_from: []
   verification:
     automated:
       - id: impact-tests
         description: Unit tests verify reverse and transitive impact analysis.
-        command: npm test -- packages/core/tests/capabilityImpact.test.ts packages/core/tests/compile.test.ts
+        command: npm test -- packages/core/tests/capabilityImpact.test.ts
+          packages/core/tests/compile.test.ts
       - id: dogfood-impact
         description: The CLI reports impact for a core capability.
         command: npm run capabilitykit -- impact core/graph/compile-capabilities
     manual:
       - Change or inspect a foundational capability and confirm the impact
         report identifies direct and transitive dependents that need review.
+    gaps: []
+    ignore_gaps: []
