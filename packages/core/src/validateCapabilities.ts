@@ -153,6 +153,19 @@ export function validateLoadedCapabilities(loaded: LoadCapabilitiesResult): Vali
       addGap(verificationGaps, parsed, "missing-replacement-guidance", `${capability.id} is deprecated without replacement guidance`);
     }
 
+    const storyMap = capability.planning?.story_map;
+    if (storyMap) {
+      const configuredReleases = loaded.config.planning?.releases ?? [];
+      if (configuredReleases.length > 0 && !configuredReleases.includes(storyMap.release)) {
+        addGap(
+          verificationGaps,
+          parsed,
+          "invalid-story-map-release",
+          `${capability.id} has story_map.release "${storyMap.release}" which is not configured in planning.releases`
+        );
+      }
+    }
+
     if (containsPlaceholder(capability)) {
       addGap(verificationGaps, parsed, "placeholder-content", `${capability.id} contains TODO, TBD, FIXME, or placeholder text`);
     }

@@ -29,6 +29,18 @@ export interface AgentReviewCriterion {
   notes?: string;
 }
 
+
+export interface StoryMapMetadata {
+  backbone: string;
+  step: string;
+  release: string;
+  order?: number;
+}
+
+export interface StoryMapConfig {
+  releases?: string[];
+}
+
 export interface Capability {
   id: string;
   title: string;
@@ -63,6 +75,9 @@ export interface Capability {
       done?: boolean;
     };
   };
+  planning?: {
+    story_map?: StoryMapMetadata;
+  };
   replacement?: string;
 }
 
@@ -83,6 +98,7 @@ export interface ProjectConfig {
     allow_verification_gaps?: boolean;
     require_implementation_references_for_status?: CapabilityStatus[];
   };
+  planning?: StoryMapConfig;
   output?: {
     path?: string;
   };

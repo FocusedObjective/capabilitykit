@@ -5,6 +5,12 @@ import type { Capability, VerificationGap } from "./types.js";
 
 export type CapabilityHealth = "ok" | "review" | "action" | "planned";
 
+export interface StoryMapGroup {
+  release: string;
+  backbone: string;
+  step: string;
+}
+
 export interface CapabilityStatusSummary {
   capabilityId: string;
   title: string;
@@ -27,11 +33,21 @@ export interface CapabilityStatusSummary {
   counts: Record<AssessmentAdviceStatus, number>;
   nextAction: string;
   topFindings: CriterionAssessmentAdvice[];
+  storyMap?: StoryMapGroup;
+}
+
+export interface StoryMapReleaseReport {
+  release: string;
+  capabilities: CapabilityStatusSummary[];
 }
 
 export interface CapabilityStatusReport {
   project: string;
   capabilities: CapabilityStatusSummary[];
+  byStoryMap: {
+    unassigned: CapabilityStatusSummary[];
+    releases: StoryMapReleaseReport[];
+  };
   summary: {
     total: number;
     ok: number;
@@ -166,7 +182,14 @@ export async function summarizeCapabilityStatus(rootDir: string, capabilityId?: 
       },
       counts,
       nextAction: nextActionFor({ health, counts, verificationGaps: capabilityVerificationGaps }),
-      topFindings: topFindings(capabilityAdvice.criteria)
+      topFindings: topFindings(capabilityAdvice.criteria),
+      storyMap: loadedCapability.capability.planning?.story_map
+        ? {
+            release: loadedCapability.capability.planning.story_map.release,
+            backbone: loadedCapability.capability.planning.story_map.backbone,
+            step: loadedCapability.capability.planning.story_map.step
+          }
+        : undefined
     });
   }
 
@@ -178,6 +201,14 @@ export async function summarizeCapabilityStatus(rootDir: string, capabilityId?: 
     planned: capabilities.filter((capability) => capability.health === "planned").length
   };
 
+  const unassigned = capabilities.filter((capability) => !capability.storyMap);
+  const releasesMap = new Map<string, CapabilityStatusSummary[]>();
+  for (const capability of capabilities) {
+    const release = capability.storyMap?.release;
+    if (!release) continue;
+    releasesMap.set(release, [...(releasesMap.get(release) ?? []), capability]);
+  }
+
   return {
     project: advice.project,
     capabilities: capabilities.sort(
@@ -186,6 +217,12 @@ export async function summarizeCapabilityStatus(rootDir: string, capabilityId?: 
           ["action", "review", "planned", "ok"].indexOf(b.health) ||
         a.capabilityId.localeCompare(b.capabilityId)
     ),
+    byStoryMap: {
+      unassigned,
+      releases: [...releasesMap.entries()]
+        .sort((a,b)=>a[0].localeCompare(b[0]))
+        .map(([release, capabilities]) => ({ release, capabilities }))
+    },
     summary
   };
 }
