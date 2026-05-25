@@ -183,6 +183,22 @@ Suggested checks: npm test, compile</code></pre>
       <section class="section section-alt">
         <div class="container capability-structure-grid">
           <div>
+            <p class="eyebrow">Local verification</p>
+            <h2>One command checks the repo before review or release.</h2>
+            <p>
+              `npm run verify` builds the workspaces, runs tests, validates capability files, and refreshes the compiled
+              capability map. It is the same local loop used by release preparation before publishing is triggered.
+            </p>
+          </div>
+          <pre class="code-card"><code>npm run verify
+
+npm run release:prep -- patch</code></pre>
+        </div>
+      </section>
+
+      <section class="section section-alt">
+        <div class="container capability-structure-grid">
+          <div>
             <p class="eyebrow">Repo-native structure</p>
             <h2>The capability map is hierarchical before it is a graph.</h2>
             <p>

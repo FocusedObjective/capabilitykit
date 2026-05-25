@@ -34,6 +34,9 @@ The workflow has `id-token: write`, which is required for OIDC trusted publishin
 
 1. Make sure you are on `main` with a clean working tree.
 
+   `npm run release:prep` checks this before changing files and exits if Git
+   reports pending changes.
+
 2. Prepare the release:
 
    ```powershell
@@ -45,9 +48,9 @@ The workflow has `id-token: write`, which is required for OIDC trusted publishin
    CLI dependency on `@capabilitykit/core`, updates `package-lock.json`, runs
    `npm run verify`, and runs dry-run packs for both published packages.
 
-   The script then asks for confirmation before it commits the release files,
-   creates the version tag, and pushes `main` with tags. Press Enter or answer
-   `n` to stop after preparing the files.
+   The script then asks for one confirmation before it stages the release files,
+   commits them, creates the version tag, and pushes `main` with tags. Press
+   Enter or answer `n` to stop after preparing the files.
 
    To only update files and skip the slower checks:
 
@@ -56,7 +59,9 @@ The workflow has `id-token: write`, which is required for OIDC trusted publishin
    ```
 
    To pass other release-prep flags through npm, put them after a second `--`.
-   For example: `npm run release:prep -- patch -- --allow-dirty`.
+   For example: `npm run release:prep -- patch -- --allow-dirty`. Use that only
+   when you intentionally want to prepare a release with other pending changes
+   in the working tree.
 
 3. Monitor the run at:
 

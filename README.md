@@ -229,11 +229,19 @@ Ignored findings are removed from recommended actions and `review-noisy` scoring
 
 CapabilityKit uses its own `.capabilities/` folder. Current capabilities cover the schema, validation, implementation reference checks, compiled graph output, capability diffing, impact analysis, implementation coverage assessment, external agent handoff, CLI workflow, skill installation, examples, and documentation.
 
-The project verification loop validates and compiles those specs:
+The project verification loop builds both workspaces, runs the test suite, validates capability files, and refreshes the compiled capability map:
 
 ```bash
 npm run verify
 ```
+
+Release preparation uses the same verification loop before asking for one explicit confirmation to commit, tag, and push:
+
+```bash
+npm run release:prep -- patch
+```
+
+Use `minor`, `major`, or an exact version in place of `patch` when appropriate. See [PUBLISHING.md](PUBLISHING.md) for the full release flow.
 
 ## Website
 

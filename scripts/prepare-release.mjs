@@ -231,11 +231,15 @@ function printManualCommands(nextVersion) {
 }
 
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, {
+  const executable = process.platform === "win32" && command === "npm" ? "npm.cmd" : command;
+  const result = spawnSync(executable, args, {
     encoding: "utf8",
-    shell: process.platform === "win32",
     stdio: options.capture ? "pipe" : "inherit",
   });
+
+  if (result.error) {
+    fail(`Command failed: ${command} ${args.join(" ")}\n${result.error.message}`);
+  }
 
   if (result.status !== 0) {
     fail(`Command failed: ${command} ${args.join(" ")}`);
