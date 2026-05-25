@@ -1,6 +1,6 @@
 {
   "name": "@capabilitykit/core",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Core parser, compiler, and validation APIs for CapabilityKit.",
   "license": "MIT",
   "type": "module",
