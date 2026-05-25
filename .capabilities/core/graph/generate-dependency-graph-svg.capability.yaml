@@ -24,6 +24,12 @@ guidance:
     for `inspect`, `impact`, or validation output.
   - Preserve script-safe CLI behavior and return a non-zero exit code when
     validation fails.
+planning:
+  story_map:
+    backbone: CLI package
+    step: Generate graph SVG
+    release: mvp
+    order: 100
 #
 #
 agent:

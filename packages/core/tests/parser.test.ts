@@ -131,4 +131,34 @@ planning:
     expect(result.capability?.planning?.story_map?.release).toBe("mvp");
   });
 
+  it("returns clear schema errors for malformed story map metadata", () => {
+    const result = parseCapability(`
+title: Story
+status: planned
+summary: Story summary.
+intent: Story intent.
+acceptance:
+  - Works.
+planning:
+  story_map:
+    backbone: Browse
+    release: mvp
+    order: first
+`, "core/story.capability.yaml");
+
+    expect(result.capability).toBeUndefined();
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "schema-error",
+        message: expect.stringContaining("planning.story_map.step")
+      })
+    );
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "schema-error",
+        message: expect.stringContaining("planning.story_map.order")
+      })
+    );
+  });
+
 });

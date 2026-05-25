@@ -13,6 +13,12 @@ acceptance:
 guidance:
   - Keep command output concise and script-friendly.
   - Do not hide verification gaps behind verbose flags.
+planning:
+  story_map:
+    backbone: CLI package
+    step: Use CLI workflow
+    release: mvp
+    order: 90
 #
 #
 agent:

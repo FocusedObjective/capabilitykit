@@ -16,6 +16,12 @@ guidance:
   - Keep the existing dependency_graph output backward-compatible.
   - Treat deeper folder hierarchy as navigation and ownership context, not as a
     replacement for explicit depends_on relationships.
+planning:
+  story_map:
+    backbone: Core package
+    step: Analyze downstream impact
+    release: mvp
+    order: 70
 #
 #
 agent:

@@ -139,7 +139,7 @@ agent:
     expect(output).toContain("Next Action");
   });
 
-  it("groups capabilities by story-map release", async () => {
+  it("groups mixed story-map datasets by release and unassigned capabilities", async () => {
     const rootDir = await createProject({
       mapped: `
 title: Mapped
@@ -157,11 +157,48 @@ agent:
   verification:
     manual:
       - Review it.
+`,
+      done: `
+title: Done
+status: implemented
+summary: Done summary.
+intent: Done intent.
+acceptance:
+  - Implemented with story map metadata.
+planning:
+  story_map:
+    backbone: Explore
+    step: Search
+    release: mvp
+agent:
+  implementation:
+    references:
+      - src/done.ts
+  verification:
+    manual:
+      - Review it.
+`,
+      unmapped: `
+title: Unmapped
+status: planned
+summary: Unmapped summary.
+intent: Unmapped intent.
+acceptance:
+  - Works without story map metadata.
+agent:
+  verification:
+    manual:
+      - Review it.
 `
     });
+    await writeFile(path.join(rootDir, "src", "done.ts"), "Implemented with story map metadata.\n");
 
     const report = await summarizeCapabilityStatus(rootDir);
-    expect(report.byStoryMap.releases.find((entry) => entry.release === "mvp")?.capabilities.length).toBe(1);
+    const mvp = report.byStoryMap.releases.find((entry) => entry.release === "mvp");
+
+    expect(mvp?.capabilities.map((capability) => capability.capabilityId).sort()).toEqual(["core/done", "core/mapped"]);
+    expect(mvp?.capabilities.map((capability) => capability.status).sort()).toEqual(["implemented", "planned"]);
+    expect(report.byStoryMap.unassigned.map((capability) => capability.capabilityId)).toEqual(["core/unmapped"]);
   });
 
 });

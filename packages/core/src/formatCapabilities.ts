@@ -32,6 +32,9 @@ function canonicalCapability(
   if (capability.guidance && capability.guidance.length > 0) {
     result.guidance = capability.guidance;
   }
+  if (capability.planning) {
+    result.planning = pruneEmpty(capability.planning);
+  }
   if (capability.agent) {
     result.agent = pruneEmpty(capability.agent);
   }

@@ -32,6 +32,12 @@ summary: Example summary.
 intent: Example intent.
 acceptance:
   - It can be formatted.
+planning:
+  story_map:
+    backbone: Model
+    step: Define
+    release: mvp
+    order: 1
 agent:
   verification:
     manual:
@@ -68,5 +74,6 @@ describe("formatCapabilities", () => {
     expect(source).toContain("# ask an agent and save review evidence: capabilitykit review core/example --agent codex --handoff stdin");
     expect(source).toContain("# validate saved agent output without writing: capabilitykit review-result core/example --input review.json");
     expect(source).not.toContain("<capability-id>");
+    expect(source).toContain("planning:\n  story_map:\n    backbone: Model\n    step: Define\n    release: mvp\n    order: 1");
   });
 });

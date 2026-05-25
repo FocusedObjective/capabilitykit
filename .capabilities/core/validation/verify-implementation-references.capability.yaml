@@ -15,6 +15,12 @@ guidance:
   - Treat missing reference targets as verification gaps so validation remains
     advisory by default.
   - Do not require planned capabilities to have agent.implementation.references.
+planning:
+  story_map:
+    backbone: Core package
+    step: Check implementation evidence
+    release: mvp
+    order: 50
 #
 #
 agent:

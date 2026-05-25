@@ -32,6 +32,12 @@ guidance:
     implemented.
   - Do not mark capabilities verified solely because referenced files contain
     matching words.
+planning:
+  story_map:
+    backbone: Core package
+    step: Assess implementation coverage
+    release: mvp
+    order: 80
 #
 #
 agent:

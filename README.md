@@ -46,6 +46,13 @@ npm run capabilitykit -- graph-viewer
 
 The default local outputs are `.capabilities/dependency-viewer.html` and `.capabilities/dependency-graph.svg`. The website embeds the published viewer on the home page and keeps a browser-openable SVG copy at [capabilitykit.com/dependency-graph.svg](https://capabilitykit.com/dependency-graph.svg).
 
+Generate a dedicated story-map board when you want release slices, backbones,
+steps, and unassigned capabilities in a browser view:
+
+```bash
+npm run capabilitykit -- story-map-viewer
+```
+
 ## What A Capability Captures
 
 A capability is a repo-native description of something the system should do and how that claim is checked.
@@ -168,6 +175,7 @@ capabilitykit compile
 - `capabilitykit impact <capability-id>` reports direct and transitive downstream capabilities plus suggested verification.
 - `capabilitykit graph` writes an interactive SVG dependency graph to `.capabilities/dependency-graph.svg`.
 - `capabilitykit graph-viewer` writes the richer HTML dependency viewer and SVG fallback.
+- `capabilitykit story-map-viewer` writes a self-contained HTML story-map board to `.capabilities/story-map-viewer.html`.
 - `capabilitykit validate` validates capability files and reports verification gaps.
 - `capabilitykit compile` writes normalized JSON to `.capabilities/dist/capabilities.json`.
 - `capabilitykit inspect <capability-id>` prints one capability and its relationships.

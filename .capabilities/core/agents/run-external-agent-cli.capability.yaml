@@ -22,6 +22,12 @@ guidance:
     argument and "{promptFile}" for CLIs that accept a prompt file path.
   - Prefer stdin handoff for large prompts and Windows command shims when the
     target CLI supports reading prompts from stdin.
+planning:
+  story_map:
+    backbone: CLI package
+    step: Run external agent CLI
+    release: mvp
+    order: 140
 #
 #
 agent:

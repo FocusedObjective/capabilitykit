@@ -20,6 +20,12 @@ guidance:
   - Keep dependency inference conservative.
   - Avoid creating deep folder trees unless the project has enough behavior to
     justify them.
+planning:
+  story_map:
+    backbone: Reverse engineering
+    step: Organize discovered map
+    release: reverse-engineering
+    order: 30
 #
 #
 agent:

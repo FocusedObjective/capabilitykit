@@ -157,12 +157,12 @@ export function validateLoadedCapabilities(loaded: LoadCapabilitiesResult): Vali
     if (storyMap) {
       const configuredReleases = loaded.config.planning?.releases ?? [];
       if (configuredReleases.length > 0 && !configuredReleases.includes(storyMap.release)) {
-        addGap(
-          verificationGaps,
-          parsed,
-          "invalid-story-map-release",
-          `${capability.id} has story_map.release "${storyMap.release}" which is not configured in planning.releases`
-        );
+        errors.push({
+          code: "invalid-story-map-release",
+          message: `${capability.id} has story_map.release "${storyMap.release}" which is not configured in planning.releases`,
+          capabilityId: capability.id,
+          filePath: parsed.filePath
+        });
       }
     }
 

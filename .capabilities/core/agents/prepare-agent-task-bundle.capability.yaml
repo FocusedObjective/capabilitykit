@@ -19,6 +19,12 @@ guidance:
   - Treat external agents as consumers of the bundle, not as a requirement for
     generating it.
   - Make the CLI usable from any terminal, CI job, or editor integration.
+planning:
+  story_map:
+    backbone: Core package
+    step: Prepare agent task bundles
+    release: mvp
+    order: 120
 #
 #
 agent:

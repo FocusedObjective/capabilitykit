@@ -21,6 +21,12 @@ guidance:
   - Do not mark a capability verified solely because an agent set done true.
   - Preserve enough criterion-level evidence for later human or automated policy
     review.
+planning:
+  story_map:
+    backbone: Core package
+    step: Ingest agent review evidence
+    release: mvp
+    order: 150
 #
 #
 agent:

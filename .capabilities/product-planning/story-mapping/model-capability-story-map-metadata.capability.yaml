@@ -1,5 +1,5 @@
 title: Model capability story-map metadata
-status: planned
+status: implemented
 summary: Add optional planning metadata to capability specs so teams can
   represent Jeff Patton style story maps and release slices without changing
   capability identity.
@@ -20,6 +20,12 @@ guidance:
   - Keep release values constrained and project-configurable.
   - Avoid encoding release phase in capability file paths.
   - Preserve backward compatibility for capabilities that omit planning metadata.
+planning:
+  story_map:
+    backbone: Story mapping
+    step: Model story-map metadata
+    release: story-mapping
+    order: 10
 #
 #
 agent:
@@ -50,63 +56,65 @@ agent:
         product-planning/story-mapping/model-capability-story-map-metadata and
         confirm the code-review criteria match the current implementation state.
   review:
-    depth: partial
-    source: deterministic-assessment
-    gaps:
-      - Capability format supports an optional planning.story_map object for
-        each capability. Either implement or test this behavior, or update the
-        capability if the criterion no longer reflects intended behavior.
-      - Story-map metadata can represent backbone activity, user step, release
-        target, and optional ordering. Split the criterion into smaller
-        observable behaviors, or add more targeted implementation/test
-        references.
-      - Planning metadata is human-authored and does not require renaming or
-        moving capability files between releases. Review the cited evidence. If
-        it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-      - Validation emits clear errors for invalid story_map shapes and release
-        values when configured. Review the cited evidence. If it is correct,
-        save agent.review evidence or make the criterion/reference wording more
-        explicit.
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for
-      product-planning/story-mapping/model-capability-story-map-metadata.
+    depth: verified
+    source: coding-agent
+    intent_summary: CapabilityKit now supports optional YAML planning metadata for
+      story maps, letting a capability declare its backbone activity, user step,
+      release slice, and ordering without changing path-derived identity.
     criteria:
       - criterion: Capability format supports an optional planning.story_map object for
           each capability.
-        status: uncovered
-        notes: Readable references exist, but no deterministic evidence matched this
-          criterion. Either implement or test this behavior, or update the
-          capability if the criterion no longer reflects intended behavior.
+        status: covered
+        evidence:
+          - packages/core/src/schema.ts:159
+          - packages/core/src/schema.ts:161
+          - packages/core/src/types.ts:78
+          - packages/core/src/types.ts:79
+          - packages/core/tests/parser.test.ts:114
+        notes: The schema and public Capability type both model optional
+          planning.story_map, and parser coverage confirms YAML parsing.
       - criterion: Story-map metadata can represent backbone activity, user step,
           release target, and optional ordering.
-        status: uncertain
-        notes: The criterion is broad or compound, which makes deterministic evidence
-          matching brittle. Split the criterion into smaller observable
-          behaviors, or add more targeted implementation/test references.
+        status: covered
+        evidence:
+          - packages/core/src/schema.ts:120
+          - packages/core/src/schema.ts:121
+          - packages/core/src/schema.ts:122
+          - packages/core/src/schema.ts:123
+          - packages/core/src/schema.ts:124
+          - packages/core/src/types.ts:33
+          - packages/core/src/types.ts:37
+          - packages/core/tests/parser.test.ts:123
+        notes: The metadata shape includes required backbone, step, release and optional
+          integer order; tests exercise all four fields.
       - criterion: Planning metadata is human-authored and does not require renaming or
           moving capability files between releases.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/types.ts:84
-          - packages/core/src/validateCapabilities.ts:119
-          - packages/core/tests/parser.test.ts:98
-          - packages/core/tests/parser.test.ts:101
-          - packages/core/tests/validation.test.ts:144
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/parseCapability.ts:5
+          - packages/core/src/parseCapability.ts:13
+          - packages/core/src/parseCapability.ts:45
+          - packages/core/src/parseCapability.ts:49
+          - packages/core/src/schema.ts:228
+          - packages/core/src/validateCapabilities.ts:156
+        notes: Identity continues to derive from the capability file path, while
+          planning is preserved as YAML data and release validation reads
+          planning.story_map.release rather than path segments.
       - criterion: Validation emits clear errors for invalid story_map shapes and
           release values when configured.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/tests/parser.test.ts:80
-          - packages/core/tests/parser.test.ts:95
-          - packages/core/tests/validation.test.ts:55
-          - packages/core/tests/validation.test.ts:61
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
-    done: false
+          - packages/core/src/parseCapability.ts:53
+          - packages/core/src/parseCapability.ts:57
+          - packages/core/src/validateCapabilities.ts:158
+          - packages/core/src/validateCapabilities.ts:161
+          - packages/core/src/validateCapabilities.ts:162
+          - packages/core/tests/parser.test.ts:134
+          - packages/core/tests/parser.test.ts:153
+          - packages/core/tests/parser.test.ts:159
+          - packages/core/tests/validation.test.ts:178
+          - packages/core/tests/validation.test.ts:198
+        notes: Malformed story_map data produces path-specific schema errors, and
+          configured release lists reject unknown release values as validation
+          errors.
+    done: true

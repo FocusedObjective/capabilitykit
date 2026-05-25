@@ -23,6 +23,12 @@ guidance:
     metadata comes from CapabilityKit commands, not from prompt-time guesses.
   - Do not overwrite user-authored agent instructions outside the managed
     CapabilityKit block.
+planning:
+  story_map:
+    backbone: CLI package
+    step: Install agent instructions
+    release: mvp
+    order: 160
 #
 #
 agent:

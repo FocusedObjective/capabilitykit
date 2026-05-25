@@ -42,6 +42,9 @@ jobs:
       - name: Generate website dependency viewer
         run: node packages/cli/dist/index.js graph-viewer --output website/dependency-viewer.html --svg-output website/dependency-graph.svg
 
+      - name: Generate website story-map viewer
+        run: node packages/cli/dist/index.js story-map-viewer --output website/story-map-viewer.html --no-update
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:

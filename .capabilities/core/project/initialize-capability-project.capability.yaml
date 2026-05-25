@@ -10,6 +10,12 @@ acceptance:
 guidance:
   - Generated files should pass capabilitykit validate.
   - Do not overwrite user capability files by default.
+planning:
+  story_map:
+    backbone: CLI package
+    step: Initialize project
+    release: mvp
+    order: 20
 #
 #
 agent:

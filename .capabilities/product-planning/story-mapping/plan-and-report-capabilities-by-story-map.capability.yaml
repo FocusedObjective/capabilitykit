@@ -1,5 +1,5 @@
 title: Plan and report capabilities by story map
-status: planned
+status: implemented
 summary: Provide planning workflows and reports that group capabilities into
   story-map backbones, steps, and release slices such as MVP and V2.
 intent: Help teams collaboratively plan capabilities as a story map and inspect
@@ -12,10 +12,20 @@ acceptance:
     conversations stay connected to delivery status.
   - Story-map reporting works for mixed datasets where some capabilities do not
     yet define planning metadata.
+  - Teams can generate a dedicated, self-contained HTML story-map viewer with
+    release tabs, search, health filtering, grouped cards, unassigned
+    capabilities, and capability detail dialogs.
 guidance:
   - Prefer additive CLI/report features over breaking existing status output.
-  - Support filtering by release values like mvp, v2, and v3.
+  - Support filtering by project release slices like mvp, website,
+    story-mapping, and reverse-engineering.
   - Keep output deterministic so diffs are reviewable in CI.
+planning:
+  story_map:
+    backbone: Story mapping
+    step: Report by story map
+    release: story-mapping
+    order: 20
 #
 #
 agent:
@@ -32,10 +42,12 @@ agent:
   implementation:
     references:
       - packages/cli/src/index.ts
+      - packages/cli/src/statusOutput.ts
       - packages/core/src/capabilityStatus.ts
       - packages/core/src/types.ts
       - packages/core/tests/capabilityStatus.test.ts
-      - packages/cli/tests/skillInstall.test.ts
+      - packages/cli/tests/statusOutput.test.ts
+      - .capabilities/story-map-viewer.html
   verification:
     automated:
       - id: story-map-reporting-review
@@ -43,136 +55,97 @@ agent:
           type, and test files.
         command: npm run capabilitykit -- assess
           product-planning/story-mapping/plan-and-report-capabilities-by-story-map
+      - id: story-map-viewer-build
+        description: TypeScript build verifies the story-map viewer command and HTML
+          renderer.
+        command: npm run build
     manual:
       - Run capabilitykit assess
         product-planning/story-mapping/plan-and-report-capabilities-by-story-map
         and confirm the code-review criteria match the current implementation
         state.
+      - Open `.capabilities/story-map-viewer.html`, switch release tabs, search,
+        filter by health, open capability details, and confirm unassigned
+        capabilities remain visible.
   review:
-    depth: partial
-    source: deterministic-assessment
-    gaps:
-      - Teams can query capability status grouped by story-map release slice.
-        Review the cited evidence. If it is correct, save agent.review evidence
-        or make the criterion/reference wording more explicit.
-      - Teams can view capabilities grouped by story-map backbone and step.
-        Review the cited evidence. If it is correct, save agent.review evidence
-        or make the criterion/reference wording more explicit.
-      - Reports include planned and implemented capabilities so roadmap
-        conversations stay connected to delivery status. Review the cited
-        evidence. If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-      - Story-map reporting works for mixed datasets where some capabilities do
-        not yet define planning metadata. Review the cited evidence. If it is
-        correct, save agent.review evidence or make the criterion/reference
-        wording more explicit.
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for
-      product-planning/story-mapping/plan-and-report-capabilities-by-story-map.
+    depth: verified
+    source: coding-agent
+    intent_summary: Provide additive status/reporting workflows that let teams plan
+      and inspect capabilities through story-map releases, backbones, and steps
+      while still showing implementation status and tolerating capabilities
+      without planning metadata.
     criteria:
       - criterion: Teams can query capability status grouped by story-map release slice.
-        status: partial
+        status: covered
         evidence:
-          - packages/cli/src/index.ts:15
-          - packages/cli/src/index.ts:21
-          - packages/cli/src/index.ts:147
-          - packages/cli/src/index.ts:150
-          - packages/cli/src/index.ts:153
-          - packages/core/src/capabilityStatus.ts:8
-          - packages/core/src/capabilityStatus.ts:11
-          - packages/core/src/capabilityStatus.ts:32
-          - packages/core/src/capabilityStatus.ts:34
-          - packages/core/src/capabilityStatus.ts:55
-          - packages/core/src/types.ts:1
-          - packages/core/src/types.ts:35
-          - packages/core/src/types.ts:84
-          - packages/core/tests/capabilityStatus.test.ts:5
-          - packages/core/tests/capabilityStatus.test.ts:10
-          - packages/core/tests/capabilityStatus.test.ts:19
-          - packages/core/tests/capabilityStatus.test.ts:29
-          - packages/core/tests/capabilityStatus.test.ts:42
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/cli/src/index.ts:1562
+          - packages/cli/src/index.ts:1563
+          - packages/cli/src/index.ts:1567
+          - packages/cli/src/index.ts:1575
+          - packages/core/src/capabilityStatus.ts:207
+          - packages/core/src/capabilityStatus.ts:222
+          - packages/cli/src/statusOutput.ts:35
+        notes: "`capabilitykit status --story-map` formats by releases, and `--release
+          <release>` filters the report to one story-map release slice."
       - criterion: Teams can view capabilities grouped by story-map backbone and step.
-        status: partial
+        status: covered
         evidence:
-          - packages/cli/src/index.ts:30
-          - packages/cli/src/index.ts:145
-          - packages/cli/src/index.ts:160
-          - packages/cli/src/index.ts:170
-          - packages/cli/src/index.ts:183
-          - packages/core/src/capabilityStatus.ts:34
-          - packages/core/src/capabilityStatus.ts:133
-          - packages/core/src/capabilityStatus.ts:134
-          - packages/core/src/capabilityStatus.ts:136
-          - packages/core/src/capabilityStatus.ts:175
-          - packages/core/src/types.ts:119
-          - packages/core/src/types.ts:142
-          - packages/core/src/types.ts:153
-          - packages/core/tests/capabilityStatus.test.ts:15
-          - packages/core/tests/capabilityStatus.test.ts:35
-          - packages/core/tests/capabilityStatus.test.ts:36
-          - packages/core/tests/capabilityStatus.test.ts:101
-          - packages/core/tests/capabilityStatus.test.ts:102
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/capabilityStatus.ts:186
+          - packages/core/src/capabilityStatus.ts:188
+          - packages/core/src/capabilityStatus.ts:189
+          - packages/core/src/capabilityStatus.ts:190
+          - packages/cli/src/statusOutput.ts:39
+          - packages/cli/src/statusOutput.ts:44
+          - packages/cli/tests/statusOutput.test.ts:80
+          - packages/cli/tests/statusOutput.test.ts:81
+        notes: The status summary carries backbone and step metadata, and the story-map
+          formatter prints `backbone > step` groups.
       - criterion: Reports include planned and implemented capabilities so roadmap
           conversations stay connected to delivery status.
-        status: partial
+        status: covered
         evidence:
-          - packages/cli/src/index.ts:15
-          - packages/cli/src/index.ts:21
-          - packages/cli/src/index.ts:30
-          - packages/cli/src/index.ts:63
-          - packages/cli/src/index.ts:71
-          - packages/core/src/capabilityStatus.ts:8
-          - packages/core/src/capabilityStatus.ts:11
-          - packages/core/src/capabilityStatus.ts:32
-          - packages/core/src/capabilityStatus.ts:34
-          - packages/core/src/capabilityStatus.ts:63
-          - packages/core/src/types.ts:1
-          - packages/core/src/types.ts:35
-          - packages/core/src/types.ts:84
-          - packages/core/src/types.ts:119
-          - packages/core/src/types.ts:142
-          - packages/core/tests/capabilityStatus.test.ts:5
-          - packages/core/tests/capabilityStatus.test.ts:10
-          - packages/core/tests/capabilityStatus.test.ts:15
-          - packages/core/tests/capabilityStatus.test.ts:19
-          - packages/core/tests/capabilityStatus.test.ts:29
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/capabilityStatus.ts:171
+          - packages/cli/src/statusOutput.ts:46
+          - packages/core/tests/capabilityStatus.test.ts:145
+          - packages/core/tests/capabilityStatus.test.ts:163
+          - packages/core/tests/capabilityStatus.test.ts:199
+          - packages/core/tests/capabilityStatus.test.ts:200
+          - packages/cli/tests/statusOutput.test.ts:82
+          - packages/cli/tests/statusOutput.test.ts:83
+        notes: Reports retain each capability's declared status and tests cover planned
+          plus implemented capabilities in the same story-map release.
       - criterion: Story-map reporting works for mixed datasets where some capabilities
           do not yet define planning metadata.
-        status: partial
+        status: covered
         evidence:
-          - packages/cli/src/index.ts:30
-          - packages/cli/src/index.ts:145
-          - packages/cli/src/index.ts:245
-          - packages/cli/src/index.ts:254
-          - packages/cli/src/index.ts:337
-          - packages/core/src/capabilityStatus.ts:34
-          - packages/core/src/capabilityStatus.ts:133
-          - packages/core/src/capabilityStatus.ts:134
-          - packages/core/src/capabilityStatus.ts:136
-          - packages/core/src/capabilityStatus.ts:175
-          - packages/core/src/types.ts:119
-          - packages/core/src/types.ts:142
-          - packages/core/src/types.ts:153
-          - packages/core/tests/capabilityStatus.test.ts:15
-          - packages/core/tests/capabilityStatus.test.ts:35
-          - packages/core/tests/capabilityStatus.test.ts:36
-          - packages/core/tests/capabilityStatus.test.ts:101
-          - packages/core/tests/capabilityStatus.test.ts:102
-          - packages/cli/tests/skillInstall.test.ts:6
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
-    done: false
+          - packages/core/src/capabilityStatus.ts:186
+          - packages/core/src/capabilityStatus.ts:204
+          - packages/core/src/capabilityStatus.ts:221
+          - packages/cli/src/statusOutput.ts:51
+          - packages/cli/src/statusOutput.ts:53
+          - packages/core/tests/capabilityStatus.test.ts:181
+          - packages/core/tests/capabilityStatus.test.ts:201
+          - packages/cli/tests/statusOutput.test.ts:86
+        notes: Capabilities without `planning.story_map` are kept in
+          `byStoryMap.unassigned` and rendered in an Unassigned section.
+      - criterion: Teams can generate a dedicated, self-contained HTML story-map viewer
+          with release tabs, search, health filtering, grouped cards, unassigned
+          capabilities, and capability detail dialogs.
+        status: covered
+        evidence:
+          - packages/cli/src/index.ts:1721
+          - packages/cli/src/index.ts:1730
+          - packages/cli/src/statusOutput.ts:61
+          - packages/cli/src/statusOutput.ts:447
+          - packages/cli/src/statusOutput.ts:449
+          - packages/cli/src/statusOutput.ts:464
+          - packages/cli/tests/statusOutput.test.ts:105
+          - packages/cli/tests/statusOutput.test.ts:112
+          - .capabilities/story-map-viewer.html:384
+          - .capabilities/story-map-viewer.html:386
+          - .capabilities/story-map-viewer.html:401
+        notes: The `story-map-viewer` command writes a self-contained HTML page from the
+          status report; the generated page includes release tabs, search,
+          health filtering, grouped cards, unassigned handling, and a detail
+          dialog.
+    done: true

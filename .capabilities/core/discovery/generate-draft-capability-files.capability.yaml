@@ -26,6 +26,12 @@ guidance:
     capability was proposed.
   - Reject or quarantine candidates that lack enough code evidence to be useful
     as draft capabilities.
+planning:
+  story_map:
+    backbone: Reverse engineering
+    step: Generate draft files
+    release: reverse-engineering
+    order: 20
 #
 #
 agent:

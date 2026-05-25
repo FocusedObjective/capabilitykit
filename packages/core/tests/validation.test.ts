@@ -190,7 +190,15 @@ describe("validateLoadedCapabilities", () => {
       ])
     );
 
-    expect(result.verificationGaps.some((gap) => gap.code === "invalid-story-map-release")).toBe(true);
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "invalid-story-map-release",
+        capabilityId: "core/story",
+        message: 'core/story has story_map.release "beta" which is not configured in planning.releases'
+      })
+    );
+    expect(result.verificationGaps.some((gap) => gap.code === "invalid-story-map-release")).toBe(false);
   });
 
 });

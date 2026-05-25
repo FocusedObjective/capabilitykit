@@ -20,12 +20,19 @@ acceptance:
     regenerate both locally.
   - Website embeds the published HTML dependency viewer and links to the full
     viewer and SVG graph.
+  - Website links to the published story-map viewer.
   - Website shows the hierarchical nature of the .capabilities folder.
   - Website shows the main human-authored parts of a capability without the
     agent section.
 guidance:
   - Keep the docs CLI-first and repo-native.
   - Do not position the MVP as a cloud product.
+planning:
+  story_map:
+    backbone: Website
+    step: Publish project website
+    release: website
+    order: 10
 #
 #
 agent:
@@ -42,6 +49,7 @@ agent:
     - website/index.html
     - website/styles.css
     - .github/workflows/deploy-website.yml
+    - website/story-map-viewer.html
   outputs:
     - project overview
     - developer review loop
@@ -54,6 +62,7 @@ agent:
       - website/index.html
       - website/styles.css
       - .github/workflows/deploy-website.yml
+      - website/story-map-viewer.html
   verification:
     automated:
       - id: dogfood-validate

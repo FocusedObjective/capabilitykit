@@ -21,6 +21,12 @@ guidance:
     and stale.
   - Include ignore policy changes because they affect assessment behavior.
   - Avoid raw JSON in the default human output.
+planning:
+  story_map:
+    backbone: CLI package
+    step: Diff capability changes
+    release: mvp
+    order: 95
 #
 #
 agent:

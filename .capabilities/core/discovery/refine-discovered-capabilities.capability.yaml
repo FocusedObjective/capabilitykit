@@ -25,6 +25,12 @@ guidance:
   - Keep recommendations grouped by the smallest useful edit.
   - Do not automatically promote generated capabilities to implemented or
     verified status from agent prose alone.
+planning:
+  story_map:
+    backbone: Reverse engineering
+    step: Refine discovered capabilities
+    release: reverse-engineering
+    order: 40
 #
 #
 agent:

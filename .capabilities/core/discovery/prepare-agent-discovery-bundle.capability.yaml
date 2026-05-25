@@ -29,6 +29,12 @@ guidance:
     to precompute semantic capabilities from static metadata alone.
   - Make the bundle inspectable while allowing the external agent to navigate
     the project directly when its CLI supports workspace access.
+planning:
+  story_map:
+    backbone: Reverse engineering
+    step: Prepare discovery bundle
+    release: reverse-engineering
+    order: 5
 #
 #
 agent:

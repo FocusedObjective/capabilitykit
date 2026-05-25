@@ -14,6 +14,12 @@ guidance:
   - Treat verification gaps as warnings by default.
   - Keep validation deterministic in the MVP.
   - Do not silently ignore malformed capability files.
+planning:
+  story_map:
+    backbone: Core package
+    step: Check capability files
+    release: mvp
+    order: 30
 #
 #
 agent:

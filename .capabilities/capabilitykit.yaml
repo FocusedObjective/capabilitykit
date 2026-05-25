@@ -15,5 +15,11 @@ validation:
   require_implementation_references_for_status:
     - implemented
     - verified
+planning:
+  releases:
+    - mvp
+    - website
+    - story-mapping
+    - reverse-engineering
 output:
   path: .capabilities/dist/capabilities.json

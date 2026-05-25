@@ -29,6 +29,7 @@ import {
 } from "@capabilitykit/core";
 import type { Capability, LoadCapabilitiesResult, VerificationGap } from "@capabilitykit/core";
 import { installCapabilityKitSkill } from "./skillInstall.js";
+import { filterStatusReportByRelease, formatStoryMapStatusReport, formatStoryMapViewerHtml } from "./statusOutput.js";
 
 const program = new Command();
 
@@ -218,6 +219,13 @@ interface GraphNode {
   manualChecks: string[];
   verificationGaps: VerificationGap[];
   review?: NonNullable<NonNullable<Capability["agent"]>["review"]>;
+  storyMap?: {
+    release: string;
+    backbone: string;
+    step: string;
+    name: string;
+    label: string;
+  };
   impact: number;
   gaps: number;
   r: number;
@@ -234,6 +242,8 @@ interface GraphViewModel {
   width: number;
   height: number;
   scopes: string[];
+  storyMaps: string[];
+  hasUnassignedStoryMap: boolean;
   nodes: GraphNode[];
   links: GraphLink[];
 }
@@ -290,6 +300,15 @@ function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<strin
     const areaIndex = Math.max(areas.indexOf(node.area), 0);
     const columnCount = Math.max(areas.length, 1);
     const row = Math.floor(i / columnCount);
+    const storyMap = node.planning?.story_map
+      ? {
+          release: node.planning.story_map.release,
+          backbone: node.planning.story_map.backbone,
+          step: node.planning.story_map.step,
+          name: node.planning.story_map.release,
+          label: `${node.planning.story_map.release} / ${node.planning.story_map.backbone} / ${node.planning.story_map.step}`
+        }
+      : undefined;
     return {
       id: node.id,
       title: node.title,
@@ -311,6 +330,7 @@ function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<strin
       manualChecks: node.agent?.verification?.manual ?? [],
       verificationGaps: node.verificationGaps,
       review: node.agent?.review,
+      storyMap,
       impact,
       gaps,
       r: 38 + Math.min(impact, 8) * 5 + Math.min(gaps, 3) * 3,
@@ -329,6 +349,10 @@ function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<strin
     width,
     height,
     scopes,
+    storyMaps: [...new Set(graphNodes.map((node) => node.storyMap?.name).filter((name): name is string => Boolean(name)))].sort((a, b) =>
+      a.localeCompare(b)
+    ),
+    hasUnassignedStoryMap: graphNodes.some((node) => !node.storyMap),
     nodes: graphNodes,
     links: graphLinks
   };
@@ -781,7 +805,13 @@ restartSimulation(1);
 
 function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>): string {
   const model = buildGraphViewModel(loaded, gapsById);
-  const graphData = JSON.stringify({ nodes: model.nodes, links: model.links, scopes: model.scopes }).replaceAll("</", "<\\/");
+  const graphData = JSON.stringify({
+    nodes: model.nodes,
+    links: model.links,
+    scopes: model.scopes,
+    storyMaps: model.storyMaps,
+    hasUnassignedStoryMap: model.hasUnassignedStoryMap
+  }).replaceAll("</", "<\\/");
 
   return `<!doctype html>
 <html lang="en">
@@ -932,8 +962,10 @@ function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, n
       }
       .link.active { stroke-width: 3.2; stroke-opacity: 0.92; }
       .link.dimmed { opacity: 0.13; }
+      .link.story-map-muted { opacity: 0.12; }
       .node { cursor: pointer; filter: drop-shadow(0 12px 18px rgba(15,23,42,0.12)); }
       .node.dimmed { opacity: 0.2; }
+      .node.story-map-muted { opacity: 0.2; }
       .node-halo { fill: transparent; stroke-width: 10; stroke-opacity: 0.15; }
       .node-ring { fill: #fff; stroke-width: 4.6; }
       .node-core { fill: #fff; stroke: rgba(15,23,42,0.08); stroke-width: 1; }
@@ -1121,6 +1153,9 @@ function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, n
             <label>Scope
               <select id="scope-filter" aria-label="Filter graph by capability folder"></select>
             </label>
+            <label>Story Map
+              <select id="story-map-filter" aria-label="Filter graph by story map"></select>
+            </label>
             <label class="range-label">Zoom
               <span class="range-row"><input id="zoom" type="range" min="72" max="138" value="100" /><span id="zoom-value">100%</span></span>
             </label>
@@ -1154,6 +1189,7 @@ const width = ${model.width};
 const height = ${model.height};
 const padding = 74;
 let selectedScope = "";
+let selectedStoryMap = "";
 let selectedNode = graph.nodes[0];
 let zoomLevel = 1;
 let forceScale = 1.25;
@@ -1165,6 +1201,7 @@ const linksLayer = document.getElementById("links");
 const nodesLayer = document.getElementById("nodes");
 const panel = document.getElementById("panel");
 const scopeFilter = document.getElementById("scope-filter");
+const storyMapFilter = document.getElementById("story-map-filter");
 const zoom = document.getElementById("zoom");
 const spacing = document.getElementById("spacing");
 const zoomValue = document.getElementById("zoom-value");
@@ -1178,7 +1215,21 @@ for (const link of links) {
 }
 scopeFilter.append(new Option("All folders", ""));
 for (const scope of graph.scopes) scopeFilter.append(new Option(scope, scope));
-function visible(node) { return !selectedScope || node.scopes.includes(selectedScope); }
+storyMapFilter.append(new Option("All story maps", ""));
+for (const storyMap of graph.storyMaps) storyMapFilter.append(new Option(storyMap, storyMap));
+if (graph.hasUnassignedStoryMap) storyMapFilter.append(new Option("Unassigned", "__unassigned"));
+function visible(node) {
+  return !selectedScope || node.scopes.includes(selectedScope);
+}
+function storyMapMatches(node) {
+  return (
+    !selectedStoryMap ||
+    (selectedStoryMap === "__unassigned" ? !node.storyMap : node.storyMap?.name === selectedStoryMap)
+  );
+}
+function emphasized(node) {
+  return visible(node) && storyMapMatches(node);
+}
 function statusClass(node) { return node.gaps > 0 ? "gap" : node.status === "planned" ? "planned" : node.status === "in-progress" ? "review" : "implemented"; }
 function el(name, attrs = {}) {
   const node = document.createElementNS("http://www.w3.org/2000/svg", name);
@@ -1290,6 +1341,7 @@ function renderPanel(node) {
   panel.append(htmlEl("h2", "", node.title), htmlEl("p", "id", node.id));
   const badges = htmlEl("div", "badges");
   badges.append(htmlEl("span", "badge", node.status), htmlEl("span", "badge", node.scope), htmlEl("span", node.gaps > 0 ? "badge gap" : "badge", node.gaps + " gaps"), htmlEl("span", "badge", node.impact + " direct dependents"));
+  if (node.storyMap?.label) badges.append(htmlEl("span", "badge", node.storyMap.label));
   if (node.review?.depth) badges.append(htmlEl("span", "badge", "review: " + node.review.depth));
   panel.append(badges);
   panel.append(section("Summary", htmlEl("p", "", node.summary)));
@@ -1389,8 +1441,15 @@ function restart(nextAlpha = 0.7) {
   if (!frameId) frameId = requestAnimationFrame(animate);
 }
 function applyFilter() {
-  for (const item of nodeEls) item.el.style.display = visible(item.node) ? "" : "none";
-  for (const link of linkEls) link.el.style.display = visible(link.source) && visible(link.target) ? "" : "none";
+  for (const item of nodeEls) {
+    item.el.style.display = visible(item.node) ? "" : "none";
+    item.el.classList.toggle("story-map-muted", visible(item.node) && !storyMapMatches(item.node));
+  }
+  for (const link of linkEls) {
+    const linkVisible = visible(link.source) && visible(link.target);
+    link.el.style.display = linkVisible ? "" : "none";
+    link.el.classList.toggle("story-map-muted", linkVisible && (!storyMapMatches(link.source) || !storyMapMatches(link.target)));
+  }
   const current = visible(selectedNode) ? selectedNode : graph.nodes.find(visible) ?? graph.nodes[0];
   selectNode(current);
   restart(1);
@@ -1441,6 +1500,7 @@ function clearHighlight() {
   for (const link of linkEls) link.el.classList.remove("active", "dimmed");
 }
 scopeFilter.addEventListener("change", () => { selectedScope = scopeFilter.value; applyFilter(); });
+storyMapFilter.addEventListener("change", () => { selectedStoryMap = storyMapFilter.value; applyFilter(); });
 zoom.addEventListener("input", () => { zoomLevel = Number(zoom.value) / 100; applyZoom(); });
 spacing.addEventListener("input", () => { forceScale = Number(spacing.value) / 100; spacingValue.textContent = spacing.value + "%"; restart(0.85); });
 applyZoom();
@@ -1561,16 +1621,9 @@ program
   .option("--story-map", "group status output by story-map release, backbone, and step")
   .option("--release <release>", "limit status output to one story-map release")
   .action(async (capabilityId: string | undefined, options: { json?: boolean; storyMap?: boolean; release?: string }) => {
-    const report = await summarizeCapabilityStatus(process.cwd(), capabilityId);
+    let report = await summarizeCapabilityStatus(process.cwd(), capabilityId);
     if (options.release) {
-      report.capabilities = report.capabilities.filter((c) => c.storyMap?.release === options.release);
-      report.byStoryMap.releases = report.byStoryMap.releases.filter((r) => r.release === options.release);
-      report.byStoryMap.unassigned = [];
-      report.summary.total = report.capabilities.length;
-      report.summary.ok = report.capabilities.filter((capability) => capability.health === "ok").length;
-      report.summary.review = report.capabilities.filter((capability) => capability.health === "review").length;
-      report.summary.action = report.capabilities.filter((capability) => capability.health === "action").length;
-      report.summary.planned = report.capabilities.filter((capability) => capability.health === "planned").length;
+      report = filterStatusReportByRelease(report, options.release);
     }
     if (options.json) {
       console.log(JSON.stringify(report, null, 2));
@@ -1578,33 +1631,7 @@ program
     }
 
     if (options.storyMap) {
-      const lines: string[] = [
-        `CapabilityKit Story Map Status: ${report.project}`,
-        "",
-        `Capabilities: ${report.summary.total}  ok: ${report.summary.ok}  needs-review: ${report.summary.review}  needs-action: ${report.summary.action}  planned: ${report.summary.planned}`
-      ];
-      for (const release of report.byStoryMap.releases) {
-        lines.push("", `Release: ${release.release}`);
-        const grouped = new Map<string, typeof release.capabilities>();
-        for (const capability of release.capabilities) {
-          const key = `${capability.storyMap?.backbone ?? "Unknown"}|||${capability.storyMap?.step ?? "Unknown"}`;
-          grouped.set(key, [...(grouped.get(key) ?? []), capability]);
-        }
-        for (const [key, capabilities] of [...grouped.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-          const [backbone, step] = key.split("|||");
-          lines.push(`  ${backbone} > ${step}`);
-          for (const capability of capabilities.sort((a, b) => a.capabilityId.localeCompare(b.capabilityId))) {
-            lines.push(`    - ${capability.capabilityId} [${capability.status}] (${capability.health})`);
-          }
-        }
-      }
-      if (report.byStoryMap.unassigned.length > 0) {
-        lines.push("", `Unassigned (${report.byStoryMap.unassigned.length}):`);
-        for (const capability of report.byStoryMap.unassigned.sort((a, b) => a.capabilityId.localeCompare(b.capabilityId))) {
-          lines.push(`  - ${capability.capabilityId} [${capability.status}] (${capability.health})`);
-        }
-      }
-      console.log(`${lines.join("\n")}\n`);
+      console.log(formatStoryMapStatusReport(report));
       return;
     }
 
@@ -1688,6 +1715,24 @@ program
     console.log(`Wrote ${path.relative(process.cwd(), outputPath)}`);
     console.log(`Generated graph viewer for ${loaded.capabilities.length} capabilities`);
     process.exitCode = validation.valid ? 0 : 1;
+  });
+
+program
+  .command("story-map-viewer")
+  .description("Update capability outputs and generate an HTML story-map viewer")
+  .option("--output <path>", "output HTML story-map viewer path", ".capabilities/story-map-viewer.html")
+  .option("--no-update", "skip compile before story-map viewer generation")
+  .action(async (options: { output: string; update: boolean }) => {
+    if (options.update) {
+      await writeCompiledCapabilities(process.cwd());
+    }
+    const report = await summarizeCapabilityStatus(process.cwd());
+    const html = formatStoryMapViewerHtml(report);
+    const outputPath = path.resolve(process.cwd(), options.output);
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(outputPath, html, "utf8");
+    console.log(`Wrote ${path.relative(process.cwd(), outputPath)}`);
+    console.log(`Generated story-map viewer for ${report.capabilities.length} capabilities`);
   });
 
 program

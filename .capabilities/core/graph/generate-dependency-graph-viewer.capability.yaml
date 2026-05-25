@@ -21,6 +21,8 @@ acceptance:
     disclosure instead of duplicating review criteria as an always-visible
     section.
   - Shows dependencies and direct dependents for the selected capability.
+  - Provides a story-map dropdown that emphasizes matching graph nodes by
+    story-map name while keeping nonmatching nodes visible but muted.
   - Keeps the viewer self-contained so it can be opened directly from the local
     filesystem.
 guidance:
@@ -28,6 +30,12 @@ guidance:
   - Treat the HTML viewer as a richer inspector that can use normal HTML layout
     for details instead of forcing everything into SVG.
   - Reuse the same graph data model for SVG and HTML output where practical.
+planning:
+  story_map:
+    backbone: CLI package
+    step: Explore graph viewer
+    release: mvp
+    order: 110
 #
 #
 agent:
@@ -60,124 +68,139 @@ agent:
   review:
     depth: verified
     source: coding-agent
-    intent_summary: Coding-agent review confirmed the graph-viewer command writes a
-      self-contained HTML capability graph viewer, preserves the standalone SVG
-      output, uses the current capability map for nodes and dependencies,
-      supports folder-scope filtering, exposes selected capability details,
-      verification data, inline acceptance coverage icons, and keeps detailed
-      review evidence collapsed behind a disclosure in the side panel.
+    intent_summary: Generate a richer local HTML dependency graph viewer for
+      inspecting capability structure, evidence, verification gaps, review
+      status, and relationships, while still producing the portable standalone
+      SVG graph.
     criteria:
       - criterion: Provides a graph-viewer CLI command that writes an HTML dependency
           graph viewer.
         status: covered
         evidence:
-          - packages/cli/src/index.ts:1514
-          - packages/cli/src/index.ts:1515
-          - packages/cli/src/index.ts:1516
-          - packages/cli/src/index.ts:1531
-          - packages/cli/src/index.ts:1537
-          - packages/cli/src/index.ts:1539
+          - packages/cli/src/index.ts:806
+          - packages/cli/src/index.ts:1687
+          - packages/cli/src/index.ts:1689
+          - packages/cli/src/index.ts:1712
+        notes: "`graph-viewer` is registered, renders with `graphViewerHtml`, and writes
+          the HTML output path."
       - criterion: Keeps generating the standalone SVG graph alongside the HTML viewer.
         status: covered
         evidence:
-          - packages/cli/src/index.ts:1517
-          - packages/cli/src/index.ts:1530
-          - packages/cli/src/index.ts:1533
-          - packages/cli/src/index.ts:1535
+          - packages/cli/src/index.ts:361
+          - packages/cli/src/index.ts:1690
+          - packages/cli/src/index.ts:1706
+          - packages/cli/src/index.ts:1708
+        notes: The viewer command still calls `graphSvg` and writes the SVG output
+          before writing the HTML viewer.
       - criterion: Shows graph nodes and dependency links from the current capability map.
         status: covered
         evidence:
-          - packages/cli/src/index.ts:254
-          - packages/cli/src/index.ts:287
-          - packages/cli/src/index.ts:321
-          - packages/cli/src/index.ts:784
-          - packages/cli/src/index.ts:1105
-          - packages/cli/src/index.ts:1106
+          - packages/cli/src/index.ts:255
+          - packages/cli/src/index.ts:264
+          - packages/cli/src/index.ts:341
+          - packages/cli/src/index.ts:808
+          - packages/cli/src/index.ts:1294
+        notes: The model is built from `loaded.capabilities`; links are derived from
+          `agent.depends_on` and rendered as SVG paths.
       - criterion: Lets users filter the graph by any capability folder scope.
         status: covered
         evidence:
-          - packages/cli/src/index.ts:255
-          - packages/cli/src/index.ts:256
-          - packages/cli/src/index.ts:283
-          - packages/cli/src/index.ts:1054
-          - packages/cli/src/index.ts:1112
-          - packages/cli/src/index.ts:1113
-          - packages/cli/src/index.ts:1340
+          - packages/cli/src/index.ts:266
+          - packages/cli/src/index.ts:293
+          - packages/cli/src/index.ts:1216
+          - packages/cli/src/index.ts:1217
+          - packages/cli/src/index.ts:1221
+          - packages/cli/src/index.ts:1443
+        notes: Folder scopes are derived from capability paths, placed in the Scope
+          dropdown, and used to hide/show graph items.
       - criterion: Lets users click a node to pin capability details in a side panel.
         status: covered
         evidence:
-          - packages/cli/src/index.ts:1082
-          - packages/cli/src/index.ts:1169
-          - packages/cli/src/index.ts:1176
-          - packages/cli/src/index.ts:1179
-          - packages/cli/src/index.ts:1182
+          - packages/cli/src/index.ts:1319
+          - packages/cli/src/index.ts:1326
+          - packages/cli/src/index.ts:1339
+        notes: Node click calls `selectNode`, marks the node selected, and renders the
+          persistent side panel.
       - criterion: Shows title, ID, status, scope, summary, intent, acceptance criteria,
           implementation references, verification checks, verification gaps, and
           agent.review details for the selected capability.
         status: covered
         evidence:
-          - packages/cli/src/index.ts:294
-          - packages/cli/src/index.ts:301
-          - packages/cli/src/index.ts:302
-          - packages/cli/src/index.ts:303
-          - packages/cli/src/index.ts:304
-          - packages/cli/src/index.ts:309
-          - packages/cli/src/index.ts:310
-          - packages/cli/src/index.ts:311
-          - packages/cli/src/index.ts:312
           - packages/cli/src/index.ts:313
-          - packages/cli/src/index.ts:1184
-          - packages/cli/src/index.ts:1186
-          - packages/cli/src/index.ts:1187
-          - packages/cli/src/index.ts:1189
-          - packages/cli/src/index.ts:1190
-          - packages/cli/src/index.ts:1191
-          - packages/cli/src/index.ts:1192
-          - packages/cli/src/index.ts:1197
-          - packages/cli/src/index.ts:1201
-          - packages/cli/src/index.ts:1202
+          - packages/cli/src/index.ts:320
+          - packages/cli/src/index.ts:328
+          - packages/cli/src/index.ts:329
+          - packages/cli/src/index.ts:330
+          - packages/cli/src/index.ts:331
+          - packages/cli/src/index.ts:332
+          - packages/cli/src/index.ts:1339
+          - packages/cli/src/index.ts:1347
+          - packages/cli/src/index.ts:1360
+        notes: "`renderPanel` displays the required selected-capability fields, with
+          review depth and expandable criterion/evidence details."
       - criterion: Highlights acceptance criteria in a shaded side-panel block with
           inline coverage icons.
         status: covered
         evidence:
-          - packages/cli/src/index.ts:992
-          - packages/cli/src/index.ts:1019
-          - packages/cli/src/index.ts:1041
-          - packages/cli/src/index.ts:1151
-          - packages/cli/src/index.ts:1157
-          - packages/cli/src/index.ts:1161
-          - packages/cli/src/index.ts:1167
-          - packages/cli/src/index.ts:1220
+          - packages/cli/src/index.ts:1058
+          - packages/cli/src/index.ts:1073
+          - packages/cli/src/index.ts:1269
+          - packages/cli/src/index.ts:1276
+          - packages/cli/src/index.ts:1349
+        notes: Acceptance criteria render in a shaded panel section with per-item
+          check/cross coverage icons.
       - criterion: Keeps detailed review evidence collapsed behind an expandable
           side-panel disclosure instead of duplicating review criteria as an
           always-visible section.
         status: covered
         evidence:
-          - packages/cli/src/index.ts:1091
-          - packages/cli/src/index.ts:1098
-          - packages/cli/src/index.ts:1219
-          - packages/cli/src/index.ts:1222
-          - packages/cli/src/index.ts:1223
-          - packages/cli/src/index.ts:1287
-          - packages/cli/src/index.ts:1288
+          - packages/cli/src/index.ts:1121
+          - packages/cli/src/index.ts:1126
+          - packages/cli/src/index.ts:1283
+          - packages/cli/src/index.ts:1285
+          - packages/cli/src/index.ts:1360
+        notes: Review criteria and evidence are rendered inside a `<details>`
+          disclosure; the always-visible panel shows acceptance coverage, not
+          duplicated review evidence.
       - criterion: Shows dependencies and direct dependents for the selected capability.
         status: covered
         evidence:
-          - packages/cli/src/index.ts:264
-          - packages/cli/src/index.ts:269
-          - packages/cli/src/index.ts:271
-          - packages/cli/src/index.ts:276
-          - packages/cli/src/index.ts:307
-          - packages/cli/src/index.ts:308
-          - packages/cli/src/index.ts:1207
-          - packages/cli/src/index.ts:1208
+          - packages/cli/src/index.ts:274
+          - packages/cli/src/index.ts:279
+          - packages/cli/src/index.ts:286
+          - packages/cli/src/index.ts:326
+          - packages/cli/src/index.ts:327
+          - packages/cli/src/index.ts:1362
+          - packages/cli/src/index.ts:1363
+        notes: Dependencies come from `agent.depends_on`; direct dependents are
+          reverse-mapped and shown in the panel.
+      - criterion: Provides a story-map dropdown that emphasizes matching graph nodes by
+          story-map name while keeping nonmatching nodes visible but muted.
+        status: covered
+        evidence:
+          - packages/cli/src/index.ts:303
+          - packages/cli/src/index.ts:352
+          - packages/cli/src/index.ts:1157
+          - packages/cli/src/index.ts:1218
+          - packages/cli/src/index.ts:1224
+          - packages/cli/src/index.ts:1446
+          - packages/cli/src/index.ts:1451
+          - packages/cli/src/index.ts:1503
+        notes: The dropdown is populated from story-map values, applies muted styling to
+          nonmatching visible nodes and links, and keeps them displayed. The
+          current schema has release/backbone/step, so the implementation uses
+          release as the story-map name.
       - criterion: Keeps the viewer self-contained so it can be opened directly from the
           local filesystem.
         status: covered
         evidence:
-          - packages/cli/src/index.ts:786
-          - packages/cli/src/index.ts:792
-          - packages/cli/src/index.ts:1084
-          - packages/cli/src/index.ts:1537
-          - packages/cli/src/index.ts:1539
+          - packages/cli/src/index.ts:808
+          - packages/cli/src/index.ts:822
+          - packages/cli/src/index.ts:1168
+          - packages/cli/src/index.ts:1184
+          - .capabilities/dependency-viewer.html:7
+          - .capabilities/dependency-viewer.html:353
+          - .capabilities/dependency-viewer.html:371
+        notes: Generated HTML embeds CSS, graph data, SVG markup, and JavaScript inline.
+          No external script or stylesheet references are required.
     done: true

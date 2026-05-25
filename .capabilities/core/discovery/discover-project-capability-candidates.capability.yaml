@@ -30,6 +30,12 @@ guidance:
     inspection make that useful.
   - Prefer small, navigable candidate groups over a flat list of every file or
     component.
+planning:
+  story_map:
+    backbone: Reverse engineering
+    step: Find capability candidates
+    release: reverse-engineering
+    order: 10
 #
 #
 agent:

@@ -13,6 +13,12 @@ guidance:
   - Include validation output in the compiled artifact so downstream tools can
     detect risk.
   - Do not emit partial JSON without surfacing validation failures.
+planning:
+  story_map:
+    backbone: Core package
+    step: Compile capability map
+    release: mvp
+    order: 60
 #
 #
 agent:
