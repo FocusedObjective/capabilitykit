@@ -34,11 +34,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/discovery/prepare-agent-discovery-bundle
-  # review this capability: capabilitykit assess core/discovery/prepare-agent-discovery-bundle
-  # ask an agent to review this capability: capabilitykit agent-review core/discovery/prepare-agent-discovery-bundle --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/discovery/prepare-agent-discovery-bundle --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/discovery/prepare-agent-discovery-bundle
+  # run deterministic review only: capabilitykit review core/discovery/prepare-agent-discovery-bundle --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/discovery/prepare-agent-discovery-bundle --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/discovery/prepare-agent-discovery-bundle --input review.json
   # -----------------------------
   inputs:
     - project inventory
@@ -72,14 +72,27 @@ agent:
     gaps:
       - Provider-specific command defaults can be added later after the generic
         handoff is proven.
-    ignore_gaps: []
   review:
     depth: partial
     source: coding-agent
+    gaps:
+      - Generates a discovery-mode task bundle from the project inventory,
+        existing capability map, and discovery goals.
+      - Directs the external agent to inspect implementation code across the
+        project's main entrypoints, user workflows, APIs, data models, tests,
+        scripts, and configuration.
+      - Instructs the external agent to create capability files for the main
+        project functionality, not every implementation detail.
+      - Instructs the external agent not to rely on README, package metadata, or
+        filenames without confirming behavior in code.
+      - Requires the agent to cite source evidence through
+        `agent.implementation.references`.
+      - Requires generated files to include verification gaps where behavior is
+        inferred or not covered by tests.
+      - Supports inspectable dry-run output before invoking an external agent.
     intent_summary: Prepare agent discovery bundle is currently planned. I found no
       implementation references to inspect, so the acceptance criteria are not
       implemented yet.
-    done: false
     criteria:
       - criterion: Generates a discovery-mode task bundle from the project inventory,
           existing capability map, and discovery goals.
@@ -116,18 +129,4 @@ agent:
         status: uncovered
         notes: Capability status is planned and no agent.implementation.references are
           declared.
-    gaps:
-      - Generates a discovery-mode task bundle from the project inventory,
-        existing capability map, and discovery goals.
-      - Directs the external agent to inspect implementation code across the
-        project's main entrypoints, user workflows, APIs, data models, tests,
-        scripts, and configuration.
-      - Instructs the external agent to create capability files for the main
-        project functionality, not every implementation detail.
-      - Instructs the external agent not to rely on README, package metadata, or
-        filenames without confirming behavior in code.
-      - Requires the agent to cite source evidence through
-        `agent.implementation.references`.
-      - Requires generated files to include verification gaps where behavior is
-        inferred or not covered by tests.
-      - Supports inspectable dry-run output before invoking an external agent.
+    done: false

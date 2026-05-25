@@ -19,11 +19,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/model/define-capability-format
-  # review this capability: capabilitykit assess core/model/define-capability-format
-  # ask an agent to review this capability: capabilitykit agent-review core/model/define-capability-format --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/model/define-capability-format --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/model/define-capability-format
+  # run deterministic review only: capabilitykit review core/model/define-capability-format --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/model/define-capability-format --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/model/define-capability-format --input review.json
   # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
@@ -35,7 +35,6 @@ agent:
       - packages/core/src/schema.ts
       - packages/core/src/types.ts
       - packages/core/src/parseCapability.ts
-    inferred_from: []
   verification:
     automated:
       - id: parser-tests
@@ -43,15 +42,12 @@ agent:
         command: npm test
     manual:
       - Review the example capability file in the README for clarity.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
     intent_summary: The capability format is implemented in the Zod schema,
       TypeScript types, and parsing transform. Required fields, derived IDs, and
       agent metadata sections are represented.
-    done: true
     criteria:
       - criterion: Capability files require title, status, area, summary, intent, and
           acceptance criteria.
@@ -92,3 +88,4 @@ agent:
         notes: AgentSection and Capability types include optional inputs/outputs,
           dependencies, implementation references, verification, and review
           criteria/evidence.
+    done: true

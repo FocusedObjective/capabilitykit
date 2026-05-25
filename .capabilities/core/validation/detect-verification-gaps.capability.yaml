@@ -20,11 +20,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/validation/detect-verification-gaps
-  # review this capability: capabilitykit assess core/validation/detect-verification-gaps
-  # ask an agent to review this capability: capabilitykit agent-review core/validation/detect-verification-gaps --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/validation/detect-verification-gaps --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/validation/detect-verification-gaps
+  # run deterministic review only: capabilitykit review core/validation/detect-verification-gaps --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/validation/detect-verification-gaps --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/validation/detect-verification-gaps --input review.json
   # -----------------------------
   inputs:
     - parsed capability objects
@@ -38,7 +38,6 @@ agent:
       - packages/core/src/schema.ts
       - packages/core/src/types.ts
       - packages/core/tests/validation.test.ts
-    inferred_from: []
   verification:
     automated:
       - id: verification-gap-tests
@@ -47,8 +46,6 @@ agent:
     manual:
       - Review validation output and confirm gaps explain what a human still
         needs to check.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
@@ -56,7 +53,6 @@ agent:
       automated/manual checks, missing implementation references, declared gaps,
       and explicit ignore-gaps suppression with tests covering the deterministic
       rules.
-    done: true
     criteria:
       - criterion: Reports capabilities with no agent.verification.automated checks.
         status: covered
@@ -95,3 +91,4 @@ agent:
           - packages/core/src/validateCapabilities.ts:179
           - packages/core/tests/validation.test.ts:79
           - packages/core/tests/validation.test.ts:105
+    done: true

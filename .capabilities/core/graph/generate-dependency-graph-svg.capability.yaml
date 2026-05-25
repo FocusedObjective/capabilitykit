@@ -29,11 +29,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/graph/generate-dependency-graph-svg
-  # review this capability: capabilitykit assess core/graph/generate-dependency-graph-svg
-  # ask an agent to review this capability: capabilitykit agent-review core/graph/generate-dependency-graph-svg --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/graph/generate-dependency-graph-svg --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/graph/generate-dependency-graph-svg
+  # run deterministic review only: capabilitykit review core/graph/generate-dependency-graph-svg --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/graph/generate-dependency-graph-svg --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/graph/generate-dependency-graph-svg --input review.json
   # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
@@ -51,7 +51,6 @@ agent:
     references:
       - packages/cli/src/index.ts
       - .github/workflows/deploy-website.yml
-    inferred_from: []
   verification:
     automated:
       - id: cli-build
@@ -64,8 +63,6 @@ agent:
       - Open `.capabilities/dependency-graph.svg` in a browser and confirm
         nodes, links, highlighting, dragging, zoom, spacing controls, and the
         scope filter work.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
@@ -74,7 +71,6 @@ agent:
       generation, updates compiled output by default, and renders
       status/gap/dependency data with browser interaction and folder-scope
       filtering.
-    done: true
     criteria:
       - criterion: Provides a `graph` CLI command that writes an SVG dependency graph.
         status: covered
@@ -142,3 +138,4 @@ agent:
           - packages/cli/src/index.ts:432
           - packages/cli/src/index.ts:592
           - packages/cli/src/index.ts:615
+    done: true

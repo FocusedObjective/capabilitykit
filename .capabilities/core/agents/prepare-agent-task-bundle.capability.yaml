@@ -24,11 +24,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/agents/prepare-agent-task-bundle
-  # review this capability: capabilitykit assess core/agents/prepare-agent-task-bundle
-  # ask an agent to review this capability: capabilitykit agent-review core/agents/prepare-agent-task-bundle --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/agents/prepare-agent-task-bundle --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/agents/prepare-agent-task-bundle
+  # run deterministic review only: capabilitykit review core/agents/prepare-agent-task-bundle --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/agents/prepare-agent-task-bundle --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/agents/prepare-agent-task-bundle --input review.json
   # -----------------------------
   inputs:
     - capability ID
@@ -45,7 +45,6 @@ agent:
       - packages/core/src/index.ts
       - packages/cli/src/index.ts
       - packages/core/tests/agentTask.test.ts
-    inferred_from: []
   verification:
     automated:
       - id: agent-task-tests
@@ -58,8 +57,6 @@ agent:
     manual:
       - Generate implement and review bundles and confirm they are clear enough
         to paste into an external coding agent.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
@@ -67,7 +64,6 @@ agent:
       capability, renders the declared context and verification data, supports
       implement/review modes, includes reference contents when requested, and
       reports missing references.
-    done: true
     criteria:
       - criterion: Reads one capability by ID from the configured capability map.
         status: covered
@@ -134,3 +130,4 @@ agent:
           - packages/core/tests/agentTask.test.ts:96
         notes: Missing references are returned in missingReferences and rendered as
           Missing or unreadable in the prompt.
+    done: true

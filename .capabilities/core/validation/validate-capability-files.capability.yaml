@@ -19,11 +19,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/validation/validate-capability-files
-  # review this capability: capabilitykit assess core/validation/validate-capability-files
-  # ask an agent to review this capability: capabilitykit agent-review core/validation/validate-capability-files --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/validation/validate-capability-files --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/validation/validate-capability-files
+  # run deterministic review only: capabilitykit review core/validation/validate-capability-files --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/validation/validate-capability-files --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/validation/validate-capability-files --input review.json
   # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
@@ -41,7 +41,6 @@ agent:
       - packages/cli/src/index.ts
       - packages/core/tests/parser.test.ts
       - packages/core/tests/validation.test.ts
-    inferred_from: []
   verification:
     automated:
       - id: validation-tests
@@ -54,8 +53,6 @@ agent:
     manual:
       - Confirm validation output is actionable enough to reduce manual review
         guesswork.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
@@ -63,7 +60,6 @@ agent:
       parse/schema errors with paths, detects duplicate IDs and broken
       dependencies, and surfaces verification/reference gaps through core
       validation and the CLI.
-    done: true
     criteria:
       - criterion: Reports YAML and schema errors with file paths.
         status: covered
@@ -96,3 +92,4 @@ agent:
           - packages/core/src/validateCapabilities.ts:121
           - packages/core/tests/validation.test.ts:64
           - packages/core/tests/validation.test.ts:138
+    done: true

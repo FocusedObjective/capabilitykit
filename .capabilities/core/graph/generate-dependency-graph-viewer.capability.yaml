@@ -33,11 +33,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/graph/generate-dependency-graph-viewer
-  # review this capability: capabilitykit assess core/graph/generate-dependency-graph-viewer
-  # ask an agent to review this capability: capabilitykit agent-review core/graph/generate-dependency-graph-viewer --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/graph/generate-dependency-graph-viewer --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/graph/generate-dependency-graph-viewer
+  # run deterministic review only: capabilitykit review core/graph/generate-dependency-graph-viewer --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/graph/generate-dependency-graph-viewer --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/graph/generate-dependency-graph-viewer --input review.json
   # -----------------------------
   depends_on:
     - core/graph/generate-dependency-graph-svg
@@ -66,7 +66,6 @@ agent:
       supports folder-scope filtering, exposes selected capability details,
       verification data, inline acceptance coverage icons, and keeps detailed
       review evidence collapsed behind a disclosure in the side panel.
-    done: true
     criteria:
       - criterion: Provides a graph-viewer CLI command that writes an HTML dependency
           graph viewer.
@@ -181,3 +180,4 @@ agent:
           - packages/cli/src/index.ts:1084
           - packages/cli/src/index.ts:1537
           - packages/cli/src/index.ts:1539
+    done: true

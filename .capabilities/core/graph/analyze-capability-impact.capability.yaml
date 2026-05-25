@@ -21,11 +21,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/graph/analyze-capability-impact
-  # review this capability: capabilitykit assess core/graph/analyze-capability-impact
-  # ask an agent to review this capability: capabilitykit agent-review core/graph/analyze-capability-impact --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/graph/analyze-capability-impact --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/graph/analyze-capability-impact
+  # run deterministic review only: capabilitykit review core/graph/analyze-capability-impact --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/graph/analyze-capability-impact --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/graph/analyze-capability-impact --input review.json
   # -----------------------------
   inputs:
     - .capabilities/**/*.capability.yaml
@@ -44,7 +44,6 @@ agent:
       - packages/cli/src/index.ts
       - packages/core/tests/capabilityImpact.test.ts
       - packages/core/tests/compile.test.ts
-    inferred_from: []
   verification:
     automated:
       - id: impact-tests
@@ -57,8 +56,6 @@ agent:
     manual:
       - Change or inspect a foundational capability and confirm the impact
         report identifies direct and transitive dependents that need review.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
@@ -66,7 +63,6 @@ agent:
       dependent, and transitive dependent graphs from agent.depends_on, reports
       selected capability impact, and carries verification guidance into core
       and CLI output.
-    done: true
     criteria:
       - criterion: Builds direct and transitive dependent relationships from
           agent.depends_on.
@@ -106,3 +102,4 @@ agent:
           - packages/cli/src/index.ts:7
           - packages/cli/src/index.ts:13
           - packages/core/tests/compile.test.ts:15
+    done: true

@@ -27,11 +27,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/agents/run-external-agent-cli
-  # review this capability: capabilitykit assess core/agents/run-external-agent-cli
-  # ask an agent to review this capability: capabilitykit agent-review core/agents/run-external-agent-cli --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/agents/run-external-agent-cli --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/agents/run-external-agent-cli
+  # run deterministic review only: capabilitykit review core/agents/run-external-agent-cli --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/agents/run-external-agent-cli --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/agents/run-external-agent-cli --input review.json
   # -----------------------------
   inputs:
     - agent task prompt bundle
@@ -48,7 +48,6 @@ agent:
       - packages/core/src/index.ts
       - packages/cli/src/index.ts
       - packages/core/tests/externalAgent.test.ts
-    inferred_from: []
   verification:
     automated:
       - id: external-agent-detection-tests
@@ -60,15 +59,12 @@ agent:
     manual:
       - Run a dry-run handoff from a terminal without VS Code and confirm the
         generated command is inspectable before execution.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
     intent_summary: External agent CLI orchestration is implemented. It detects
       configured commands, supports user-provided args and handoff strategies,
       captures results/transcripts, and reports missing commands actionably.
-    done: true
     criteria:
       - criterion: Detects whether the requested agent command is available.
         status: covered
@@ -126,3 +122,4 @@ agent:
           - packages/core/tests/externalAgent.test.ts:40
         notes: Missing command detection returns/throws messages explaining the command
           was not found and how to configure it.
+    done: true

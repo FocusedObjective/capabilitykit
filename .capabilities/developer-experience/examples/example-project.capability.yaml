@@ -15,11 +15,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review developer-experience/examples/example-project
-  # review this capability: capabilitykit assess developer-experience/examples/example-project
-  # ask an agent to review this capability: capabilitykit agent-review developer-experience/examples/example-project --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result developer-experience/examples/example-project --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review developer-experience/examples/example-project
+  # run deterministic review only: capabilitykit review developer-experience/examples/example-project --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review developer-experience/examples/example-project --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result developer-experience/examples/example-project --input review.json
   # -----------------------------
   inputs:
     - examples/basic-app/.capabilities
@@ -35,7 +35,6 @@ agent:
       - examples/basic-app/.capabilities/checkout/cart.capability.yaml
       - examples/basic-app/.capabilities/checkout/payment.capability.yaml
       - packages/core/tests/parser.test.ts
-    inferred_from: []
   verification:
     automated:
       - id: parser-tests
@@ -44,8 +43,6 @@ agent:
     manual:
       - Read the example files and confirm they are understandable without extra
         docs.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
@@ -53,7 +50,6 @@ agent:
       and checkout capability areas, verification sections in example files, and
       parser tests that validate the example capability files against the
       schema.
-    done: true
     criteria:
       - criterion: Includes account and checkout capability areas.
         status: covered
@@ -74,3 +70,4 @@ agent:
           - packages/core/tests/parser.test.ts:106
           - packages/core/tests/parser.test.ts:108
           - packages/core/tests/parser.test.ts:109
+    done: true

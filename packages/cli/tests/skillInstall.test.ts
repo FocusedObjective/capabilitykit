@@ -47,5 +47,7 @@ describe("CapabilityKit skill installation", () => {
       ".claude/commands/capabilitykit.md"
     ]);
     expect(files.every((file) => file.contents.includes("node_modules/@capabilitykit/cli/SKILL.md"))).toBe(true);
+    expect(files.every((file) => file.contents.includes("write the human-authored"))).toBe(true);
+    expect(files.every((file) => file.contents.includes("do not invent agent metadata"))).toBe(true);
   });
 });

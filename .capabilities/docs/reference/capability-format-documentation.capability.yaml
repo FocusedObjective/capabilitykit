@@ -16,11 +16,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review docs/reference/capability-format-documentation
-  # review this capability: capabilitykit assess docs/reference/capability-format-documentation
-  # ask an agent to review this capability: capabilitykit agent-review docs/reference/capability-format-documentation --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result docs/reference/capability-format-documentation --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review docs/reference/capability-format-documentation
+  # run deterministic review only: capabilitykit review docs/reference/capability-format-documentation --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review docs/reference/capability-format-documentation --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result docs/reference/capability-format-documentation --input review.json
   # -----------------------------
   inputs:
     - README.md
@@ -32,7 +32,6 @@ agent:
   implementation:
     references:
       - README.md
-    inferred_from: []
   verification:
     automated:
       - id: dogfood-validate
@@ -41,15 +40,12 @@ agent:
     manual:
       - Read README from a new user's perspective and confirm the format is
         clear.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
     intent_summary: Coding-agent review confirmed the README documents what
       capabilities are, shows a YAML example, explains verification gaps, and
       describes the file path to capability ID hierarchy convention.
-    done: true
     criteria:
       - criterion: README explains what a capability is.
         status: covered
@@ -77,3 +73,4 @@ agent:
           - README.md:181
           - README.md:183
           - README.md:193
+    done: true

@@ -37,11 +37,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/assessment/assess-implementation-coverage
-  # review this capability: capabilitykit assess core/assessment/assess-implementation-coverage
-  # ask an agent to review this capability: capabilitykit agent-review core/assessment/assess-implementation-coverage --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/assessment/assess-implementation-coverage --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/assessment/assess-implementation-coverage
+  # run deterministic review only: capabilitykit review core/assessment/assess-implementation-coverage --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/assessment/assess-implementation-coverage --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/assessment/assess-implementation-coverage --input review.json
   # -----------------------------
   inputs:
     - capability acceptance criteria
@@ -68,7 +68,6 @@ agent:
       - packages/core/tests/assessmentAdvice.test.ts
       - packages/core/tests/capabilityStatus.test.ts
       - packages/core/tests/syncReviewEvidence.test.ts
-    inferred_from: []
   verification:
     automated:
       - id: coverage-report-tests
@@ -118,7 +117,6 @@ agent:
       deterministic evidence collector with advisory/status views, noisy review
       targeting, deterministic sync snapshots, and coding-agent/human review
       precedence.
-    done: true
     criteria:
       - criterion: Reads the referenced implementation files for one capability.
         status: covered
@@ -249,3 +247,4 @@ agent:
         notes: Agent prompts instruct review agents to inspect code and treat
           deterministic evidence as a starting point only; advice does not trust
           deterministic snapshots as confirmation.
+    done: true

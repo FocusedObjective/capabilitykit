@@ -35,11 +35,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/discovery/discover-project-capability-candidates
-  # review this capability: capabilitykit assess core/discovery/discover-project-capability-candidates
-  # ask an agent to review this capability: capabilitykit agent-review core/discovery/discover-project-capability-candidates --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/discovery/discover-project-capability-candidates --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/discovery/discover-project-capability-candidates
+  # run deterministic review only: capabilitykit review core/discovery/discover-project-capability-candidates --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/discovery/discover-project-capability-candidates --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/discovery/discover-project-capability-candidates --input review.json
   # -----------------------------
   inputs:
     - project root
@@ -78,14 +78,27 @@ agent:
       - Initial agent discovery may miss behavior that is only visible through
         runtime state, production configuration, external services, or code
         paths outside the inspected scope.
-    ignore_gaps: []
   review:
     depth: partial
     source: coding-agent
+    gaps:
+      - Provides a CLI command that runs from the target project root.
+      - Invokes or prepares a handoff for the user's selected coding agent to
+        inspect source code, tests, routes, handlers, UI flows, data models,
+        scripts, configuration, and documentation.
+      - Makes README files, package metadata, and docs supporting context, not
+        the sole or primary basis for capability discovery.
+      - Requires the agent to propose candidate capability titles, likely areas,
+        source evidence, and confidence notes from concrete code discovery.
+      - Produces a structured discovery report that records what files and
+        project areas the agent inspected.
+      - Does not create or overwrite capability files unless the user explicitly
+        requests output generation.
+      - Labels low-confidence candidates, shallow inspection, and missing code
+        evidence as review gaps.
     intent_summary: Discover project capability candidates is currently planned. I
       found no implementation references to inspect, so the acceptance criteria
       are not implemented yet.
-    done: false
     criteria:
       - criterion: Provides a CLI command that runs from the target project root.
         status: uncovered
@@ -123,18 +136,4 @@ agent:
         status: uncovered
         notes: Capability status is planned and no agent.implementation.references are
           declared.
-    gaps:
-      - Provides a CLI command that runs from the target project root.
-      - Invokes or prepares a handoff for the user's selected coding agent to
-        inspect source code, tests, routes, handlers, UI flows, data models,
-        scripts, configuration, and documentation.
-      - Makes README files, package metadata, and docs supporting context, not
-        the sole or primary basis for capability discovery.
-      - Requires the agent to propose candidate capability titles, likely areas,
-        source evidence, and confidence notes from concrete code discovery.
-      - Produces a structured discovery report that records what files and
-        project areas the agent inspected.
-      - Does not create or overwrite capability files unless the user explicitly
-        requests output generation.
-      - Labels low-confidence candidates, shallow inspection, and missing code
-        evidence as review gaps.
+    done: false

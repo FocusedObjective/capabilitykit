@@ -18,11 +18,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review developer-experience/cli/cli-workflow
-  # review this capability: capabilitykit assess developer-experience/cli/cli-workflow
-  # ask an agent to review this capability: capabilitykit agent-review developer-experience/cli/cli-workflow --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result developer-experience/cli/cli-workflow --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review developer-experience/cli/cli-workflow
+  # run deterministic review only: capabilitykit review developer-experience/cli/cli-workflow --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review developer-experience/cli/cli-workflow --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result developer-experience/cli/cli-workflow --input review.json
   # -----------------------------
   depends_on:
     - core/project/initialize-capability-project
@@ -46,7 +46,6 @@ agent:
       entrypoint. The reviewed code defines the required commands, graph
       generation behavior, validation exit handling, and verification-gap
       output.
-    done: true
     criteria:
       - criterion: Supports init, create, status, diff, validate, compile, and inspect
           commands.
@@ -99,3 +98,4 @@ agent:
           - packages/cli/src/index.ts:832
         notes: The validation report prints verification gaps when present, and inspect
           always prints a Verification gaps section for the selected capability.
+    done: true

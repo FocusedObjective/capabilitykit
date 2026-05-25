@@ -1,10 +1,10 @@
 export function agentMetadataCommentLines(capabilityId: string): string[] {
   return [
     "machine managed agent metadata",
-    "refresh all review evidence: capabilitykit sync-review",
-    `refresh this review evidence: capabilitykit sync-review ${capabilityId}`,
-    `review this capability: capabilitykit assess ${capabilityId}`,
-    `ask an agent to review this capability: capabilitykit agent-review ${capabilityId} --command codex --handoff stdin`,
-    `save agent review output: capabilitykit review-result ${capabilityId} --input review.json --save`
+    "review all capabilities and save evidence: capabilitykit review",
+    `review this capability and save evidence: capabilitykit review ${capabilityId}`,
+    `run deterministic review only: capabilitykit review ${capabilityId} --deterministic-only`,
+    `ask an agent and save review evidence: capabilitykit review ${capabilityId} --agent codex --handoff stdin`,
+    `validate saved agent output without writing: capabilitykit review-result ${capabilityId} --input review.json`
   ];
 }

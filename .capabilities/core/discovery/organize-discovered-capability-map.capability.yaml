@@ -25,11 +25,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/discovery/organize-discovered-capability-map
-  # review this capability: capabilitykit assess core/discovery/organize-discovered-capability-map
-  # ask an agent to review this capability: capabilitykit agent-review core/discovery/organize-discovered-capability-map --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/discovery/organize-discovered-capability-map --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/discovery/organize-discovered-capability-map
+  # run deterministic review only: capabilitykit review core/discovery/organize-discovered-capability-map --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/discovery/organize-discovered-capability-map --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/discovery/organize-discovered-capability-map --input review.json
   # -----------------------------
   inputs:
     - discovery candidates
@@ -59,14 +59,22 @@ agent:
     gaps:
       - Dependency inference may need project-specific review for cross-cutting
         infrastructure and shared services.
-    ignore_gaps: []
   review:
     depth: partial
     source: coding-agent
+    gaps:
+      - Groups agent-generated capabilities into meaningful area and subarea
+        folders.
+      - Suggests capability IDs and filenames that are stable, readable, and
+        aligned with the generated folder structure.
+      - Detects likely dependencies between discovered capabilities when code
+        evidence or workflow relationships support them.
+      - Provides a summary index of generated areas and top-level capabilities.
+      - Flags ambiguous grouping decisions for human review instead of hiding
+        them.
     intent_summary: Organize discovered capability map is currently planned. I found
       no implementation references to inspect, so the acceptance criteria are
       not implemented yet.
-    done: false
     criteria:
       - criterion: Groups agent-generated capabilities into meaningful area and subarea
           folders.
@@ -92,13 +100,4 @@ agent:
         status: uncovered
         notes: Capability status is planned and no agent.implementation.references are
           declared.
-    gaps:
-      - Groups agent-generated capabilities into meaningful area and subarea
-        folders.
-      - Suggests capability IDs and filenames that are stable, readable, and
-        aligned with the generated folder structure.
-      - Detects likely dependencies between discovered capabilities when code
-        evidence or workflow relationships support them.
-      - Provides a summary index of generated areas and top-level capabilities.
-      - Flags ambiguous grouping decisions for human review instead of hiding
-        them.
+    done: false

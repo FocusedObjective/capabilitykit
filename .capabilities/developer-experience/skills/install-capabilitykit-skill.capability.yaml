@@ -12,11 +12,15 @@ acceptance:
     CapabilityKit managed block.
   - Creates Codex skill and Claude slash-command wrapper files for simple
     prompts.
+  - Tells agents to draft new capability files from human-authored product
+    intent first instead of inventing agent metadata.
   - Covers merge behavior with automated tests.
 guidance:
   - Keep managed blocks short and bounded by stable markers.
   - Prefer referencing the package skill guide over duplicating the full guide
     into project files.
+  - Keep creation guidance explicit that generated review and implementation
+    metadata comes from CapabilityKit commands, not from prompt-time guesses.
   - Do not overwrite user-authored agent instructions outside the managed
     CapabilityKit block.
 #
@@ -24,11 +28,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review developer-experience/skills/install-capabilitykit-skill
-  # review this capability: capabilitykit assess developer-experience/skills/install-capabilitykit-skill
-  # ask an agent to review this capability: capabilitykit agent-review developer-experience/skills/install-capabilitykit-skill --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result developer-experience/skills/install-capabilitykit-skill --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review developer-experience/skills/install-capabilitykit-skill
+  # run deterministic review only: capabilitykit review developer-experience/skills/install-capabilitykit-skill --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review developer-experience/skills/install-capabilitykit-skill --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result developer-experience/skills/install-capabilitykit-skill --input review.json
   # -----------------------------
   inputs:
     - terminal command
@@ -47,7 +51,6 @@ agent:
       - packages/cli/src/skillInstall.ts
       - packages/cli/src/index.ts
       - packages/cli/tests/skillInstall.test.ts
-    inferred_from: []
   verification:
     automated:
       - id: skill-install-tests
@@ -59,8 +62,6 @@ agent:
     manual:
       - Run capabilitykit skill in a sample project and confirm the generated
         files reference the package SKILL.md.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
@@ -68,7 +69,6 @@ agent:
       entrypoints, generated guidance links back to package SKILL.md, managed
       blocks preserve and replace only CapabilityKit content, and merge behavior
       has automated coverage.
-    done: true
     criteria:
       - criterion: Provides `capabilitykit skill` to install CapabilityKit skill files
           and agent entrypoints.
@@ -103,6 +103,16 @@ agent:
           - packages/cli/src/skillInstall.ts:82
           - packages/cli/src/skillInstall.ts:87
           - packages/cli/tests/skillInstall.test.ts:41
+      - criterion: Tells agents to draft new capability files from human-authored
+          product intent first instead of inventing agent metadata.
+        status: covered
+        evidence:
+          - packages/cli/SKILL.md:19
+          - packages/cli/SKILL.md:30
+          - packages/cli/src/skillInstall.ts:28
+          - packages/cli/src/skillInstall.ts:29
+          - packages/cli/tests/skillInstall.test.ts:50
+          - packages/cli/tests/skillInstall.test.ts:51
       - criterion: Covers merge behavior with automated tests.
         status: covered
         evidence:
@@ -110,3 +120,4 @@ agent:
           - packages/cli/tests/skillInstall.test.ts:10
           - packages/cli/tests/skillInstall.test.ts:21
           - packages/cli/tests/skillInstall.test.ts:30
+    done: true

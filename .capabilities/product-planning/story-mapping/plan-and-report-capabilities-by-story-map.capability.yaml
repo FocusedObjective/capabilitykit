@@ -1,33 +1,178 @@
 title: Plan and report capabilities by story map
 status: planned
-summary: Provide planning workflows and reports that group capabilities into story-map backbones, steps, and release slices such as MVP and V2.
-intent: Help teams collaboratively plan capabilities as a story map and inspect implementation progress by release slice without reorganizing capability paths.
+summary: Provide planning workflows and reports that group capabilities into
+  story-map backbones, steps, and release slices such as MVP and V2.
+intent: Help teams collaboratively plan capabilities as a story map and inspect
+  implementation progress by release slice without reorganizing capability
+  paths.
 acceptance:
   - Teams can query capability status grouped by story-map release slice.
   - Teams can view capabilities grouped by story-map backbone and step.
-  - Reports include planned and implemented capabilities so roadmap conversations stay connected to delivery status.
-  - Story-map reporting works for mixed datasets where some capabilities do not yet define planning metadata.
+  - Reports include planned and implemented capabilities so roadmap
+    conversations stay connected to delivery status.
+  - Story-map reporting works for mixed datasets where some capabilities do not
+    yet define planning metadata.
 guidance:
   - Prefer additive CLI/report features over breaking existing status output.
   - Support filtering by release values like mvp, v2, and v3.
   - Keep output deterministic so diffs are reviewable in CI.
+#
+#
 agent:
-  inputs:
-    - packages/cli/**
-    - .capabilities/**/*.capability.yaml
-  outputs:
-    - CLI/report command updates for story-map grouping and filtering
-  dependencies:
+  # -----------------------------
+  # machine managed agent metadata
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review product-planning/story-mapping/plan-and-report-capabilities-by-story-map
+  # run deterministic review only: capabilitykit review product-planning/story-mapping/plan-and-report-capabilities-by-story-map --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review product-planning/story-mapping/plan-and-report-capabilities-by-story-map --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result product-planning/story-mapping/plan-and-report-capabilities-by-story-map --input review.json
+  # -----------------------------
+  depends_on:
     - product-planning/story-mapping/model-capability-story-map-metadata
   implementation:
-    references: []
-    inferred_from: []
+    references:
+      - packages/cli/src/index.ts
+      - packages/core/src/capabilityStatus.ts
+      - packages/core/src/types.ts
+      - packages/core/tests/capabilityStatus.test.ts
+      - packages/cli/tests/skillInstall.test.ts
   verification:
     automated:
-      - id: cli-story-map-report-tests
-        description: CLI tests cover story-map grouping and release filtering.
-        command: npm test
+      - id: story-map-reporting-review
+        description: Review story-map reporting coverage against referenced CLI, status,
+          type, and test files.
+        command: npm run capabilitykit -- assess
+          product-planning/story-mapping/plan-and-report-capabilities-by-story-map
     manual:
-      - Run capabilitykit status style command with story-map grouping and verify output on sample capabilities.
-    gaps: []
-    ignore_gaps: []
+      - Run capabilitykit assess
+        product-planning/story-mapping/plan-and-report-capabilities-by-story-map
+        and confirm the code-review criteria match the current implementation
+        state.
+  review:
+    depth: partial
+    source: deterministic-assessment
+    gaps:
+      - Teams can query capability status grouped by story-map release slice.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+      - Teams can view capabilities grouped by story-map backbone and step.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+      - Reports include planned and implemented capabilities so roadmap
+        conversations stay connected to delivery status. Review the cited
+        evidence. If it is correct, save agent.review evidence or make the
+        criterion/reference wording more explicit.
+      - Story-map reporting works for mixed datasets where some capabilities do
+        not yet define planning metadata. Review the cited evidence. If it is
+        correct, save agent.review evidence or make the criterion/reference
+        wording more explicit.
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for
+      product-planning/story-mapping/plan-and-report-capabilities-by-story-map.
+    criteria:
+      - criterion: Teams can query capability status grouped by story-map release slice.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:15
+          - packages/cli/src/index.ts:21
+          - packages/cli/src/index.ts:147
+          - packages/cli/src/index.ts:150
+          - packages/cli/src/index.ts:153
+          - packages/core/src/capabilityStatus.ts:8
+          - packages/core/src/capabilityStatus.ts:11
+          - packages/core/src/capabilityStatus.ts:32
+          - packages/core/src/capabilityStatus.ts:34
+          - packages/core/src/capabilityStatus.ts:55
+          - packages/core/src/types.ts:1
+          - packages/core/src/types.ts:35
+          - packages/core/src/types.ts:84
+          - packages/core/tests/capabilityStatus.test.ts:5
+          - packages/core/tests/capabilityStatus.test.ts:10
+          - packages/core/tests/capabilityStatus.test.ts:19
+          - packages/core/tests/capabilityStatus.test.ts:29
+          - packages/core/tests/capabilityStatus.test.ts:42
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Teams can view capabilities grouped by story-map backbone and step.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:30
+          - packages/cli/src/index.ts:145
+          - packages/cli/src/index.ts:160
+          - packages/cli/src/index.ts:170
+          - packages/cli/src/index.ts:183
+          - packages/core/src/capabilityStatus.ts:34
+          - packages/core/src/capabilityStatus.ts:133
+          - packages/core/src/capabilityStatus.ts:134
+          - packages/core/src/capabilityStatus.ts:136
+          - packages/core/src/capabilityStatus.ts:175
+          - packages/core/src/types.ts:119
+          - packages/core/src/types.ts:142
+          - packages/core/src/types.ts:153
+          - packages/core/tests/capabilityStatus.test.ts:15
+          - packages/core/tests/capabilityStatus.test.ts:35
+          - packages/core/tests/capabilityStatus.test.ts:36
+          - packages/core/tests/capabilityStatus.test.ts:101
+          - packages/core/tests/capabilityStatus.test.ts:102
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Reports include planned and implemented capabilities so roadmap
+          conversations stay connected to delivery status.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:15
+          - packages/cli/src/index.ts:21
+          - packages/cli/src/index.ts:30
+          - packages/cli/src/index.ts:63
+          - packages/cli/src/index.ts:71
+          - packages/core/src/capabilityStatus.ts:8
+          - packages/core/src/capabilityStatus.ts:11
+          - packages/core/src/capabilityStatus.ts:32
+          - packages/core/src/capabilityStatus.ts:34
+          - packages/core/src/capabilityStatus.ts:63
+          - packages/core/src/types.ts:1
+          - packages/core/src/types.ts:35
+          - packages/core/src/types.ts:84
+          - packages/core/src/types.ts:119
+          - packages/core/src/types.ts:142
+          - packages/core/tests/capabilityStatus.test.ts:5
+          - packages/core/tests/capabilityStatus.test.ts:10
+          - packages/core/tests/capabilityStatus.test.ts:15
+          - packages/core/tests/capabilityStatus.test.ts:19
+          - packages/core/tests/capabilityStatus.test.ts:29
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Story-map reporting works for mixed datasets where some capabilities
+          do not yet define planning metadata.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:30
+          - packages/cli/src/index.ts:145
+          - packages/cli/src/index.ts:245
+          - packages/cli/src/index.ts:254
+          - packages/cli/src/index.ts:337
+          - packages/core/src/capabilityStatus.ts:34
+          - packages/core/src/capabilityStatus.ts:133
+          - packages/core/src/capabilityStatus.ts:134
+          - packages/core/src/capabilityStatus.ts:136
+          - packages/core/src/capabilityStatus.ts:175
+          - packages/core/src/types.ts:119
+          - packages/core/src/types.ts:142
+          - packages/core/src/types.ts:153
+          - packages/core/tests/capabilityStatus.test.ts:15
+          - packages/core/tests/capabilityStatus.test.ts:35
+          - packages/core/tests/capabilityStatus.test.ts:36
+          - packages/core/tests/capabilityStatus.test.ts:101
+          - packages/core/tests/capabilityStatus.test.ts:102
+          - packages/cli/tests/skillInstall.test.ts:6
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+    done: false

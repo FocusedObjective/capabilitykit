@@ -25,6 +25,10 @@ function managedBlock(packageSkillPath: string): string {
 This project uses **CapabilityKit** to manage capabilities as code.
 Read the full guide at \`${packageSkillPath}\` before creating,
 editing, validating, reviewing, or implementing capability files.
+When drafting new capability files from product intent, write the human-authored
+spec first and do not invent agent metadata. Use \`capabilitykit format\`,
+\`capabilitykit validate\`, \`capabilitykit compile\`, and the review commands in
+the full guide to refresh generated metadata and review evidence.
 ${blockEnd}`;
 }
 

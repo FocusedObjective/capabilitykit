@@ -15,11 +15,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/project/initialize-capability-project
-  # review this capability: capabilitykit assess core/project/initialize-capability-project
-  # ask an agent to review this capability: capabilitykit agent-review core/project/initialize-capability-project --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/project/initialize-capability-project --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/project/initialize-capability-project
+  # run deterministic review only: capabilitykit review core/project/initialize-capability-project --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/project/initialize-capability-project --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/project/initialize-capability-project --input review.json
   # -----------------------------
   inputs:
     - current working directory
@@ -31,7 +31,6 @@ agent:
   implementation:
     references:
       - packages/cli/src/index.ts
-    inferred_from: []
   verification:
     automated:
       - id: cli-build
@@ -40,15 +39,12 @@ agent:
     manual:
       - Run capabilitykit init in a temporary folder and confirm starter files
         are valid.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
     intent_summary: Coding-agent review confirmed the init command creates starter
       config and capability files, uses non-overwrite writes unless --force is
       supplied, and prints concrete follow-up commands.
-    done: true
     criteria:
       - criterion: Creates the root capability config file.
         status: covered
@@ -77,3 +73,4 @@ agent:
           - packages/cli/src/index.ts:671
           - packages/cli/src/index.ts:672
           - packages/cli/src/index.ts:674
+    done: true

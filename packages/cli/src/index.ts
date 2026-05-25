@@ -180,7 +180,7 @@ function formatReviewNoisy(report: AdviceReport, limit: number, command: string)
       `  Weak evidence: ${weak}`,
       `  Assessor limitations: ${limitations}`,
       `  Implementation gaps: ${gaps}`,
-      `  Review command: capabilitykit agent-review ${candidate.capabilityId} --command ${command} --handoff stdin`
+      `  Review command: capabilitykit review ${candidate.capabilityId} --agent ${command} --handoff stdin`
     );
   }
 
@@ -1772,7 +1772,7 @@ program
   .command("review-noisy")
   .description("List high-value capabilities for Codex or human semantic review")
   .option("--limit <count>", "maximum candidates to list", "5")
-  .option("--command <command>", "agent-review executable to show in suggested commands", "codex")
+  .option("--command <command>", "agent executable to show in suggested review commands", "codex")
   .option("--json", "print candidates as JSON")
   .action(async (options: { limit: string; command: string; json?: boolean }) => {
     const limit = Number.parseInt(options.limit, 10);
@@ -1896,6 +1896,149 @@ program
   );
 
 program
+  .command("review")
+  .description("Review capability implementation evidence and save agent.review by default")
+  .argument("[capability-id]", "optional capability id; required when using --agent")
+  .option("--agent <command>", "external coding agent executable to run instead of deterministic review")
+  .option("--arg <value>", "argument to pass to the external agent command; repeat for multiple args", collectOption, [])
+  .option("--handoff <strategy>", "agent handoff strategy: stdin, argument, or prompt-file", "stdin")
+  .option("--prompt-file <path>", "prompt file path for prompt-file handoff")
+  .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
+  .option("--output-prompt <path>", "write the generated agent review prompt to a file")
+  .option("--no-references", "omit implementation reference file contents from the agent prompt")
+  .option("--deterministic-only", "use deterministic implementation evidence even when --agent is configured")
+  .option("--no-save", "print or validate review output without writing agent.review")
+  .option("--dry-run", "prepare review output without running an agent or writing files")
+  .option("--json", "print the review result as JSON")
+  .action(
+    async (
+      capabilityId: string | undefined,
+      options: {
+        agent?: string;
+        arg: string[];
+        handoff: string;
+        promptFile?: string;
+        transcript?: string;
+        outputPrompt?: string;
+        references: boolean;
+        deterministicOnly?: boolean;
+        save: boolean;
+        dryRun?: boolean;
+        json?: boolean;
+      }
+    ) => {
+      const save = options.save !== false && !options.dryRun;
+      const useAgent = Boolean(options.agent) && !options.deterministicOnly;
+
+      if (!useAgent) {
+        const result = await syncReviewEvidence(process.cwd(), capabilityId, { dryRun: !save });
+        if (options.json) {
+          console.log(JSON.stringify(result, null, 2));
+        } else {
+          console.log(formatSyncReviewEvidenceReport(result));
+        }
+        return;
+      }
+
+      if (!capabilityId) {
+        console.error("Capability id is required when using --agent.");
+        process.exitCode = 1;
+        return;
+      }
+
+      const review = await buildAgentReviewPrompt(process.cwd(), capabilityId, {
+        includeReferences: options.references
+      });
+
+      if (options.outputPrompt) {
+        const outputPath = path.resolve(process.cwd(), options.outputPrompt);
+        await fs.mkdir(path.dirname(outputPath), { recursive: true });
+        await fs.writeFile(outputPath, review.prompt);
+        console.log(`Review prompt: ${path.relative(process.cwd(), outputPath)}`);
+      }
+
+      const result = await runExternalAgentCommand({
+        command: options.agent!,
+        args: options.arg,
+        cwd: process.cwd(),
+        input: review.prompt,
+        handoff: parseAgentHandoff(options.handoff),
+        promptFilePath: options.promptFile,
+        transcriptPath: options.transcript,
+        dryRun: options.dryRun
+      });
+
+      console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
+      console.log(`Handoff: ${result.handoff}`);
+      if (result.promptFilePath) {
+        console.log(`Prompt file: ${path.relative(process.cwd(), result.promptFilePath)}`);
+      }
+      if (result.dryRun) {
+        console.log("Result: dry run");
+      } else {
+        console.log(`Exit code: ${result.exitCode ?? "unknown"}`);
+      }
+      if (result.transcriptPath) {
+        console.log(`Transcript: ${path.relative(process.cwd(), result.transcriptPath)}`);
+      }
+      if (review.missingReferences.length > 0) {
+        console.log(`Missing references: ${review.missingReferences.join(", ")}`);
+      }
+      if (result.stderr.trim()) {
+        console.error("");
+        console.error(result.stderr.trimEnd());
+      }
+
+      if (result.dryRun) {
+        if (result.stdout.trim()) {
+          console.log("");
+          console.log(result.stdout.trimEnd());
+        }
+        return;
+      }
+
+      if (result.exitCode !== 0) {
+        if (result.stdout.trim()) {
+          console.log("");
+          console.log(result.stdout.trimEnd());
+        }
+        process.exitCode = result.exitCode ?? 1;
+        return;
+      }
+
+      if (save) {
+        const saved = await saveAgentReviewResult(process.cwd(), capabilityId, result.stdout);
+        if (options.json) {
+          console.log(JSON.stringify(saved, null, 2));
+        } else {
+          printReviewResult(saved.validation);
+          if (saved.validation.valid) {
+            console.log(`Saved review evidence to ${path.relative(process.cwd(), saved.filePath)}`);
+          }
+        }
+        process.exitCode = saved.validation.valid ? 0 : 1;
+        return;
+      }
+
+      const loaded = await loadCapabilities(process.cwd());
+      const match = loaded.capabilities.find((item) => item.capability.id === capabilityId);
+      if (!match) {
+        console.error(`Capability not found: ${capabilityId}`);
+        process.exitCode = 1;
+        return;
+      }
+
+      const validation = await validateAgentReviewResult(process.cwd(), match.capability, result.stdout);
+      if (options.json) {
+        console.log(JSON.stringify(validation, null, 2));
+      } else {
+        printReviewResult(validation);
+      }
+      process.exitCode = validation.valid ? 0 : 1;
+    }
+  );
+
+program
   .command("agent-review")
   .description("Ask an external agent to review a capability against implementation evidence")
   .argument("<capability-id>", "capability id")
@@ -1976,16 +2119,17 @@ program
 
 program
   .command("review-result")
-  .description("Validate or save structured agent review output for a capability")
+  .description("Save or validate structured agent review output for a capability")
   .argument("<capability-id>", "capability id")
   .requiredOption("--input <path>", "path to the agent review JSON output")
-  .option("--save", "save valid review output to the capability agent.review field")
+  .option("--save", "deprecated; valid review output is saved by default")
+  .option("--no-save", "validate review output without writing agent.review")
   .option("--json", "print validation result as JSON")
   .action(async (capabilityId: string, options: { input: string; save?: boolean; json?: boolean }) => {
     const inputPath = path.resolve(process.cwd(), options.input);
     const source = await fs.readFile(inputPath, "utf8");
 
-    if (options.save) {
+    if (options.save !== false) {
       const result = await saveAgentReviewResult(process.cwd(), capabilityId, source);
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));

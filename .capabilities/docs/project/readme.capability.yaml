@@ -31,11 +31,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review docs/project/readme
-  # review this capability: capabilitykit assess docs/project/readme
-  # ask an agent to review this capability: capabilitykit agent-review docs/project/readme --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result docs/project/readme --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review docs/project/readme
+  # run deterministic review only: capabilitykit review docs/project/readme --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review docs/project/readme --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result docs/project/readme --input review.json
   # -----------------------------
   inputs:
     - README.md
@@ -54,7 +54,6 @@ agent:
       - website/index.html
       - website/styles.css
       - .github/workflows/deploy-website.yml
-    inferred_from: []
   verification:
     automated:
       - id: dogfood-validate
@@ -62,8 +61,6 @@ agent:
         command: npm run capabilitykit -- validate
     manual:
       - Read README and confirm it avoids heavyweight methodology language.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
@@ -71,7 +68,6 @@ agent:
       explain behavior-focused review, install and CLI loops, verification
       depth, organization, drift after AI coding, dependency viewer publishing,
       home-page embedding, and website capability structure examples.
-    done: true
     criteria:
       - criterion: README says CapabilityKit helps developers review what changed in
           product behavior, not only what changed in code.
@@ -123,8 +119,8 @@ agent:
           - README.md:37
           - README.md:87
           - README.md:117
-      - criterion: README explains the dependency viewer, its SVG fallback, and how
-          to regenerate both locally.
+      - criterion: README explains the dependency viewer, its SVG fallback, and how to
+          regenerate both locally.
         status: covered
         evidence:
           - README.md:41
@@ -132,8 +128,8 @@ agent:
           - README.md:47
           - README.md:49
           - .github/workflows/deploy-website.yml:42
-      - criterion: Website embeds the published HTML dependency viewer and links to
-          the full viewer and SVG graph.
+      - criterion: Website embeds the published HTML dependency viewer and links to the
+          full viewer and SVG graph.
         status: covered
         evidence:
           - website/index.html:244
@@ -157,3 +153,4 @@ agent:
           - website/index.html:222
           - website/index.html:226
           - website/index.html:240
+    done: true

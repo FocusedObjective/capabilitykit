@@ -15,7 +15,9 @@
     "build": "npm run build --workspace @capabilitykit/core && npm run build --workspace @capabilitykit/cli",
     "test": "vitest run",
     "capabilitykit": "node packages/cli/dist/index.js",
-    "verify": "npm run build && npm test && npm run capabilitykit -- validate && npm run capabilitykit -- compile"
+    "verify": "npm run build && npm test && npm run capabilitykit -- validate && npm run capabilitykit -- compile",
+    "release:prep": "node scripts/prepare-release.mjs",
+    "release:prep:files": "node scripts/prepare-release.mjs --skip-verify --skip-pack --files-only"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",

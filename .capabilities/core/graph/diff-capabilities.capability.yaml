@@ -26,11 +26,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/graph/diff-capabilities
-  # review this capability: capabilitykit assess core/graph/diff-capabilities
-  # ask an agent to review this capability: capabilitykit agent-review core/graph/diff-capabilities --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/graph/diff-capabilities --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/graph/diff-capabilities
+  # run deterministic review only: capabilitykit review core/graph/diff-capabilities --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/graph/diff-capabilities --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/graph/diff-capabilities --input review.json
   # -----------------------------
   inputs:
     - current capability files
@@ -48,7 +48,6 @@ agent:
       - packages/core/src/index.ts
       - packages/cli/src/index.ts
       - packages/core/tests/capabilityDiff.test.ts
-    inferred_from: []
   verification:
     automated:
       - id: capability-diff-tests
@@ -60,8 +59,6 @@ agent:
     manual:
       - Run capabilitykit diff during a working-tree change and confirm it
         explains capability intent changes more clearly than git diff.
-    gaps: []
-    ignore_gaps: []
   review:
     depth: verified
     source: coding-agent
@@ -69,7 +66,6 @@ agent:
       compares parsed capabilities, reports added/changed/removed IDs,
       summarizes meaningful fields, suppresses review evidence churn by default,
       includes impact context, and exposes CLI output modes.
-    done: true
     criteria:
       - criterion: Compares current capabilities against a configurable Git base ref.
         status: covered
@@ -124,3 +120,4 @@ agent:
           - packages/core/src/index.ts:16
           - packages/cli/src/index.ts:844
           - packages/cli/src/index.ts:886
+    done: true

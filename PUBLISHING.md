@@ -34,54 +34,43 @@ The workflow has `id-token: write`, which is required for OIDC trusted publishin
 
 1. Make sure you are on `main` with a clean working tree.
 
-2. Update both workspace package versions:
+2. Prepare the release:
 
    ```powershell
-   npm version patch --workspace @capabilitykit/core --no-git-tag-version
-   npm version patch --workspace @capabilitykit/cli --no-git-tag-version
-   npm install
+   npm run release:prep -- patch
    ```
 
-   Replace `patch` with `minor` or `major` when appropriate.
+   Replace `patch` with `minor`, `major`, or an exact version like `0.2.0`
+   when appropriate. This updates both workspace package versions, updates the
+   CLI dependency on `@capabilitykit/core`, updates `package-lock.json`, runs
+   `npm run verify`, and runs dry-run packs for both published packages.
 
-3. If the CLI should depend on the exact new core range, update `packages/cli/package.json` before running `npm install`.
+   The script then asks for confirmation before it commits the release files,
+   creates the version tag, and pushes `main` with tags. Press Enter or answer
+   `n` to stop after preparing the files.
 
-   Example:
-
-   ```json
-   "@capabilitykit/core": "^0.1.2"
-   ```
-
-4. Verify locally:
+   To only update files and skip the slower checks:
 
    ```powershell
-   npm run verify
-   npm pack --workspace @capabilitykit/core --dry-run
-   npm pack --workspace @capabilitykit/cli --dry-run
+   npm run release:prep:files -- patch
    ```
 
-5. Commit the release prep:
+   To pass other release-prep flags through npm, put them after a second `--`.
+   For example: `npm run release:prep -- patch -- --allow-dirty`.
 
-   ```powershell
-   git status
-   git add package-lock.json packages/core/package.json packages/cli/package.json
-   git commit -m "Release 0.1.2"
-   ```
-
-   Adjust the version in the commit message.
-
-6. Create and push the version tag:
-
-   ```powershell
-   git tag -a v0.1.2 -m "Release 0.1.2"
-   git push origin main --follow-tags
-   ```
-
-7. Monitor the run at:
+3. Monitor the run at:
 
    ```text
    https://github.com/FocusedObjective/capabilitykit/actions
    ```
+
+If you need to run the verification commands by hand, use:
+
+```powershell
+npm run verify
+npm pack --workspace @capabilitykit/core --dry-run
+npm pack --workspace @capabilitykit/cli --dry-run
+```
 
 ## Verify The Published Packages
 

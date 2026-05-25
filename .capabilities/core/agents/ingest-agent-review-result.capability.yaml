@@ -1,7 +1,7 @@
 title: Ingest agent review result
 status: implemented
-summary: Validate structured agent review output and optionally save it as
-  capability review evidence.
+summary: Validate structured agent review output and save it as capability
+  review evidence by default.
 intent: Turn external agent review prose into durable, policy-safe evidence
   without automatically changing capability status.
 acceptance:
@@ -12,6 +12,8 @@ acceptance:
     paths as validation issues.
   - Saves valid review evidence under agent.review without automatically
     changing capability status.
+  - Supports explicit no-save validation for users who want to inspect review
+    output before writing.
   - Saves review source and criterion-level evidence while omitting duplicate
     top-level evidence caches and empty review gaps.
 guidance:
@@ -24,11 +26,11 @@ guidance:
 agent:
   # -----------------------------
   # machine managed agent metadata
-  # refresh all review evidence: capabilitykit sync-review
-  # refresh this review evidence: capabilitykit sync-review core/agents/ingest-agent-review-result
-  # review this capability: capabilitykit assess core/agents/ingest-agent-review-result
-  # ask an agent to review this capability: capabilitykit agent-review core/agents/ingest-agent-review-result --command codex --handoff stdin
-  # save agent review output: capabilitykit review-result core/agents/ingest-agent-review-result --input review.json --save
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/agents/ingest-agent-review-result
+  # run deterministic review only: capabilitykit review core/agents/ingest-agent-review-result --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/agents/ingest-agent-review-result --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/agents/ingest-agent-review-result --input review.json
   # -----------------------------
   inputs:
     - capability ID
@@ -48,7 +50,6 @@ agent:
       - packages/core/src/index.ts
       - packages/cli/src/index.ts
       - packages/core/tests/agentReviewResult.test.ts
-    inferred_from: []
   verification:
     automated:
       - id: agent-review-result-tests
@@ -59,17 +60,14 @@ agent:
         description: TypeScript build verifies exported APIs and CLI integration.
         command: npm run build
     manual:
-      - Run review-result with a saved agent-review JSON response and confirm
-        the capability status is unchanged while agent.review is populated.
-    gaps: []
-    ignore_gaps: []
+      - Run review with a saved agent-review JSON response and confirm the
+        capability status is unchanged while agent.review is populated.
   review:
     depth: verified
     source: coding-agent
     intent_summary: Review-result ingestion is implemented. It parses structured
       JSON, validates criteria and evidence paths, saves source-tagged
       criterion-level review metadata, and does not mutate capability status.
-    done: true
     criteria:
       - criterion: Parses the structured JSON output requested by agent-review prompts.
         status: covered
@@ -119,6 +117,17 @@ agent:
           - packages/core/tests/agentReviewResult.test.ts:123
         notes: saveAgentReviewResult writes only agent.review and tests assert the
           capability status remains implemented.
+      - criterion: Supports explicit no-save validation for users who want to inspect
+          review output before writing.
+        status: covered
+        evidence:
+          - packages/cli/src/index.ts:1910
+          - packages/cli/src/index.ts:2031
+          - packages/cli/src/index.ts:2037
+          - packages/core/src/agentReviewResult.ts:90
+          - packages/core/tests/agentReviewResult.test.ts:81
+        notes: The review command exposes --no-save and validates agent output through
+          validateAgentReviewResult without writing.
       - criterion: Saves review source and criterion-level evidence while omitting
           duplicate top-level evidence caches and empty review gaps.
         status: covered
@@ -134,3 +143,4 @@ agent:
         notes: The saved review includes source and criteria; empty criterion evidence
           is pruned, top-level evidence is not written, and empty gaps are
           omitted.
+    done: true
