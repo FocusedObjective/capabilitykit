@@ -117,6 +117,13 @@ const agentSectionSchema = z
   })
   .optional();
 
+const storyMapMetadataSchema = z.object({
+  backbone: nonEmptyString,
+  step: nonEmptyString,
+  release: nonEmptyString,
+  order: z.number().int().optional()
+});
+
 const rawCapabilitySchema = z.object({
   id: nonEmptyString.optional(),
   title: nonEmptyString,
@@ -147,6 +154,11 @@ const rawCapabilitySchema = z.object({
     .object({
       build_notes: z.array(nonEmptyString).optional().default([]),
       avoid: z.array(nonEmptyString).optional().default([])
+    })
+    .optional(),
+  planning: z
+    .object({
+      story_map: storyMapMetadataSchema.optional()
     })
     .optional(),
   replacement: nonEmptyString.optional()
@@ -213,6 +225,7 @@ export const capabilitySchema = rawCapabilitySchema.transform((capability) => {
     acceptance: capability.acceptance,
     guidance: guidance.length > 0 ? guidance : undefined,
     agent: Object.keys(agent).length > 0 ? agent : undefined,
+    planning: capability.planning,
     replacement: capability.replacement
   };
 });
@@ -248,6 +261,11 @@ export const projectConfigSchema = z.object({
       allow_verification_gaps: true,
       require_implementation_references_for_status: ["implemented", "verified"]
     }),
+  planning: z
+    .object({
+      releases: z.array(nonEmptyString).optional().default([])
+    })
+    .optional(),
   output: z
     .object({
       path: nonEmptyString.optional().default(".capabilities/dist/capabilities.json")

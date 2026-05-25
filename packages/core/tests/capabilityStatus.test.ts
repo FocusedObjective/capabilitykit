@@ -138,4 +138,30 @@ agent:
     expect(output).toContain("Implementation");
     expect(output).toContain("Next Action");
   });
+
+  it("groups capabilities by story-map release", async () => {
+    const rootDir = await createProject({
+      mapped: `
+title: Mapped
+status: planned
+summary: Mapped summary.
+intent: Mapped intent.
+acceptance:
+  - Planned with story map metadata.
+planning:
+  story_map:
+    backbone: Explore
+    step: Search
+    release: mvp
+agent:
+  verification:
+    manual:
+      - Review it.
+`
+    });
+
+    const report = await summarizeCapabilityStatus(rootDir);
+    expect(report.byStoryMap.releases.find((entry) => entry.release === "mvp")?.capabilities.length).toBe(1);
+  });
+
 });

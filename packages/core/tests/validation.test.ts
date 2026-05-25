@@ -11,6 +11,7 @@ const config: ProjectConfig = {
     allow_verification_gaps: true,
     require_implementation_references_for_status: ["implemented", "verified"]
   },
+  planning: { releases: ["mvp", "v2"] },
   output: { path: ".capabilities/dist/capabilities.json" },
   source: { include: ["**/*.capability.yaml"], exclude: ["dist/**"] }
 };
@@ -173,4 +174,23 @@ describe("validateLoadedCapabilities", () => {
       })
     );
   });
+
+  it("reports invalid story-map release values when configured", () => {
+    const result = validateLoadedCapabilities(
+      loaded([
+        parsed("core/story", {
+          planning: {
+            story_map: {
+              backbone: "Browse",
+              step: "View",
+              release: "beta"
+            }
+          }
+        })
+      ])
+    );
+
+    expect(result.verificationGaps.some((gap) => gap.code === "invalid-story-map-release")).toBe(true);
+  });
+
 });

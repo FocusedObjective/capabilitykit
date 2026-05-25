@@ -1558,10 +1558,53 @@ program
   .description("Show a developer-friendly capability health summary")
   .argument("[capability-id]", "optional capability id")
   .option("--json", "print the status report as JSON")
-  .action(async (capabilityId: string | undefined, options: { json?: boolean }) => {
+  .option("--story-map", "group status output by story-map release, backbone, and step")
+  .option("--release <release>", "limit status output to one story-map release")
+  .action(async (capabilityId: string | undefined, options: { json?: boolean; storyMap?: boolean; release?: string }) => {
     const report = await summarizeCapabilityStatus(process.cwd(), capabilityId);
+    if (options.release) {
+      report.capabilities = report.capabilities.filter((c) => c.storyMap?.release === options.release);
+      report.byStoryMap.releases = report.byStoryMap.releases.filter((r) => r.release === options.release);
+      report.byStoryMap.unassigned = [];
+      report.summary.total = report.capabilities.length;
+      report.summary.ok = report.capabilities.filter((capability) => capability.health === "ok").length;
+      report.summary.review = report.capabilities.filter((capability) => capability.health === "review").length;
+      report.summary.action = report.capabilities.filter((capability) => capability.health === "action").length;
+      report.summary.planned = report.capabilities.filter((capability) => capability.health === "planned").length;
+    }
     if (options.json) {
       console.log(JSON.stringify(report, null, 2));
+      return;
+    }
+
+    if (options.storyMap) {
+      const lines: string[] = [
+        `CapabilityKit Story Map Status: ${report.project}`,
+        "",
+        `Capabilities: ${report.summary.total}  ok: ${report.summary.ok}  needs-review: ${report.summary.review}  needs-action: ${report.summary.action}  planned: ${report.summary.planned}`
+      ];
+      for (const release of report.byStoryMap.releases) {
+        lines.push("", `Release: ${release.release}`);
+        const grouped = new Map<string, typeof release.capabilities>();
+        for (const capability of release.capabilities) {
+          const key = `${capability.storyMap?.backbone ?? "Unknown"}|||${capability.storyMap?.step ?? "Unknown"}`;
+          grouped.set(key, [...(grouped.get(key) ?? []), capability]);
+        }
+        for (const [key, capabilities] of [...grouped.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+          const [backbone, step] = key.split("|||");
+          lines.push(`  ${backbone} > ${step}`);
+          for (const capability of capabilities.sort((a, b) => a.capabilityId.localeCompare(b.capabilityId))) {
+            lines.push(`    - ${capability.capabilityId} [${capability.status}] (${capability.health})`);
+          }
+        }
+      }
+      if (report.byStoryMap.unassigned.length > 0) {
+        lines.push("", `Unassigned (${report.byStoryMap.unassigned.length}):`);
+        for (const capability of report.byStoryMap.unassigned.sort((a, b) => a.capabilityId.localeCompare(b.capabilityId))) {
+          lines.push(`  - ${capability.capabilityId} [${capability.status}] (${capability.health})`);
+        }
+      }
+      console.log(`${lines.join("\n")}\n`);
       return;
     }
 

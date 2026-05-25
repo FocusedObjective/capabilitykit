@@ -110,4 +110,25 @@ acceptance:
       expect(result.capability?.agent?.verification, file).toBeDefined();
     }
   });
+
+  it("parses planning story map metadata", () => {
+    const result = parseCapability(`
+title: Story
+status: planned
+summary: Story summary.
+intent: Story intent.
+acceptance:
+  - Works.
+planning:
+  story_map:
+    backbone: Browse
+    step: View details
+    release: mvp
+    order: 1
+`, "core/story.capability.yaml");
+
+    expect(result.errors).toEqual([]);
+    expect(result.capability?.planning?.story_map?.release).toBe("mvp");
+  });
+
 });
