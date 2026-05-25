@@ -33,13 +33,29 @@ function canonicalCapability(
     result.guidance = capability.guidance;
   }
   if (capability.agent) {
-    result.agent = capability.agent;
+    result.agent = pruneEmpty(capability.agent);
   }
   if (capability.replacement) {
     result.replacement = capability.replacement;
   }
 
   return result;
+}
+
+function pruneEmpty(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    const pruned = value.map(pruneEmpty).filter((entry) => entry !== undefined);
+    return pruned.length > 0 ? pruned : undefined;
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value)
+      .map(([key, entry]) => [key, pruneEmpty(entry)] as const)
+      .filter(([, entry]) => entry !== undefined);
+    return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+  }
+
+  return value;
 }
 
 export async function formatCapabilities(rootDir: string, options: { write?: boolean } = {}): Promise<FormatCapabilitiesResult> {

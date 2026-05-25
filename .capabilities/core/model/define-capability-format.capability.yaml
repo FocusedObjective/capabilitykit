@@ -7,8 +7,9 @@ acceptance:
   - Capability files require title, status, area, summary, intent, and
     acceptance criteria.
   - Capability IDs can be omitted and derived from area and title.
-  - Agent-maintained fields capture inputs, outputs, dependencies,
-    implementation references, verification, and review evidence.
+  - Agent-maintained fields capture optional prompt context, dependencies,
+    implementation references, verification, and criterion-level review
+    evidence.
 guidance:
   - Keep the MVP format small and deterministic.
   - Update this spec whenever the schema changes.
@@ -45,90 +46,49 @@ agent:
     gaps: []
     ignore_gaps: []
   review:
-    depth: partial
-    gaps:
-      - Capability files require title, status, area, summary, intent, and
-        acceptance criteria. Review the cited evidence. If it is correct, save
-        agent.review evidence or make the criterion/reference wording more
-        explicit.
-      - Capability IDs can be omitted and derived from area and title. Review
-        the cited evidence. If it is correct, save agent.review evidence or make
-        the criterion/reference wording more explicit.
-      - Agent-maintained fields capture inputs, outputs, dependencies,
-        implementation references, verification, and review evidence. Review the
-        cited evidence. If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-    evidence:
-      - packages/core/src/parseCapability.ts:28
-      - packages/core/src/parseCapability.ts:44
-      - packages/core/src/parseCapability.ts:5
-      - packages/core/src/parseCapability.ts:63
-      - packages/core/src/schema.ts:102
-      - packages/core/src/schema.ts:120
-      - packages/core/src/schema.ts:13
-      - packages/core/src/schema.ts:154
-      - packages/core/src/schema.ts:157
-      - packages/core/src/schema.ts:158
-      - packages/core/src/schema.ts:161
-      - packages/core/src/schema.ts:162
-      - packages/core/src/schema.ts:175
-      - packages/core/src/schema.ts:204
-      - packages/core/src/schema.ts:67
-      - packages/core/src/types.ts:1
-      - packages/core/src/types.ts:136
-      - packages/core/src/types.ts:34
-      - packages/core/src/types.ts:58
-      - packages/core/src/types.ts:79
-      - packages/core/src/types.ts:82
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for core/model/define-capability-format.
+    depth: verified
+    source: coding-agent
+    intent_summary: The capability format is implemented in the Zod schema,
+      TypeScript types, and parsing transform. Required fields, derived IDs, and
+      agent metadata sections are represented.
+    done: true
     criteria:
       - criterion: Capability files require title, status, area, summary, intent, and
           acceptance criteria.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/schema.ts:13
-          - packages/core/src/schema.ts:67
-          - packages/core/src/schema.ts:102
           - packages/core/src/schema.ts:120
-          - packages/core/src/schema.ts:204
-          - packages/core/src/types.ts:1
-          - packages/core/src/types.ts:34
-          - packages/core/src/types.ts:58
-          - packages/core/src/types.ts:79
-          - packages/core/src/types.ts:82
-          - packages/core/src/parseCapability.ts:5
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/schema.ts:122
+          - packages/core/src/schema.ts:123
+          - packages/core/src/schema.ts:124
+          - packages/core/src/schema.ts:125
+          - packages/core/src/schema.ts:126
+          - packages/core/src/schema.ts:130
+        notes: The raw capability schema requires these fields, with acceptance
+          requiring at least one item.
       - criterion: Capability IDs can be omitted and derived from area and title.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/schema.ts:154
-          - packages/core/src/schema.ts:204
-          - packages/core/src/types.ts:136
-          - packages/core/src/parseCapability.ts:5
-          - packages/core/src/parseCapability.ts:28
+          - packages/core/src/schema.ts:5
+          - packages/core/src/schema.ts:121
+          - packages/core/src/schema.ts:155
+          - packages/core/src/schema.ts:207
           - packages/core/src/parseCapability.ts:44
-          - packages/core/src/parseCapability.ts:63
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
-      - criterion: Agent-maintained fields capture inputs, outputs, dependencies,
-          implementation references, verification, and review evidence.
-        status: partial
+        notes: The schema allows id to be omitted and derives it from area/title in the
+          transform; parsing records derived metadata.
+      - criterion: Agent-maintained fields capture optional prompt context,
+          dependencies, implementation references, verification, and
+          criterion-level review evidence.
+        status: covered
         evidence:
-          - packages/core/src/schema.ts:157
-          - packages/core/src/schema.ts:158
-          - packages/core/src/schema.ts:161
-          - packages/core/src/schema.ts:162
-          - packages/core/src/schema.ts:175
-          - packages/core/src/types.ts:82
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
-    ignore_findings: []
-    done: false
+          - packages/core/src/schema.ts:50
+          - packages/core/src/schema.ts:80
+          - packages/core/src/schema.ts:85
+          - packages/core/src/schema.ts:91
+          - packages/core/src/schema.ts:99
+          - packages/core/src/schema.ts:160
+          - packages/core/src/schema.ts:168
+          - packages/core/src/types.ts:41
+        notes: AgentSection and Capability types include optional inputs/outputs,
+          dependencies, implementation references, verification, and review
+          criteria/evidence.

@@ -62,167 +62,51 @@ agent:
     gaps: []
     ignore_gaps: []
   review:
-    depth: partial
-    gaps:
-      - Provides `capabilitykit skill` to install CapabilityKit skill files and
-        agent entrypoints. Review the cited evidence. If it is correct, save
-        agent.review evidence or make the criterion/reference wording more
-        explicit.
-      - Points generated guidance back to the package SKILL.md file. Review the
-        cited evidence. If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-      - Preserves existing AGENTS.md and CLAUDE.md content while replacing any
-        prior CapabilityKit managed block. Review the cited evidence. If it is
-        correct, save agent.review evidence or make the criterion/reference
-        wording more explicit.
-      - Creates Codex skill and Claude slash-command wrapper files for simple
-        prompts. Review the cited evidence. If it is correct, save agent.review
-        evidence or make the criterion/reference wording more explicit.
-      - Covers merge behavior with automated tests. Either implement or test
-        this behavior, or update the capability if the criterion no longer
-        reflects intended behavior.
-    evidence:
-      - packages/cli/SKILL.md:12
-      - packages/cli/SKILL.md:13
-      - packages/cli/SKILL.md:3
-      - packages/cli/SKILL.md:66
-      - packages/cli/SKILL.md:68
-      - packages/cli/SKILL.md:69
-      - packages/cli/SKILL.md:70
-      - packages/cli/SKILL.md:73
-      - packages/cli/SKILL.md:8
-      - packages/cli/SKILL.md:83
-      - packages/cli/src/index.ts:1048
-      - packages/cli/src/index.ts:131
-      - packages/cli/src/index.ts:132
-      - packages/cli/src/index.ts:135
-      - packages/cli/src/index.ts:182
-      - packages/cli/src/index.ts:30
-      - packages/cli/src/index.ts:637
-      - packages/cli/src/index.ts:682
-      - packages/cli/src/index.ts:691
-      - packages/cli/src/index.ts:694
-      - packages/cli/src/skillInstall.ts:106
-      - packages/cli/src/skillInstall.ts:13
-      - packages/cli/src/skillInstall.ts:17
-      - packages/cli/src/skillInstall.ts:34
-      - packages/cli/src/skillInstall.ts:4
-      - packages/cli/src/skillInstall.ts:43
-      - packages/cli/src/skillInstall.ts:5
-      - packages/cli/src/skillInstall.ts:52
-      - packages/cli/src/skillInstall.ts:66
-      - packages/cli/src/skillInstall.ts:67
-      - packages/cli/src/skillInstall.ts:7
-      - packages/cli/src/skillInstall.ts:88
-      - packages/cli/src/skillInstall.ts:98
-      - packages/cli/tests/skillInstall.test.ts:10
-      - packages/cli/tests/skillInstall.test.ts:17
-      - packages/cli/tests/skillInstall.test.ts:2
-      - packages/cli/tests/skillInstall.test.ts:4
-      - packages/cli/tests/skillInstall.test.ts:41
-      - packages/cli/tests/skillInstall.test.ts:42
-      - packages/cli/tests/skillInstall.test.ts:49
-      - packages/cli/tests/skillInstall.test.ts:5
-      - packages/cli/tests/skillInstall.test.ts:6
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for developer-experience/skills/install-capabilitykit-skill.
+    depth: verified
+    source: coding-agent
+    intent_summary: Coding-agent review confirmed the skill command installs agent
+      entrypoints, generated guidance links back to package SKILL.md, managed
+      blocks preserve and replace only CapabilityKit content, and merge behavior
+      has automated coverage.
+    done: true
     criteria:
       - criterion: Provides `capabilitykit skill` to install CapabilityKit skill files
           and agent entrypoints.
-        status: partial
+        status: covered
         evidence:
-          - packages/cli/SKILL.md:3
-          - packages/cli/SKILL.md:8
-          - packages/cli/SKILL.md:13
-          - packages/cli/SKILL.md:68
-          - packages/cli/SKILL.md:69
-          - packages/cli/src/skillInstall.ts:7
-          - packages/cli/src/skillInstall.ts:13
-          - packages/cli/src/skillInstall.ts:17
-          - packages/cli/src/skillInstall.ts:34
-          - packages/cli/src/skillInstall.ts:66
           - packages/cli/src/index.ts:30
-          - packages/cli/src/index.ts:131
-          - packages/cli/src/index.ts:135
-          - packages/cli/src/index.ts:182
-          - packages/cli/src/index.ts:637
-          - packages/cli/tests/skillInstall.test.ts:2
-          - packages/cli/tests/skillInstall.test.ts:4
-          - packages/cli/tests/skillInstall.test.ts:5
-          - packages/cli/tests/skillInstall.test.ts:41
-          - packages/cli/tests/skillInstall.test.ts:42
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/cli/src/index.ts:690
+          - packages/cli/src/index.ts:698
+          - packages/cli/src/skillInstall.ts:94
       - criterion: Points generated guidance back to the package SKILL.md file.
-        status: partial
+        status: covered
         evidence:
+          - packages/cli/src/skillInstall.ts:21
+          - packages/cli/src/skillInstall.ts:26
           - packages/cli/src/skillInstall.ts:67
-          - packages/cli/src/index.ts:691
-          - packages/cli/src/index.ts:1048
-          - packages/cli/tests/skillInstall.test.ts:41
           - packages/cli/tests/skillInstall.test.ts:49
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
       - criterion: Preserves existing AGENTS.md and CLAUDE.md content while replacing
           any prior CapabilityKit managed block.
-        status: partial
+        status: covered
         evidence:
-          - packages/cli/SKILL.md:8
-          - packages/cli/SKILL.md:12
-          - packages/cli/SKILL.md:68
-          - packages/cli/SKILL.md:69
-          - packages/cli/SKILL.md:70
-          - packages/cli/src/skillInstall.ts:4
-          - packages/cli/src/skillInstall.ts:5
           - packages/cli/src/skillInstall.ts:52
-          - packages/cli/src/skillInstall.ts:106
-          - packages/cli/src/index.ts:182
-          - packages/cli/src/index.ts:694
-          - packages/cli/tests/skillInstall.test.ts:2
-          - packages/cli/tests/skillInstall.test.ts:5
-          - packages/cli/tests/skillInstall.test.ts:6
+          - packages/cli/src/skillInstall.ts:58
+          - packages/cli/src/skillInstall.ts:63
           - packages/cli/tests/skillInstall.test.ts:10
-          - packages/cli/tests/skillInstall.test.ts:17
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/cli/tests/skillInstall.test.ts:21
       - criterion: Creates Codex skill and Claude slash-command wrapper files for simple
           prompts.
-        status: partial
+        status: covered
         evidence:
-          - packages/cli/SKILL.md:13
-          - packages/cli/SKILL.md:66
-          - packages/cli/SKILL.md:70
-          - packages/cli/SKILL.md:73
-          - packages/cli/SKILL.md:83
+          - packages/cli/src/skillInstall.ts:31
           - packages/cli/src/skillInstall.ts:43
-          - packages/cli/src/skillInstall.ts:66
-          - packages/cli/src/skillInstall.ts:88
-          - packages/cli/src/skillInstall.ts:98
-          - packages/cli/src/index.ts:131
-          - packages/cli/src/index.ts:132
-          - packages/cli/src/index.ts:135
-          - packages/cli/src/index.ts:637
-          - packages/cli/src/index.ts:682
-          - packages/cli/tests/skillInstall.test.ts:2
-          - packages/cli/tests/skillInstall.test.ts:5
+          - packages/cli/src/skillInstall.ts:82
+          - packages/cli/src/skillInstall.ts:87
           - packages/cli/tests/skillInstall.test.ts:41
-          - packages/cli/tests/skillInstall.test.ts:42
-          - packages/cli/tests/skillInstall.test.ts:49
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
       - criterion: Covers merge behavior with automated tests.
-        status: uncovered
-        evidence: []
-        notes: Readable references exist, but no deterministic evidence matched this
-          criterion. Either implement or test this behavior, or update the
-          capability if the criterion no longer reflects intended behavior.
-    ignore_findings: []
-    done: false
+        status: covered
+        evidence:
+          - packages/cli/tests/skillInstall.test.ts:5
+          - packages/cli/tests/skillInstall.test.ts:10
+          - packages/cli/tests/skillInstall.test.ts:21
+          - packages/cli/tests/skillInstall.test.ts:30

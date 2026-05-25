@@ -27,6 +27,7 @@ import {
   ,
   formatCapabilities
 } from "@capabilitykit/core";
+import type { Capability, LoadCapabilitiesResult, VerificationGap } from "@capabilitykit/core";
 import { installCapabilityKitSkill } from "./skillInstall.js";
 
 const program = new Command();
@@ -186,8 +187,85 @@ function formatReviewNoisy(report: AdviceReport, limit: number, command: string)
   return `${lines.join("\n")}\n`;
 }
 
-function graphSvg(loaded: Awaited<ReturnType<typeof loadCapabilities>>, gapsById: Map<string, number>): string {
-  const nodes = loaded.capabilities.map((item) => item.capability);
+type GraphCapability = Capability & {
+  path: string;
+  scopes: string[];
+  scope: string;
+  scopeLabel: string;
+  dependencies: string[];
+  dependents: string[];
+  verificationGaps: VerificationGap[];
+};
+
+interface GraphNode {
+  id: string;
+  title: string;
+  label: string;
+  area: string;
+  scopes: string[];
+  scope: string;
+  scopeLabel: string;
+  status: Capability["status"];
+  summary: string;
+  intent: string;
+  acceptance: string[];
+  guidance: string[];
+  path: string;
+  dependencies: string[];
+  dependents: string[];
+  implementationReferences: string[];
+  automatedChecks: Array<{ id?: string; description: string; command?: string }>;
+  manualChecks: string[];
+  verificationGaps: VerificationGap[];
+  review?: NonNullable<NonNullable<Capability["agent"]>["review"]>;
+  impact: number;
+  gaps: number;
+  r: number;
+  x: number;
+  y: number;
+}
+
+interface GraphLink {
+  source: string;
+  target: string;
+}
+
+interface GraphViewModel {
+  width: number;
+  height: number;
+  scopes: string[];
+  nodes: GraphNode[];
+  links: GraphLink[];
+}
+
+function escapeAttribute(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>): GraphViewModel {
+  const validation = validateLoadedCapabilities(loaded);
+  const gapsByCapability = validation.verificationGaps.reduce((map, gap) => {
+    if (!gap.capabilityId) {
+      return map;
+    }
+    map.set(gap.capabilityId, [...(map.get(gap.capabilityId) ?? []), gap]);
+    return map;
+  }, new Map<string, VerificationGap[]>());
+  const nodes: GraphCapability[] = loaded.capabilities.map((item) => {
+    const hierarchy = item.relativePath.replace(/\.capability\.yaml$/, "").split("/");
+    const scopes = hierarchy.slice(0, -1).map((_, index) => hierarchy.slice(0, index + 1).join("/"));
+    const scope = scopes.at(-1) ?? item.capability.area;
+    return {
+      ...item.capability,
+      path: `.capabilities/${item.relativePath}`,
+      scopes,
+      scope,
+      scopeLabel: scope.length > 28 ? `${scope.slice(0, 26)}...` : scope,
+      dependencies: item.capability.agent?.depends_on ?? [],
+      dependents: [],
+      verificationGaps: gapsByCapability.get(item.capability.id) ?? []
+    };
+  });
   const dependentsById = new Map<string, string[]>();
   for (const node of nodes) dependentsById.set(node.id, []);
   for (const node of nodes) {
@@ -195,10 +273,14 @@ function graphSvg(loaded: Awaited<ReturnType<typeof loadCapabilities>>, gapsById
       dependentsById.set(dep, [...(dependentsById.get(dep) ?? []), node.id]);
     }
   }
+  for (const node of nodes) {
+    node.dependents = dependentsById.get(node.id) ?? [];
+  }
 
   const width = 1440;
   const height = 980;
   const areas = [...new Set(nodes.map((node) => node.area))].sort();
+  const scopes = [...new Set(nodes.flatMap((node) => node.scopes))].sort((a, b) => a.localeCompare(b));
   const sorted = [...nodes].sort(
     (a, b) => (dependentsById.get(b.id)?.length ?? 0) - (dependentsById.get(a.id)?.length ?? 0) || a.id.localeCompare(b.id)
   );
@@ -213,7 +295,22 @@ function graphSvg(loaded: Awaited<ReturnType<typeof loadCapabilities>>, gapsById
       title: node.title,
       label: node.title.length > 28 ? `${node.title.slice(0, 26)}...` : node.title,
       area: node.area,
+      scopes: node.scopes,
+      scope: node.scope,
+      scopeLabel: node.scopeLabel,
       status: node.status,
+      summary: node.summary,
+      intent: node.intent,
+      acceptance: node.acceptance,
+      guidance: node.guidance ?? [],
+      path: node.path,
+      dependencies: node.dependencies,
+      dependents: node.dependents,
+      implementationReferences: node.agent?.implementation?.references ?? [],
+      automatedChecks: node.agent?.verification?.automated ?? [],
+      manualChecks: node.agent?.verification?.manual ?? [],
+      verificationGaps: node.verificationGaps,
+      review: node.agent?.review,
       impact,
       gaps,
       r: 38 + Math.min(impact, 8) * 5 + Math.min(gaps, 3) * 3,
@@ -227,7 +324,24 @@ function graphSvg(loaded: Awaited<ReturnType<typeof loadCapabilities>>, gapsById
       target: node.id
     }))
   );
-  const graphData = JSON.stringify({ nodes: graphNodes, links: graphLinks }).replaceAll("</", "<\\/");
+
+  return {
+    width,
+    height,
+    scopes,
+    nodes: graphNodes,
+    links: graphLinks
+  };
+}
+
+function graphSvg(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>): string {
+  const model = buildGraphViewModel(loaded, gapsById);
+  const { width, height } = model;
+  const graphData = JSON.stringify({ nodes: model.nodes, links: model.links }).replaceAll("</", "<\\/");
+  const scopeOptions = [
+    '<option value="">All folders</option>',
+    ...model.scopes.map((scope) => `<option value="${escapeAttribute(scope)}">${escapeAttribute(scope)}</option>`)
+  ].join("");
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title desc">
@@ -265,6 +379,9 @@ function graphSvg(loaded: Awaited<ReturnType<typeof loadCapabilities>>, gapsById
     .slider-track { stroke: #cbd5e1; stroke-width: 8; stroke-linecap: round; }
     .slider-fill { stroke: #7dd3fc; stroke-width: 8; stroke-linecap: round; }
     .slider-knob { fill: #ffffff; stroke: #0ea5e9; stroke-width: 3; filter: url(#shadow); cursor: ew-resize; }
+    .scope-select-wrap { color: #475569; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .scope-select-wrap label { display: block; margin-bottom: 7px; font-size: 11px; font-weight: 650; text-transform: uppercase; }
+    .scope-select-wrap select { width: 202px; height: 34px; border: 1px solid #cbd5e1; border-radius: 7px; background: rgba(255,255,255,0.9); color: #0f172a; font: 600 12px Inter, ui-sans-serif, system-ui, sans-serif; padding: 0 10px; box-shadow: 0 8px 20px rgba(15,23,42,0.08); }
     .link { fill: none; stroke: url(#link-gradient); stroke-width: 1.9; stroke-opacity: 0.46; marker-end: url(#arrow); transition: stroke-opacity 160ms ease, stroke-width 160ms ease; }
     .link.active { stroke-opacity: 0.9; stroke-width: 3; filter: url(#soft-glow); }
     .node { cursor: grab; filter: url(#shadow); transition: opacity 160ms ease; }
@@ -315,6 +432,12 @@ function graphSvg(loaded: Awaited<ReturnType<typeof loadCapabilities>>, gapsById
       <line id="force-fill" class="slider-fill" x1="0" y1="24" x2="101" y2="24" />
       <circle id="force-knob" class="slider-knob" cx="101" cy="24" r="10" />
     </g>
+    <foreignObject x="0" y="120" width="220" height="68">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="scope-select-wrap">
+        <label for="scope-filter">Scope</label>
+        <select id="scope-filter" aria-label="Filter graph by capability folder">${scopeOptions}</select>
+      </div>
+    </foreignObject>
   </g>
   <g id="graph">
     <g id="links"></g>
@@ -345,6 +468,7 @@ const zoomKnob = document.getElementById("zoom-knob");
 const forceValue = document.getElementById("force-value");
 const forceFill = document.getElementById("force-fill");
 const forceKnob = document.getElementById("force-knob");
+const scopeFilter = document.getElementById("scope-filter");
 const byId = new Map(graph.nodes.map((node) => [node.id, node]));
 const links = graph.links
   .map((link) => ({ source: byId.get(link.source), target: byId.get(link.target) }))
@@ -384,7 +508,7 @@ const nodeEls = graph.nodes.map((node) => {
     label.textContent = node.label;
   }
   const meta = el("text", { class: "meta", y: node.r - 12 });
-  meta.textContent = node.area;
+  meta.textContent = node.scopeLabel;
   group.append(label, meta);
   group.addEventListener("pointerdown", (event) => startDrag(event, node, group));
   group.addEventListener("pointerenter", () => highlight(node));
@@ -399,6 +523,10 @@ let dragging = null;
 let frameId = 0;
 let zoomLevel = 1;
 let forceScale = 1.25;
+let selectedScope = "";
+function scopeVisible(node) {
+  return !selectedScope || node.scopes.includes(selectedScope);
+}
 function sliderX(value, min, max) {
   return ((value - min) / (max - min)) * 202;
 }
@@ -448,10 +576,12 @@ function attachSlider(knob, min, max, current, onChange) {
 }
 function forceTick() {
   for (const node of graph.nodes) {
+    if (!scopeVisible(node)) continue;
     node.vx += (width / 2 - node.x) * 0.0009 * alpha;
     node.vy += (height / 2 + 18 - node.y) * 0.0009 * alpha;
   }
   for (const link of links) {
+    if (!scopeVisible(link.source) || !scopeVisible(link.target)) continue;
     const dx = link.target.x - link.source.x;
     const dy = link.target.y - link.source.y;
     const distance = Math.hypot(dx, dy) || 1;
@@ -472,6 +602,7 @@ function forceTick() {
     for (let j = i + 1; j < graph.nodes.length; j++) {
       const a = graph.nodes[i];
       const b = graph.nodes[j];
+      if (!scopeVisible(a) || !scopeVisible(b)) continue;
       const dx = b.x - a.x;
       const dy = b.y - a.y;
       const distance = Math.hypot(dx, dy) || 1;
@@ -501,6 +632,7 @@ function forceTick() {
     }
   }
   for (const node of graph.nodes) {
+    if (!scopeVisible(node)) continue;
     if (!node.fixed) {
       node.vx *= 0.78;
       node.vy *= 0.78;
@@ -514,6 +646,7 @@ function forceTick() {
 }
 function render() {
   for (const link of linkEls) {
+    if (!scopeVisible(link.source) || !scopeVisible(link.target)) continue;
     const dx = link.target.x - link.source.x;
     const dy = link.target.y - link.source.y;
     const distance = Math.hypot(dx, dy) || 1;
@@ -550,6 +683,20 @@ function restartSimulation(nextAlpha = 0.7) {
   alpha = Math.max(alpha, nextAlpha);
   if (!frameId) frameId = requestAnimationFrame(animate);
 }
+function applyScopeFilter() {
+  details.setAttribute("opacity", "0");
+  for (const item of nodeEls) {
+    item.el.style.display = scopeVisible(item.node) ? "" : "none";
+    item.el.classList.remove("dimmed");
+  }
+  for (const link of linkEls) {
+    const visible = scopeVisible(link.source) && scopeVisible(link.target);
+    link.el.style.display = visible ? "" : "none";
+    link.el.classList.remove("active", "dimmed");
+  }
+  restartSimulation(1);
+  render();
+}
 attachSlider(zoomKnob, 0.72, 1.38, zoomLevel, (value) => {
   zoomLevel = value;
   applyZoom();
@@ -558,6 +705,10 @@ attachSlider(forceKnob, 0.9, 1.7, forceScale, (value) => {
   forceScale = value;
   applyForceControl();
   restartSimulation(0.85);
+});
+scopeFilter.addEventListener("change", () => {
+  selectedScope = scopeFilter.value;
+  applyScopeFilter();
 });
 function svgPoint(event) {
   const svg = event.currentTarget.ownerSVGElement || document.documentElement;
@@ -592,6 +743,7 @@ function startDrag(event, node, group) {
   group.addEventListener("pointercancel", up);
 }
 function highlight(node) {
+  if (!scopeVisible(node)) return;
   const cardWidth = 520;
   const cardHeight = 106;
   const visualX = width / 2 + (node.x - width / 2) * zoomLevel;
@@ -604,14 +756,14 @@ function highlight(node) {
   details.setAttribute("transform", "translate(" + x.toFixed(1) + " " + y.toFixed(1) + ")");
   details.setAttribute("opacity", "1");
   detailTitle.textContent = node.title;
-  detailStatus.textContent = node.id + " | " + node.status + " | " + node.area;
+  detailStatus.textContent = node.id + " | " + node.status + " | " + node.scope;
   detailImpact.textContent = "Direct dependents: " + node.impact + " | verification gaps: " + node.gaps;
   for (const item of nodeEls) {
-    const connected = item.node.id === node.id || linked.has(item.node.id + "->" + node.id);
+    const connected = scopeVisible(item.node) && (item.node.id === node.id || linked.has(item.node.id + "->" + node.id));
     item.el.classList.toggle("dimmed", !connected);
   }
   for (const link of linkEls) {
-    const active = link.source.id === node.id || link.target.id === node.id;
+    const active = scopeVisible(link.source) && scopeVisible(link.target) && (link.source.id === node.id || link.target.id === node.id);
     link.el.classList.toggle("active", active);
     link.el.classList.toggle("dimmed", !active);
   }
@@ -621,9 +773,682 @@ function clearHighlight() {
   for (const item of nodeEls) item.el.classList.remove("dimmed");
   for (const link of linkEls) link.el.classList.remove("active", "dimmed");
 }
+applyScopeFilter();
 restartSimulation(1);
   ]]></script>
 </svg>\n`;
+}
+
+function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>): string {
+  const model = buildGraphViewModel(loaded, gapsById);
+  const graphData = JSON.stringify({ nodes: model.nodes, links: model.links, scopes: model.scopes }).replaceAll("</", "<\\/");
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Capability dependency viewer</title>
+    <style>
+      :root {
+        --bg: #f6f8fb;
+        --panel: #ffffff;
+        --ink: #111827;
+        --muted: #64748b;
+        --line: #d8e0ea;
+        --green: #10b981;
+        --blue: #3b82f6;
+        --rose: #f43f5e;
+        --amber: #f59e0b;
+        --link: #78a8ff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at 35% 0%, #ffffff 0%, var(--bg) 62%, #eef2f7 100%);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .app {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 420px;
+        min-height: 100vh;
+      }
+      .main {
+        min-width: 0;
+        padding: 28px 30px 24px;
+      }
+      .topbar {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 18px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+      .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 560;
+      }
+      .controls {
+        display: flex;
+        align-items: end;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      label {
+        display: grid;
+        gap: 6px;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 750;
+        text-transform: uppercase;
+      }
+      select, input[type="range"] {
+        accent-color: #0ea5e9;
+      }
+      select {
+        width: 230px;
+        height: 34px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(255,255,255,0.92);
+        color: var(--ink);
+        font: 650 12px Inter, ui-sans-serif, system-ui, sans-serif;
+        padding: 0 10px;
+      }
+      .range-label {
+        min-width: 150px;
+      }
+      .range-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .range-row span {
+        min-width: 42px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 650;
+        text-align: right;
+      }
+      .graph-shell {
+        position: relative;
+        height: calc(100vh - 118px);
+        min-height: 620px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.54);
+        box-shadow: 0 18px 52px rgba(15, 23, 42, 0.08);
+      }
+      svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .legend {
+        position: absolute;
+        left: 18px;
+        bottom: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 16px;
+        padding: 10px 12px;
+        border: 1px solid rgba(148, 163, 184, 0.38);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.9);
+        color: #475569;
+        font-size: 12px;
+        font-weight: 650;
+        backdrop-filter: blur(6px);
+      }
+      .legend span { display: inline-flex; align-items: center; gap: 6px; }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border: 3px solid var(--green);
+        border-radius: 999px;
+        background: white;
+      }
+      .dot.review { border-color: var(--blue); border-style: dashed; }
+      .dot.gap { border-color: var(--rose); }
+      .dot.planned { border-color: var(--amber); border-style: dashed; }
+      .link {
+        fill: none;
+        stroke: var(--link);
+        stroke-width: 2;
+        stroke-opacity: 0.42;
+        marker-end: url(#arrow);
+        transition: opacity 140ms ease, stroke-width 140ms ease;
+      }
+      .link.active { stroke-width: 3.2; stroke-opacity: 0.92; }
+      .link.dimmed { opacity: 0.13; }
+      .node { cursor: pointer; filter: drop-shadow(0 12px 18px rgba(15,23,42,0.12)); }
+      .node.dimmed { opacity: 0.2; }
+      .node-halo { fill: transparent; stroke-width: 10; stroke-opacity: 0.15; }
+      .node-ring { fill: #fff; stroke-width: 4.6; }
+      .node-core { fill: #fff; stroke: rgba(15,23,42,0.08); stroke-width: 1; }
+      .implemented .node-ring, .implemented .node-halo { stroke: var(--green); }
+      .review .node-ring, .review .node-halo { stroke: var(--blue); stroke-dasharray: 8 6; }
+      .gap .node-ring, .gap .node-halo { stroke: var(--rose); }
+      .planned .node-ring, .planned .node-halo { stroke: var(--amber); stroke-dasharray: 6 6; }
+      .node.selected .node-ring { stroke-width: 7; }
+      .node text { text-anchor: middle; pointer-events: none; }
+      .label { font-size: 12px; font-weight: 760; fill: #0f172a; }
+      .meta { font-size: 9.5px; font-weight: 650; fill: var(--muted); text-transform: uppercase; }
+      aside {
+        min-width: 0;
+        border-left: 1px solid var(--line);
+        background: rgba(255,255,255,0.92);
+        overflow: auto;
+      }
+      .panel {
+        padding: 26px 24px 34px;
+      }
+      .panel h2 {
+        margin: 0;
+        font-size: 23px;
+        line-height: 1.2;
+        letter-spacing: 0;
+      }
+      .panel .id {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin: 16px 0 20px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 25px;
+        padding: 4px 8px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #f8fafc;
+        color: #334155;
+        font-size: 11px;
+        font-weight: 750;
+      }
+      .badge.gap { border-color: rgba(244,63,94,0.35); color: #be123c; background: #fff1f2; }
+      .section {
+        padding: 18px 0;
+        border-top: 1px solid var(--line);
+      }
+      .section.acceptance {
+        margin: 18px -12px 0;
+        padding: 16px 12px;
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        background: #eff6ff;
+      }
+      .section h3 {
+        margin: 0 0 9px;
+        color: #334155;
+        font-size: 12px;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+      .section p {
+        margin: 0;
+        color: #475569;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+      ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+      li {
+        margin: 6px 0;
+        color: #475569;
+        font-size: 13px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+      }
+      .acceptance-list {
+        display: grid;
+        gap: 8px;
+      }
+      .acceptance-item {
+        display: grid;
+        grid-template-columns: 23px minmax(0, 1fr);
+        gap: 9px;
+        align-items: start;
+        padding: 10px 11px;
+        border: 1px solid #cbd5e1;
+        border-radius: 7px;
+        background: rgba(255,255,255,0.78);
+        color: #334155;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .acceptance-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 23px;
+        height: 23px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 850;
+        line-height: 1;
+      }
+      .acceptance-item.covered {
+        border-color: rgba(16,185,129,0.36);
+        background: #ecfdf5;
+      }
+      .acceptance-item.covered .acceptance-icon {
+        background: #10b981;
+        color: #ffffff;
+      }
+      .acceptance-item.gap {
+        border-color: rgba(244,63,94,0.36);
+        background: #fff1f2;
+      }
+      .acceptance-item.gap .acceptance-icon {
+        background: #f43f5e;
+        color: #ffffff;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+      }
+      .empty {
+        color: #94a3b8;
+        font-size: 13px;
+      }
+      .criterion {
+        margin: 8px 0;
+        padding: 9px 10px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: #f8fafc;
+      }
+      .criterion strong {
+        display: inline-flex;
+        margin-bottom: 5px;
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+      .review-evidence {
+        margin-top: 18px;
+        border-top: 1px solid var(--line);
+        color: #475569;
+      }
+      .review-evidence summary {
+        cursor: pointer;
+        padding: 14px 0;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+      .review-evidence[open] summary {
+        padding-bottom: 8px;
+      }
+      @media (max-width: 980px) {
+        .app { grid-template-columns: 1fr; }
+        aside { border-left: 0; border-top: 1px solid var(--line); }
+        .graph-shell { height: 620px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <h1>Capability dependency viewer</h1>
+            <p class="subtitle">Click a capability to inspect intent, references, verification, review status, and relationships.</p>
+          </div>
+          <div class="controls">
+            <label>Scope
+              <select id="scope-filter" aria-label="Filter graph by capability folder"></select>
+            </label>
+            <label class="range-label">Zoom
+              <span class="range-row"><input id="zoom" type="range" min="72" max="138" value="100" /><span id="zoom-value">100%</span></span>
+            </label>
+            <label class="range-label">Spacing
+              <span class="range-row"><input id="spacing" type="range" min="90" max="170" value="125" /><span id="spacing-value">125%</span></span>
+            </label>
+          </div>
+        </div>
+        <div class="graph-shell">
+          <svg id="graph-svg" viewBox="0 0 ${model.width} ${model.height}" role="img" aria-label="Capability dependency graph">
+            <defs>
+              <marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                <path d="M0.8,0.8 L6.6,3.5 L0.8,6.2 z" fill="#7c8da5"></path>
+              </marker>
+            </defs>
+            <g id="viewport"><g id="links"></g><g id="nodes"></g></g>
+          </svg>
+          <div class="legend">
+            <span><i class="dot"></i>Implemented</span>
+            <span><i class="dot review"></i>In progress</span>
+            <span><i class="dot gap"></i>Verification gap</span>
+            <span><i class="dot planned"></i>Planned</span>
+          </div>
+        </div>
+      </main>
+      <aside><div id="panel" class="panel"></div></aside>
+    </div>
+    <script>
+const graph = ${graphData};
+const width = ${model.width};
+const height = ${model.height};
+const padding = 74;
+let selectedScope = "";
+let selectedNode = graph.nodes[0];
+let zoomLevel = 1;
+let forceScale = 1.25;
+let alpha = 1;
+let dragging = null;
+let frameId = 0;
+const viewport = document.getElementById("viewport");
+const linksLayer = document.getElementById("links");
+const nodesLayer = document.getElementById("nodes");
+const panel = document.getElementById("panel");
+const scopeFilter = document.getElementById("scope-filter");
+const zoom = document.getElementById("zoom");
+const spacing = document.getElementById("spacing");
+const zoomValue = document.getElementById("zoom-value");
+const spacingValue = document.getElementById("spacing-value");
+const byId = new Map(graph.nodes.map((node) => [node.id, node]));
+const links = graph.links.map((link) => ({ source: byId.get(link.source), target: byId.get(link.target) })).filter((link) => link.source && link.target);
+const linked = new Set();
+for (const link of links) {
+  linked.add(link.source.id + "->" + link.target.id);
+  linked.add(link.target.id + "->" + link.source.id);
+}
+scopeFilter.append(new Option("All folders", ""));
+for (const scope of graph.scopes) scopeFilter.append(new Option(scope, scope));
+function visible(node) { return !selectedScope || node.scopes.includes(selectedScope); }
+function statusClass(node) { return node.gaps > 0 ? "gap" : node.status === "planned" ? "planned" : node.status === "in-progress" ? "review" : "implemented"; }
+function el(name, attrs = {}) {
+  const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+  for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
+  return node;
+}
+function htmlEl(name, className, text) {
+  const node = document.createElement(name);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+function list(values, formatter = (value) => value) {
+  if (!values || values.length === 0) return htmlEl("div", "empty", "None");
+  const ul = document.createElement("ul");
+  for (const value of values) {
+    const li = document.createElement("li");
+    const formatted = formatter(value);
+    if (formatted instanceof Node) li.append(formatted);
+    else li.textContent = String(formatted);
+    ul.append(li);
+  }
+  return ul;
+}
+function section(title, body, className = "") {
+  const wrapper = htmlEl("section", className ? "section " + className : "section");
+  wrapper.append(htmlEl("h3", "", title), body);
+  return wrapper;
+}
+function reviewKey(value) {
+  return String(value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+function reviewForAcceptance(node, acceptance) {
+  const key = reviewKey(acceptance);
+  return (node.review?.criteria ?? []).find((criterion) => reviewKey(criterion.criterion) === key);
+}
+function acceptanceList(node) {
+  if (!node.acceptance || node.acceptance.length === 0) return htmlEl("div", "empty", "None");
+  const wrapper = htmlEl("div", "acceptance-list");
+  for (const acceptance of node.acceptance) {
+    const review = reviewForAcceptance(node, acceptance);
+    const covered = review?.status === "covered";
+    const item = htmlEl("div", covered ? "acceptance-item covered" : "acceptance-item gap");
+    const icon = htmlEl("span", "acceptance-icon", covered ? "\\u2713" : "\\u00d7");
+    icon.setAttribute("aria-label", covered ? "Covered" : "Not covered");
+    item.append(icon, htmlEl("span", "", acceptance));
+    wrapper.append(item);
+  }
+  return wrapper;
+}
+function reviewEvidence(node) {
+  if (!node.review?.criteria || node.review.criteria.length === 0) return null;
+  const details = htmlEl("details", "review-evidence");
+  details.append(htmlEl("summary", "", "Review Evidence"));
+  details.append(list(node.review.criteria, (criterion) => {
+    const wrapper = htmlEl("div", "criterion");
+    wrapper.append(htmlEl("strong", "", criterion.status), document.createTextNode(criterion.criterion));
+    if (criterion.evidence?.length) {
+      wrapper.append(list(criterion.evidence, (evidence) => {
+        const code = document.createElement("code");
+        code.textContent = evidence;
+        return code;
+      }));
+    }
+    return wrapper;
+  }));
+  return details;
+}
+const linkEls = links.map((link) => {
+  const path = el("path", { class: "link" });
+  linksLayer.append(path);
+  return { ...link, el: path };
+});
+const nodeEls = graph.nodes.map((node) => {
+  node.vx = 0; node.vy = 0;
+  const group = el("g", { class: "node " + statusClass(node), tabindex: "0" });
+  group.append(el("circle", { class: "node-halo", r: node.r + 8 }));
+  group.append(el("circle", { class: "node-ring", r: node.r }));
+  group.append(el("circle", { class: "node-core", r: Math.max(node.r - 10, 20) }));
+  const label = el("text", { class: "label", y: "-3" });
+  const words = node.label.split(" ");
+  if (words.length > 2) {
+    const first = el("tspan", { x: 0, dy: "-3" });
+    first.textContent = words.slice(0, Math.ceil(words.length / 2)).join(" ");
+    const second = el("tspan", { x: 0, dy: "14" });
+    second.textContent = words.slice(Math.ceil(words.length / 2)).join(" ");
+    label.append(first, second);
+  } else {
+    label.textContent = node.label;
+  }
+  const meta = el("text", { class: "meta", y: node.r - 12 });
+  meta.textContent = node.scopeLabel;
+  group.append(label, meta);
+  group.addEventListener("click", () => selectNode(node));
+  group.addEventListener("pointerdown", (event) => startDrag(event, node, group));
+  group.addEventListener("pointerenter", () => highlight(node));
+  group.addEventListener("pointerleave", clearHighlight);
+  nodesLayer.append(group);
+  return { node, el: group };
+});
+function selectNode(node) {
+  selectedNode = node;
+  for (const item of nodeEls) item.el.classList.toggle("selected", item.node.id === node.id);
+  renderPanel(node);
+  highlight(node);
+}
+function renderPanel(node) {
+  panel.replaceChildren();
+  panel.append(htmlEl("h2", "", node.title), htmlEl("p", "id", node.id));
+  const badges = htmlEl("div", "badges");
+  badges.append(htmlEl("span", "badge", node.status), htmlEl("span", "badge", node.scope), htmlEl("span", node.gaps > 0 ? "badge gap" : "badge", node.gaps + " gaps"), htmlEl("span", "badge", node.impact + " direct dependents"));
+  if (node.review?.depth) badges.append(htmlEl("span", "badge", "review: " + node.review.depth));
+  panel.append(badges);
+  panel.append(section("Summary", htmlEl("p", "", node.summary)));
+  panel.append(section("Intent", htmlEl("p", "", node.intent)));
+  panel.append(section("Acceptance", acceptanceList(node), "acceptance"));
+  panel.append(section("Implementation References", list(node.implementationReferences, (value) => {
+    const code = document.createElement("code");
+    code.textContent = value;
+    return code;
+  })));
+  panel.append(section("Verification", list([
+    ...node.automatedChecks.map((check) => "Automated: " + (check.id ? check.id + " - " : "") + check.description + (check.command ? " (" + check.command + ")" : "")),
+    ...node.manualChecks.map((check) => "Manual: " + check)
+  ])));
+  panel.append(section("Verification Gaps", list(node.verificationGaps, (gap) => gap.message)));
+  const evidence = reviewEvidence(node);
+  if (evidence) panel.append(evidence);
+  panel.append(section("Dependencies", list(node.dependencies)));
+  panel.append(section("Direct Dependents", list(node.dependents)));
+  panel.append(section("Path", (() => { const code = document.createElement("code"); code.textContent = node.path; return code; })()));
+}
+function applyZoom() {
+  const tx = width / 2 - (width / 2) * zoomLevel;
+  const ty = height / 2 - (height / 2) * zoomLevel;
+  viewport.setAttribute("transform", "translate(" + tx.toFixed(1) + " " + ty.toFixed(1) + ") scale(" + zoomLevel.toFixed(3) + ")");
+  zoomValue.textContent = Math.round(zoomLevel * 100) + "%";
+}
+function forceTick() {
+  for (const node of graph.nodes) {
+    if (!visible(node)) continue;
+    node.vx += (width / 2 - node.x) * 0.0009 * alpha;
+    node.vy += (height / 2 + 18 - node.y) * 0.0009 * alpha;
+  }
+  for (const link of links) {
+    if (!visible(link.source) || !visible(link.target)) continue;
+    const dx = link.target.x - link.source.x;
+    const dy = link.target.y - link.source.y;
+    const distance = Math.hypot(dx, dy) || 1;
+    const targetDistance = (210 + Math.max(link.source.r, link.target.r) * 0.55) * forceScale;
+    const strength = (distance - targetDistance) * 0.012 * alpha;
+    const fx = (dx / distance) * strength;
+    const fy = (dy / distance) * strength;
+    if (!link.source.fixed) { link.source.vx += fx; link.source.vy += fy; }
+    if (!link.target.fixed) { link.target.vx -= fx; link.target.vy -= fy; }
+  }
+  for (let i = 0; i < graph.nodes.length; i++) {
+    for (let j = i + 1; j < graph.nodes.length; j++) {
+      const a = graph.nodes[i], b = graph.nodes[j];
+      if (!visible(a) || !visible(b)) continue;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const distance = Math.hypot(dx, dy) || 1;
+      const minDistance = (a.r + b.r + 46) * forceScale;
+      const repulsion = Math.min((15000 * forceScale) / (distance * distance), 2.4) * alpha;
+      const nx = dx / distance, ny = dy / distance;
+      if (!a.fixed) { a.vx -= nx * repulsion; a.vy -= ny * repulsion; }
+      if (!b.fixed) { b.vx += nx * repulsion; b.vy += ny * repulsion; }
+      if (distance < minDistance) {
+        const push = ((minDistance - distance) / distance) * 0.55;
+        if (!a.fixed) { a.x -= dx * push; a.y -= dy * push; }
+        if (!b.fixed) { b.x += dx * push; b.y += dy * push; }
+      }
+    }
+  }
+  for (const node of graph.nodes) {
+    if (!visible(node)) continue;
+    if (!node.fixed) { node.vx *= 0.78; node.vy *= 0.78; node.x += node.vx; node.y += node.vy; }
+    node.x = Math.max(padding + node.r, Math.min(width - padding - node.r, node.x));
+    node.y = Math.max(118 + node.r, Math.min(height - padding - node.r, node.y));
+  }
+  alpha = dragging ? Math.max(alpha * 0.96, 0.34) : alpha * 0.972;
+}
+function render() {
+  for (const link of linkEls) {
+    if (!visible(link.source) || !visible(link.target)) continue;
+    const dx = link.target.x - link.source.x, dy = link.target.y - link.source.y;
+    const distance = Math.hypot(dx, dy) || 1;
+    const sx = link.source.x + (dx / distance) * (link.source.r + 7);
+    const sy = link.source.y + (dy / distance) * (link.source.r + 7);
+    const tx = link.target.x - (dx / distance) * (link.target.r + 11);
+    const ty = link.target.y - (dy / distance) * (link.target.r + 11);
+    const curve = Math.min(90, distance * 0.18);
+    const mx = (sx + tx) / 2 - (dy / distance) * curve;
+    const my = (sy + ty) / 2 + (dx / distance) * curve;
+    link.el.setAttribute("d", "M" + sx.toFixed(1) + "," + sy.toFixed(1) + " Q" + mx.toFixed(1) + "," + my.toFixed(1) + " " + tx.toFixed(1) + "," + ty.toFixed(1));
+  }
+  for (const item of nodeEls) item.el.setAttribute("transform", "translate(" + item.node.x.toFixed(1) + " " + item.node.y.toFixed(1) + ")");
+}
+function animate() {
+  for (let i = 0; i < 4; i++) forceTick();
+  render();
+  const maxVelocity = graph.nodes.reduce((max, node) => Math.max(max, Math.abs(node.vx) + Math.abs(node.vy)), 0);
+  if (!dragging && alpha < 0.016 && maxVelocity < 0.05) { frameId = 0; return; }
+  frameId = requestAnimationFrame(animate);
+}
+function restart(nextAlpha = 0.7) {
+  alpha = Math.max(alpha, nextAlpha);
+  if (!frameId) frameId = requestAnimationFrame(animate);
+}
+function applyFilter() {
+  for (const item of nodeEls) item.el.style.display = visible(item.node) ? "" : "none";
+  for (const link of linkEls) link.el.style.display = visible(link.source) && visible(link.target) ? "" : "none";
+  const current = visible(selectedNode) ? selectedNode : graph.nodes.find(visible) ?? graph.nodes[0];
+  selectNode(current);
+  restart(1);
+  render();
+}
+function svgPoint(event) {
+  const svg = event.currentTarget.ownerSVGElement || document.documentElement;
+  const point = svg.createSVGPoint();
+  point.x = event.clientX;
+  point.y = event.clientY;
+  return point.matrixTransform(viewport.getScreenCTM().inverse());
+}
+function startDrag(event, node, group) {
+  event.preventDefault();
+  group.setPointerCapture(event.pointerId);
+  dragging = node;
+  node.fixed = true;
+  restart(0.75);
+  const move = (moveEvent) => {
+    const point = svgPoint(moveEvent);
+    node.x = point.x; node.y = point.y; node.vx = 0; node.vy = 0;
+    render();
+  };
+  const up = () => {
+    node.fixed = false; dragging = null;
+    group.removeEventListener("pointermove", move);
+    group.removeEventListener("pointerup", up);
+    group.removeEventListener("pointercancel", up);
+  };
+  group.addEventListener("pointermove", move);
+  group.addEventListener("pointerup", up);
+  group.addEventListener("pointercancel", up);
+}
+function highlight(node) {
+  if (!visible(node)) return;
+  for (const item of nodeEls) {
+    const connected = visible(item.node) && (item.node.id === node.id || linked.has(item.node.id + "->" + node.id));
+    item.el.classList.toggle("dimmed", !connected);
+  }
+  for (const link of linkEls) {
+    const active = visible(link.source) && visible(link.target) && (link.source.id === node.id || link.target.id === node.id);
+    link.el.classList.toggle("active", active);
+    link.el.classList.toggle("dimmed", !active);
+  }
+}
+function clearHighlight() {
+  for (const item of nodeEls) item.el.classList.remove("dimmed");
+  for (const link of linkEls) link.el.classList.remove("active", "dimmed");
+}
+scopeFilter.addEventListener("change", () => { selectedScope = scopeFilter.value; applyFilter(); });
+zoom.addEventListener("input", () => { zoomLevel = Number(zoom.value) / 100; applyZoom(); });
+spacing.addEventListener("input", () => { forceScale = Number(spacing.value) / 100; spacingValue.textContent = spacing.value + "%"; restart(0.85); });
+applyZoom();
+applyFilter();
+    </script>
+  </body>
+</html>
+`;
 }
 
 program
@@ -785,6 +1610,40 @@ program
     await fs.writeFile(outputPath, svg, "utf8");
     console.log(`Wrote ${path.relative(process.cwd(), outputPath)}`);
     console.log(`Generated graph for ${loaded.capabilities.length} capabilities`);
+    process.exitCode = validation.valid ? 0 : 1;
+  });
+
+program
+  .command("graph-viewer")
+  .description("Update dependency outputs and generate an HTML capability graph viewer")
+  .option("--output <path>", "output HTML viewer path", ".capabilities/dependency-viewer.html")
+  .option("--svg-output <path>", "output SVG graph path", ".capabilities/dependency-graph.svg")
+  .option("--no-update", "skip compile before graph viewer generation")
+  .action(async (options: { output: string; svgOutput: string; update: boolean }) => {
+    if (options.update) {
+      await writeCompiledCapabilities(process.cwd());
+    }
+    const loaded = await loadCapabilities(process.cwd());
+    const validation = validateLoadedCapabilities(loaded);
+    const gapsById = validation.verificationGaps.reduce((map, gap) => {
+      if (!gap.capabilityId) return map;
+      map.set(gap.capabilityId, (map.get(gap.capabilityId) ?? 0) + 1);
+      return map;
+    }, new Map<string, number>());
+    const svg = graphSvg(loaded, gapsById);
+    const html = graphViewerHtml(loaded, gapsById);
+
+    const svgOutputPath = path.resolve(process.cwd(), options.svgOutput);
+    await fs.mkdir(path.dirname(svgOutputPath), { recursive: true });
+    await fs.writeFile(svgOutputPath, svg, "utf8");
+
+    const outputPath = path.resolve(process.cwd(), options.output);
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(outputPath, html, "utf8");
+
+    console.log(`Wrote ${path.relative(process.cwd(), svgOutputPath)}`);
+    console.log(`Wrote ${path.relative(process.cwd(), outputPath)}`);
+    console.log(`Generated graph viewer for ${loaded.capabilities.length} capabilities`);
     process.exitCode = validation.valid ? 0 : 1;
   });
 

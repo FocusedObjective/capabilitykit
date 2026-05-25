@@ -12,6 +12,8 @@ acceptance:
     paths as validation issues.
   - Saves valid review evidence under agent.review without automatically
     changing capability status.
+  - Saves review source and criterion-level evidence while omitting duplicate
+    top-level evidence caches and empty review gaps.
 guidance:
   - Keep ingestion separate from verification policy.
   - Do not mark a capability verified solely because an agent set done true.
@@ -35,7 +37,7 @@ agent:
     - review evidence paths
   outputs:
     - validated review result
-    - agent.review evidence in the capability file
+    - agent.review criteria in the capability file
   depends_on:
     - core/agents/review-capability-with-agent
   implementation:
@@ -62,234 +64,73 @@ agent:
     gaps: []
     ignore_gaps: []
   review:
-    depth: partial
-    gaps:
-      - Parses the structured JSON output requested by agent-review prompts.
-        Review the saved evidence and resolve the remaining partial coverage
-        before marking this criterion covered.
-      - Validates reviewed criteria against the capability acceptance criteria.
-        Review the saved evidence and resolve the remaining partial coverage
-        before marking this criterion covered.
-      - Requires file-path evidence for criteria marked covered or partial.
-        Review the saved evidence and resolve the remaining partial coverage
-        before marking this criterion covered.
-      - Reports malformed review output, missing criteria, and missing evidence
-        paths as validation issues. Review the saved evidence and resolve the
-        remaining partial coverage before marking this criterion covered.
-      - Saves valid review evidence under agent.review without automatically
-        changing capability status. Review the saved evidence and resolve the
-        remaining partial coverage before marking this criterion covered.
-    evidence:
-      - packages/cli/src/index.ts:10
-      - packages/cli/src/index.ts:100
-      - packages/cli/src/index.ts:124
-      - packages/cli/src/index.ts:131
-      - packages/cli/src/index.ts:135
-      - packages/cli/src/index.ts:15
-      - packages/cli/src/index.ts:172
-      - packages/cli/src/index.ts:182
-      - packages/cli/src/index.ts:20
-      - packages/cli/src/index.ts:21
-      - packages/cli/src/index.ts:23
-      - packages/cli/src/index.ts:26
-      - packages/cli/src/index.ts:295
-      - packages/cli/src/index.ts:53
-      - packages/cli/src/index.ts:701
-      - packages/cli/src/index.ts:705
-      - packages/cli/src/index.ts:722
-      - packages/cli/src/index.ts:769
-      - packages/cli/src/index.ts:80
-      - packages/core/src/agentReviewResult.ts:135
-      - packages/core/src/agentReviewResult.ts:138
-      - packages/core/src/agentReviewResult.ts:146
-      - packages/core/src/agentReviewResult.ts:155
-      - packages/core/src/agentReviewResult.ts:16
-      - packages/core/src/agentReviewResult.ts:25
-      - packages/core/src/agentReviewResult.ts:27
-      - packages/core/src/agentReviewResult.ts:34
-      - packages/core/src/agentReviewResult.ts:35
-      - packages/core/src/agentReviewResult.ts:37
-      - packages/core/src/agentReviewResult.ts:52
-      - packages/core/src/agentReviewResult.ts:64
-      - packages/core/src/agentReviewResult.ts:7
-      - packages/core/src/agentReviewResult.ts:87
-      - packages/core/src/agentReviewResult.ts:89
-      - packages/core/src/agentReviewResult.ts:9
-      - packages/core/src/agentReviewResult.ts:99
-      - packages/core/src/index.ts:15
-      - packages/core/src/index.ts:3
-      - packages/core/src/index.ts:32
-      - packages/core/src/index.ts:34
-      - packages/core/src/index.ts:36
-      - packages/core/src/index.ts:37
-      - packages/core/src/index.ts:38
-      - packages/core/src/index.ts:4
-      - packages/core/src/index.ts:49
-      - packages/core/src/index.ts:8
-      - packages/core/src/schema.ts:120
-      - packages/core/src/schema.ts:13
-      - packages/core/src/schema.ts:154
-      - packages/core/src/schema.ts:40
-      - packages/core/src/schema.ts:44
-      - packages/core/src/types.ts:1
-      - packages/core/src/types.ts:22
-      - packages/core/src/types.ts:26
-      - packages/core/src/types.ts:34
-      - packages/core/src/types.ts:82
-      - packages/core/tests/agentReviewResult.test.ts:11
-      - packages/core/tests/agentReviewResult.test.ts:117
-      - packages/core/tests/agentReviewResult.test.ts:118
-      - packages/core/tests/agentReviewResult.test.ts:119
-      - packages/core/tests/agentReviewResult.test.ts:122
-      - packages/core/tests/agentReviewResult.test.ts:134
-      - packages/core/tests/agentReviewResult.test.ts:135
-      - packages/core/tests/agentReviewResult.test.ts:5
-      - packages/core/tests/agentReviewResult.test.ts:55
-      - packages/core/tests/agentReviewResult.test.ts:80
-      - packages/core/tests/agentReviewResult.test.ts:85
-      - packages/core/tests/agentReviewResult.test.ts:92
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for core/agents/ingest-agent-review-result.
+    depth: verified
+    source: coding-agent
+    intent_summary: Review-result ingestion is implemented. It parses structured
+      JSON, validates criteria and evidence paths, saves source-tagged
+      criterion-level review metadata, and does not mutate capability status.
+    done: true
     criteria:
       - criterion: Parses the structured JSON output requested by agent-review prompts.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/agentReviewResult.ts:25
-          - packages/core/src/agentReviewResult.ts:35
-          - packages/core/src/agentReviewResult.ts:52
-          - packages/core/src/agentReviewResult.ts:64
-          - packages/core/src/agentReviewResult.ts:87
-          - packages/core/src/index.ts:3
-          - packages/core/src/index.ts:32
-          - packages/core/src/index.ts:37
-          - packages/cli/src/index.ts:10
-          - packages/cli/src/index.ts:124
-          - packages/cli/src/index.ts:131
-          - packages/cli/src/index.ts:135
-          - packages/cli/src/index.ts:182
-          - packages/core/tests/agentReviewResult.test.ts:80
-          - packages/core/tests/agentReviewResult.test.ts:122
-          - packages/core/tests/agentReviewResult.test.ts:134
-          - packages/core/tests/agentReviewResult.test.ts:135
-        notes: "Saved agent.review marks this criterion partially covered. Notes: Saved
-          agent.review marks this criterion partially covered. Notes: Related
-          implementation text was found, but deterministic matching cannot prove
-          the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit. Review the saved evidence and resolve the remaining partial
-          coverage before marking this criterion covered. Review the saved
-          evidence and resolve the remaining partial coverage before marking
-          this criterion covered."
+          - packages/core/src/agentReviewResult.ts:50
+          - packages/core/src/agentReviewResult.ts:55
+          - packages/core/src/agentReviewResult.ts:100
+        notes: The parser accepts raw JSON or fenced JSON and validates it through the
+          review result schema.
       - criterion: Validates reviewed criteria against the capability acceptance criteria.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/tests/agentReviewResult.test.ts:80
-        notes: "Saved agent.review marks this criterion partially covered. Notes: Saved
-          agent.review marks this criterion partially covered. Notes: Related
-          implementation text was found, but deterministic matching cannot prove
-          the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit. Review the saved evidence and resolve the remaining partial
-          coverage before marking this criterion covered. Review the saved
-          evidence and resolve the remaining partial coverage before marking
-          this criterion covered."
+          - packages/core/src/agentReviewResult.ts:108
+          - packages/core/src/agentReviewResult.ts:110
+          - packages/core/src/agentReviewResult.ts:117
+          - packages/core/src/agentReviewResult.ts:129
+        notes: Validation checks criterion count, missing expected criteria, and unknown
+          criteria.
       - criterion: Requires file-path evidence for criteria marked covered or partial.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/agentReviewResult.ts:89
-          - packages/core/src/agentReviewResult.ts:135
+          - packages/core/src/agentReviewResult.ts:70
+          - packages/core/src/agentReviewResult.ts:75
           - packages/core/src/agentReviewResult.ts:138
           - packages/core/src/agentReviewResult.ts:146
-          - packages/core/src/agentReviewResult.ts:155
-          - packages/cli/src/index.ts:53
-          - packages/cli/src/index.ts:80
-          - packages/cli/src/index.ts:172
-          - packages/cli/src/index.ts:701
-          - packages/cli/src/index.ts:722
-          - packages/core/tests/agentReviewResult.test.ts:80
-          - packages/core/tests/agentReviewResult.test.ts:119
-        notes: "Saved agent.review marks this criterion partially covered. Notes: Saved
-          agent.review marks this criterion partially covered. Notes: Related
-          implementation text was found, but deterministic matching cannot prove
-          the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit. Review the saved evidence and resolve the remaining partial
-          coverage before marking this criterion covered. Review the saved
-          evidence and resolve the remaining partial coverage before marking
-          this criterion covered."
+        notes: Covered and partial criteria require evidence, and each evidence path is
+          resolved inside the project.
       - criterion: Reports malformed review output, missing criteria, and missing
           evidence paths as validation issues.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/agentReviewResult.ts:27
-          - packages/core/src/agentReviewResult.ts:37
-          - packages/core/src/agentReviewResult.ts:87
-          - packages/core/src/agentReviewResult.ts:89
-          - packages/core/src/agentReviewResult.ts:99
-          - packages/core/src/index.ts:15
-          - packages/core/src/index.ts:36
-          - packages/core/src/index.ts:49
-          - packages/cli/src/index.ts:26
-          - packages/cli/src/index.ts:172
-          - packages/cli/src/index.ts:295
-          - packages/cli/src/index.ts:705
-          - packages/cli/src/index.ts:769
-          - packages/core/tests/agentReviewResult.test.ts:11
-          - packages/core/tests/agentReviewResult.test.ts:80
-          - packages/core/tests/agentReviewResult.test.ts:92
-          - packages/core/tests/agentReviewResult.test.ts:117
-          - packages/core/tests/agentReviewResult.test.ts:118
-        notes: "Saved agent.review marks this criterion partially covered. Notes: Saved
-          agent.review marks this criterion partially covered. Notes: Related
-          implementation text was found, but deterministic matching cannot prove
-          the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit. Review the saved evidence and resolve the remaining partial
-          coverage before marking this criterion covered. Review the saved
-          evidence and resolve the remaining partial coverage before marking
-          this criterion covered."
+          - packages/core/src/agentReviewResult.ts:100
+          - packages/core/src/agentReviewResult.ts:101
+          - packages/core/src/agentReviewResult.ts:117
+          - packages/core/src/agentReviewResult.ts:146
+          - packages/core/tests/agentReviewResult.test.ts:93
+        notes: Malformed schema data throws a validation error; structured validation
+          issues cover missing criteria and missing evidence paths.
       - criterion: Saves valid review evidence under agent.review without automatically
           changing capability status.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/agentReviewResult.ts:7
-          - packages/core/src/agentReviewResult.ts:9
-          - packages/core/src/agentReviewResult.ts:16
-          - packages/core/src/agentReviewResult.ts:27
-          - packages/core/src/agentReviewResult.ts:34
-          - packages/core/src/schema.ts:13
-          - packages/core/src/schema.ts:40
-          - packages/core/src/schema.ts:44
-          - packages/core/src/schema.ts:120
-          - packages/core/src/schema.ts:154
-          - packages/core/src/types.ts:1
-          - packages/core/src/types.ts:22
-          - packages/core/src/types.ts:26
-          - packages/core/src/types.ts:34
-          - packages/core/src/types.ts:82
-          - packages/core/src/index.ts:4
-          - packages/core/src/index.ts:8
-          - packages/core/src/index.ts:34
-          - packages/core/src/index.ts:36
-          - packages/core/src/index.ts:38
-          - packages/cli/src/index.ts:15
-          - packages/cli/src/index.ts:20
-          - packages/cli/src/index.ts:21
-          - packages/cli/src/index.ts:23
-          - packages/cli/src/index.ts:100
-          - packages/core/tests/agentReviewResult.test.ts:5
-          - packages/core/tests/agentReviewResult.test.ts:11
-          - packages/core/tests/agentReviewResult.test.ts:55
-          - packages/core/tests/agentReviewResult.test.ts:80
-          - packages/core/tests/agentReviewResult.test.ts:85
-        notes: "Saved agent.review marks this criterion partially covered. Notes: Saved
-          agent.review marks this criterion partially covered. Notes: Related
-          implementation text was found, but deterministic matching cannot prove
-          the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit. Review the saved evidence and resolve the remaining partial
-          coverage before marking this criterion covered. Review the saved
-          evidence and resolve the remaining partial coverage before marking
-          this criterion covered."
-    ignore_findings: []
-    done: false
+          - packages/core/src/agentReviewResult.ts:182
+          - packages/core/src/agentReviewResult.ts:193
+          - packages/core/src/agentReviewResult.ts:202
+          - packages/core/src/agentReviewResult.ts:203
+          - packages/core/tests/agentReviewResult.test.ts:123
+        notes: saveAgentReviewResult writes only agent.review and tests assert the
+          capability status remains implemented.
+      - criterion: Saves review source and criterion-level evidence while omitting
+          duplicate top-level evidence caches and empty review gaps.
+        status: covered
+        evidence:
+          - packages/core/src/agentReviewResult.ts:11
+          - packages/core/src/agentReviewResult.ts:14
+          - packages/core/src/agentReviewResult.ts:173
+          - packages/core/src/agentReviewResult.ts:203
+          - packages/core/src/agentReviewResult.ts:208
+          - packages/core/tests/agentReviewResult.test.ts:133
+          - packages/core/tests/agentReviewResult.test.ts:134
+          - packages/core/tests/agentReviewResult.test.ts:135
+        notes: The saved review includes source and criteria; empty criterion evidence
+          is pruned, top-level evidence is not written, and empty gaps are
+          omitted.

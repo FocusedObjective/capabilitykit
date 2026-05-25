@@ -43,10 +43,11 @@ function reviewForCapability(capability: CapabilityAssessmentAdvice) {
   const reviewableCriteria = capability.criteria.filter((criterion) => criterion.status !== "ignored");
   const criteria = reviewableCriteria.map((criterion) => {
     const status = reviewStatus(criterion);
+    const evidence = criterion.evidence.map(evidencePath);
     return {
       criterion: criterion.criterion,
       status,
-      evidence: criterion.evidence.map(evidencePath),
+      ...(evidence.length > 0 ? { evidence } : {}),
       notes: `${criterion.rationale} ${criterion.recommendation}`
     };
   });
@@ -54,16 +55,17 @@ function reviewForCapability(capability: CapabilityAssessmentAdvice) {
   const gaps = reviewableCriteria
     .filter((criterion) => reviewStatus(criterion) !== "covered")
     .map((criterion) => `${criterion.criterion} ${criterion.recommendation}`);
-  const evidence = uniqueSorted(criteria.flatMap((criterion) => criterion.evidence));
+  const evidence = uniqueSorted(criteria.flatMap((criterion) => criterion.evidence ?? []));
   const done = criteria.length > 0 && criteria.every((criterion) => criterion.status === "covered") && gaps.length === 0;
 
   return {
     depth: done ? "verified" : "partial",
+    source: "deterministic-assessment",
     intent_summary: `Implementation evidence synchronized from deterministic assessment for ${capability.capabilityId}.`,
     done,
     criteria,
     evidence,
-    gaps
+    ...(gaps.length > 0 ? { gaps } : {})
   };
 }
 
@@ -79,10 +81,11 @@ export async function syncReviewEvidence(
     const review = reviewForCapability(capability);
     const filePath = capability.path.replace(/^\.\//, "");
     const resolvedPath = path.resolve(rootDir, filePath);
+    const { evidence, ...reviewForYaml } = review;
 
     if (!options.dryRun) {
       const document = parseDocument(await fs.readFile(resolvedPath, "utf8"));
-      document.setIn(["agent", "review"], review);
+      document.setIn(["agent", "review"], reviewForYaml);
       setAgentSectionComment(document, agentMetadataCommentLines(capability.capabilityId));
       await fs.writeFile(resolvedPath, document.toString());
     }
@@ -91,8 +94,8 @@ export async function syncReviewEvidence(
       capabilityId: capability.capabilityId,
       filePath: resolvedPath,
       changed: !options.dryRun,
-      gaps: review.gaps,
-      evidence: review.evidence
+      gaps: review.gaps ?? [],
+      evidence
     });
   }
 

@@ -1,0 +1,60 @@
+title: Compare capability coverage delta
+status: planned
+summary: Compare capability implementation confidence between a Git base and the
+  current working tree.
+intent: >-
+  Help reviewers see capability gaps like test failures: what confidence
+  improved, what regressed, which gaps are new, and which known gaps remain
+  unchanged.
+acceptance:
+  - Compares current capability coverage against a configurable Git base ref.
+  - Builds normalized coverage snapshots from validation gaps, implementation
+    reference health, verification checks, and agent.review criterion statuses.
+  - Reports resolved gaps, new gaps, unchanged known gaps, improvements, and
+    regressions by capability ID.
+  - Treats review depth, review source, criterion status, missing references,
+    automated checks, manual checks, declared gaps, and ignored gaps as
+    comparable coverage signals.
+  - Defaults to a concise review summary that highlights regressions and new
+    gaps before improvements.
+  - Provides JSON output suitable for CI and automation.
+  - Supports policy options for failing when regressions or new gaps are
+    introduced.
+  - Keeps raw capability intent diffs separate from coverage-confidence diffs.
+guidance:
+  - Model this as a capability equivalent of unit-test deltas, not as a raw YAML
+    diff.
+  - Compare normalized parsed capability data from the base ref with normalized
+    current working-tree data.
+  - Avoid treating large agent.review evidence text changes as meaningful unless
+    they change criterion status, review depth, review source, or done state.
+  - Make planned capabilities visible but avoid counting roadmap gaps as
+    regressions unless they moved from implemented or verified coverage.
+#
+#
+agent:
+  # -----------------------------
+  # machine managed agent metadata
+  # refresh all review evidence: capabilitykit sync-review
+  # refresh this review evidence: capabilitykit sync-review core/assessment/compare-coverage-delta
+  # review this capability: capabilitykit assess core/assessment/compare-coverage-delta
+  # ask an agent to review this capability: capabilitykit agent-review core/assessment/compare-coverage-delta --command codex --handoff stdin
+  # save agent review output: capabilitykit review-result core/assessment/compare-coverage-delta --input review.json --save
+  # -----------------------------
+  depends_on:
+    - core/assessment/assess-implementation-coverage
+    - core/graph/diff-capabilities
+    - core/validation/validate-capability-files
+    - core/validation/verify-implementation-references
+  verification:
+    automated:
+      - id: coverage-delta-tests
+        description: Unit tests should cover resolved gaps, new gaps, regressions,
+          improvements, unchanged gaps, and CI failure policy.
+        command: npm test -- packages/core/tests/capabilityCoverageDelta.test.ts
+    manual:
+      - Run the coverage delta command against a branch with saved agent.review
+        changes and confirm the output explains capability confidence changes
+        more clearly than raw YAML diff.
+    gaps:
+      - Coverage delta comparison is planned and has no implementation yet.

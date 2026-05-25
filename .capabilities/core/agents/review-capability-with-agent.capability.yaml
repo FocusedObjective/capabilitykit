@@ -68,156 +68,60 @@ agent:
         policy before automation.
     ignore_gaps: []
   review:
-    depth: partial
-    gaps:
-      - Generates a review-mode task bundle for one capability. Review the cited
-        evidence. If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-      - Asks the agent to summarize intent in its own words before judging
-        coverage. Review the cited evidence. If it is correct, save agent.review
-        evidence or make the criterion/reference wording more explicit.
-      - Asks the agent to mark each acceptance criterion covered, partial,
-        uncovered, or uncertain. Review the cited evidence. If it is correct,
-        save agent.review evidence or make the criterion/reference wording more
-        explicit.
-      - Requires file-path evidence for covered or partially covered criteria.
-        Review the cited evidence. If it is correct, save agent.review evidence
-        or make the criterion/reference wording more explicit.
-      - Keeps status changes policy-controlled and does not automatically mark a
-        capability verified solely from agent prose. Review the cited evidence.
-        If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-    evidence:
-      - packages/cli/src/index.ts:124
-      - packages/cli/src/index.ts:128
-      - packages/cli/src/index.ts:146
-      - packages/cli/src/index.ts:149
-      - packages/cli/src/index.ts:15
-      - packages/cli/src/index.ts:152
-      - packages/cli/src/index.ts:172
-      - packages/cli/src/index.ts:182
-      - packages/cli/src/index.ts:21
-      - packages/cli/src/index.ts:235
-      - packages/cli/src/index.ts:53
-      - packages/cli/src/index.ts:701
-      - packages/cli/src/index.ts:705
-      - packages/cli/src/index.ts:706
-      - packages/cli/src/index.ts:722
-      - packages/cli/src/index.ts:80
-      - packages/cli/src/index.ts:935
-      - packages/cli/src/index.ts:971
-      - packages/core/src/agentReview.ts:26
-      - packages/core/src/agentReview.ts:36
-      - packages/core/src/agentReview.ts:38
-      - packages/core/src/agentReview.ts:48
-      - packages/core/src/agentTask.ts:114
-      - packages/core/src/agentTask.ts:152
-      - packages/core/src/agentTask.ts:59
-      - packages/core/src/agentTask.ts:6
-      - packages/core/src/agentTask.ts:67
-      - packages/core/src/agentTask.ts:68
-      - packages/core/src/agentTask.ts:69
-      - packages/core/src/agentTask.ts:70
-      - packages/core/src/assessImplementationCoverage.ts:255
-      - packages/core/src/assessImplementationCoverage.ts:5
-      - packages/core/src/externalAgent.ts:116
-      - packages/core/src/externalAgent.ts:123
-      - packages/core/src/externalAgent.ts:66
-      - packages/core/src/index.ts:17
-      - packages/core/src/index.ts:34
-      - packages/core/src/index.ts:55
-      - packages/core/src/index.ts:58
-      - packages/core/src/index.ts:8
-      - packages/core/tests/agentReview.test.ts:10
-      - packages/core/tests/agentReview.test.ts:70
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for core/agents/review-capability-with-agent.
+    depth: verified
+    source: coding-agent
+    intent_summary: Agent review prompt generation is implemented and intentionally
+      policy-safe. It builds a review-mode bundle, asks for intent and
+      criterion-level coverage, requires evidence, and records review as
+      evidence rather than auto-verifying capability status.
+    done: true
     criteria:
       - criterion: Generates a review-mode task bundle for one capability.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/agentReview.ts:38
-          - packages/core/src/agentReview.ts:48
-          - packages/core/src/agentTask.ts:6
-          - packages/core/src/index.ts:17
-          - packages/cli/src/index.ts:124
-          - packages/cli/src/index.ts:128
-          - packages/cli/src/index.ts:182
-          - packages/cli/src/index.ts:235
-          - packages/cli/src/index.ts:705
-          - packages/core/tests/agentReview.test.ts:10
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/agentReview.ts:46
+          - packages/core/src/agentReview.ts:51
+          - packages/core/src/agentReview.ts:52
+          - packages/core/src/agentReview.ts:59
+          - packages/core/tests/agentReview.test.ts:66
+        notes: buildAgentReviewPrompt delegates to buildAgentTaskBundle with mode review
+          and returns the generated prompt.
       - criterion: Asks the agent to summarize intent in its own words before judging
           coverage.
-        status: partial
+        status: covered
         evidence:
+          - packages/core/src/agentTask.ts:65
           - packages/core/src/agentTask.ts:67
-          - packages/cli/src/index.ts:706
-          - packages/cli/src/index.ts:935
-          - packages/cli/src/index.ts:971
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/tests/agentTask.test.ts:66
+        notes: Review-mode task instructions include the own-words intent summary
+          requirement.
       - criterion: Asks the agent to mark each acceptance criterion covered, partial,
           uncovered, or uncertain.
-        status: partial
+        status: covered
         evidence:
+          - packages/core/src/agentReview.ts:24
           - packages/core/src/agentReview.ts:26
-          - packages/core/src/agentReview.ts:36
+          - packages/core/src/agentReview.ts:27
           - packages/core/src/agentTask.ts:68
-          - packages/core/src/agentTask.ts:69
-          - packages/core/src/assessImplementationCoverage.ts:5
-          - packages/cli/src/index.ts:935
-          - packages/cli/src/index.ts:971
           - packages/core/tests/agentReview.test.ts:70
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+        notes: The review JSON shape and review task instructions require criterion
+          status values.
       - criterion: Requires file-path evidence for covered or partially covered criteria.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/agentReview.ts:36
+          - packages/core/src/agentReview.ts:28
+          - packages/core/src/agentReview.ts:40
           - packages/core/src/agentTask.ts:69
-          - packages/core/src/externalAgent.ts:66
-          - packages/cli/src/index.ts:53
-          - packages/cli/src/index.ts:80
-          - packages/cli/src/index.ts:172
-          - packages/cli/src/index.ts:701
-          - packages/cli/src/index.ts:722
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/agentReviewResult.ts:138
+        notes: Prompts ask for path evidence and review-result validation enforces
+          evidence for covered and partial criteria.
       - criterion: Keeps status changes policy-controlled and does not automatically
           mark a capability verified solely from agent prose.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/agentReview.ts:38
-          - packages/core/src/agentTask.ts:59
-          - packages/core/src/agentTask.ts:70
-          - packages/core/src/agentTask.ts:114
-          - packages/core/src/agentTask.ts:152
-          - packages/core/src/assessImplementationCoverage.ts:255
-          - packages/core/src/externalAgent.ts:116
-          - packages/core/src/externalAgent.ts:123
-          - packages/core/src/index.ts:8
-          - packages/core/src/index.ts:34
-          - packages/core/src/index.ts:55
-          - packages/core/src/index.ts:58
-          - packages/cli/src/index.ts:15
-          - packages/cli/src/index.ts:21
-          - packages/cli/src/index.ts:146
-          - packages/cli/src/index.ts:149
-          - packages/cli/src/index.ts:152
-          - packages/core/tests/agentReview.test.ts:10
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
-    ignore_findings: []
-    done: false
+          - packages/core/src/agentReview.ts:42
+          - packages/core/src/agentReviewResult.ts:202
+          - packages/core/tests/agentReviewResult.test.ts:123
+          - packages/core/tests/agentReviewResult.test.ts:136
+        notes: Review prompts say not to change capability status, and review-result
+          saves only agent.review while tests assert status remains implemented.

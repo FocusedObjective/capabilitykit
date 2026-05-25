@@ -14,8 +14,10 @@ acceptance:
     action.
   - Provides a developer-facing status summary that separates needs-action,
     needs-review, ok, and planned capabilities.
-  - Advisory reports prefer saved agent.review criteria over deterministic text
-    evidence.
+  - Advisory reports prefer saved coding-agent or human agent.review criteria
+    over deterministic text evidence.
+  - Deterministic review synchronization records an evidence snapshot without
+    treating it as coding-agent confirmation.
   - Lists noisy capabilities that are good candidates for semantic Codex review.
   - Can update agent.review from current implementation evidence without
     changing capability status.
@@ -25,8 +27,9 @@ acceptance:
 guidance:
   - Start with a deterministic evidence report that loads capability details and
     referenced files.
-  - Add an agentic or LLM review loop only after the report shape is useful and
-    testable.
+  - Use deterministic assessment to gather candidate evidence, then use a
+    coding-agent or human review to confirm whether each criterion is actually
+    implemented.
   - Do not mark capabilities verified solely because referenced files contain
     matching words.
 #
@@ -109,618 +112,140 @@ agent:
           review is handled through agent-review and review-result.
         message_contains: Deterministic text evidence can identify review targets
   review:
-    depth: partial
-    gaps:
-      - Reads the referenced implementation files for one capability. Review the
-        cited evidence. If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-      - Presents each acceptance criterion beside relevant implementation
-        evidence. Review the cited evidence. If it is correct, save agent.review
-        evidence or make the criterion/reference wording more explicit.
-      - Reports missing or unreadable references as uncovered evidence. Review
-        the cited evidence. If it is correct, save agent.review evidence or make
-        the criterion/reference wording more explicit.
-      - Provides an advisory report that groups coverage findings by recommended
-        action. Review the cited evidence. If it is correct, save agent.review
-        evidence or make the criterion/reference wording more explicit.
-      - Provides a developer-facing status summary that separates needs-action,
-        needs-review, ok, and planned capabilities. Review the cited evidence.
-        If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-      - Advisory reports prefer saved agent.review criteria over deterministic
-        text evidence. Review the cited evidence. If it is correct, save
-        agent.review evidence or make the criterion/reference wording more
-        explicit.
-      - Lists noisy capabilities that are good candidates for semantic Codex
-        review. Review the cited evidence. If it is correct, save agent.review
-        evidence or make the criterion/reference wording more explicit.
-      - Can update agent.review from current implementation evidence without
-        changing capability status. Review the cited evidence. If it is correct,
-        save agent.review evidence or make the criterion/reference wording more
-        explicit.
-      - Allows accepted advisory findings to be ignored with an explicit reason.
-        Review the cited evidence. If it is correct, save agent.review evidence
-        or make the criterion/reference wording more explicit.
-      - Keeps the first version deterministic or review-assisted rather than
-        silently trusting an AI judgment. Split the criterion into smaller
-        observable behaviors, or add more targeted implementation/test
-        references.
-    evidence:
-      - packages/cli/src/index.ts:144
-      - packages/cli/src/index.ts:146
-      - packages/cli/src/index.ts:149
-      - packages/cli/src/index.ts:15
-      - packages/cli/src/index.ts:152
-      - packages/cli/src/index.ts:159
-      - packages/cli/src/index.ts:168
-      - packages/cli/src/index.ts:169
-      - packages/cli/src/index.ts:172
-      - packages/cli/src/index.ts:174
-      - packages/cli/src/index.ts:182
-      - packages/cli/src/index.ts:21
-      - packages/cli/src/index.ts:26
-      - packages/cli/src/index.ts:299
-      - packages/cli/src/index.ts:53
-      - packages/cli/src/index.ts:62
-      - packages/cli/src/index.ts:637
-      - packages/cli/src/index.ts:657
-      - packages/cli/src/index.ts:682
-      - packages/cli/src/index.ts:691
-      - packages/cli/src/index.ts:705
-      - packages/cli/src/index.ts:860
-      - packages/cli/src/index.ts:886
-      - packages/cli/src/index.ts:901
-      - packages/cli/src/index.ts:939
-      - packages/cli/src/index.ts:956
-      - packages/cli/src/index.ts:957
-      - packages/core/src/assessImplementationCoverage.ts:173
-      - packages/core/src/assessImplementationCoverage.ts:189
-      - packages/core/src/assessImplementationCoverage.ts:201
-      - packages/core/src/assessImplementationCoverage.ts:209
-      - packages/core/src/assessImplementationCoverage.ts:218
-      - packages/core/src/assessImplementationCoverage.ts:225
-      - packages/core/src/assessImplementationCoverage.ts:238
-      - packages/core/src/assessImplementationCoverage.ts:250
-      - packages/core/src/assessImplementationCoverage.ts:253
-      - packages/core/src/assessImplementationCoverage.ts:255
-      - packages/core/src/assessImplementationCoverage.ts:32
-      - packages/core/src/assessImplementationCoverage.ts:5
-      - packages/core/src/assessmentAdvice.ts:1
-      - packages/core/src/assessmentAdvice.ts:10
-      - packages/core/src/assessmentAdvice.ts:101
-      - packages/core/src/assessmentAdvice.ts:102
-      - packages/core/src/assessmentAdvice.ts:106
-      - packages/core/src/assessmentAdvice.ts:108
-      - packages/core/src/assessmentAdvice.ts:111
-      - packages/core/src/assessmentAdvice.ts:121
-      - packages/core/src/assessmentAdvice.ts:132
-      - packages/core/src/assessmentAdvice.ts:171
-      - packages/core/src/assessmentAdvice.ts:177
-      - packages/core/src/assessmentAdvice.ts:183
-      - packages/core/src/assessmentAdvice.ts:188
-      - packages/core/src/assessmentAdvice.ts:207
-      - packages/core/src/assessmentAdvice.ts:218
-      - packages/core/src/assessmentAdvice.ts:229
-      - packages/core/src/assessmentAdvice.ts:239
-      - packages/core/src/assessmentAdvice.ts:252
-      - packages/core/src/assessmentAdvice.ts:259
-      - packages/core/src/assessmentAdvice.ts:282
-      - packages/core/src/assessmentAdvice.ts:297
-      - packages/core/src/assessmentAdvice.ts:33
-      - packages/core/src/assessmentAdvice.ts:349
-      - packages/core/src/assessmentAdvice.ts:39
-      - packages/core/src/assessmentAdvice.ts:4
-      - packages/core/src/assessmentAdvice.ts:51
-      - packages/core/src/assessmentAdvice.ts:66
-      - packages/core/src/assessmentAdvice.ts:94
-      - packages/core/src/assessmentAdvice.ts:98
-      - packages/core/src/capabilityStatus.ts:1
-      - packages/core/src/capabilityStatus.ts:107
-      - packages/core/src/capabilityStatus.ts:11
-      - packages/core/src/capabilityStatus.ts:114
-      - packages/core/src/capabilityStatus.ts:133
-      - packages/core/src/capabilityStatus.ts:134
-      - packages/core/src/capabilityStatus.ts:136
-      - packages/core/src/capabilityStatus.ts:175
-      - packages/core/src/capabilityStatus.ts:212
-      - packages/core/src/capabilityStatus.ts:213
-      - packages/core/src/capabilityStatus.ts:214
-      - packages/core/src/capabilityStatus.ts:215
-      - packages/core/src/capabilityStatus.ts:218
-      - packages/core/src/capabilityStatus.ts:239
-      - packages/core/src/capabilityStatus.ts:251
-      - packages/core/src/capabilityStatus.ts:286
-      - packages/core/src/capabilityStatus.ts:288
-      - packages/core/src/capabilityStatus.ts:32
-      - packages/core/src/capabilityStatus.ts:34
-      - packages/core/src/capabilityStatus.ts:48
-      - packages/core/src/capabilityStatus.ts:6
-      - packages/core/src/capabilityStatus.ts:69
-      - packages/core/src/capabilityStatus.ts:8
-      - packages/core/src/capabilityStatus.ts:94
-      - packages/core/src/index.ts:15
-      - packages/core/src/index.ts:34
-      - packages/core/src/index.ts:49
-      - packages/core/src/index.ts:55
-      - packages/core/src/index.ts:58
-      - packages/core/src/index.ts:7
-      - packages/core/src/index.ts:8
-      - packages/core/src/schema.ts:103
-      - packages/core/src/schema.ts:104
-      - packages/core/src/schema.ts:120
-      - packages/core/src/schema.ts:13
-      - packages/core/src/schema.ts:154
-      - packages/core/src/schema.ts:184
-      - packages/core/src/schema.ts:206
-      - packages/core/src/schema.ts:236
-      - packages/core/src/schema.ts:246
-      - packages/core/src/schema.ts:40
-      - packages/core/src/schema.ts:44
-      - packages/core/src/schema.ts:68
-      - packages/core/src/schema.ts:69
-      - packages/core/src/syncReviewEvidence.ts:108
-      - packages/core/src/syncReviewEvidence.ts:15
-      - packages/core/src/syncReviewEvidence.ts:20
-      - packages/core/src/syncReviewEvidence.ts:24
-      - packages/core/src/syncReviewEvidence.ts:27
-      - packages/core/src/syncReviewEvidence.ts:42
-      - packages/core/src/syncReviewEvidence.ts:44
-      - packages/core/src/syncReviewEvidence.ts:61
-      - packages/core/src/syncReviewEvidence.ts:73
-      - packages/core/src/syncReviewEvidence.ts:77
-      - packages/core/src/syncReviewEvidence.ts:87
-      - packages/core/src/syncReviewEvidence.ts:88
-      - packages/core/src/types.ts:1
-      - packages/core/src/types.ts:117
-      - packages/core/src/types.ts:140
-      - packages/core/src/types.ts:151
-      - packages/core/src/types.ts:22
-      - packages/core/src/types.ts:26
-      - packages/core/src/types.ts:34
-      - packages/core/src/types.ts:59
-      - packages/core/src/types.ts:60
-      - packages/core/src/types.ts:82
-      - packages/core/tests/assessImplementationCoverage.test.ts:105
-      - packages/core/tests/assessImplementationCoverage.test.ts:121
-      - packages/core/tests/assessImplementationCoverage.test.ts:122
-      - packages/core/tests/assessImplementationCoverage.test.ts:136
-      - packages/core/tests/assessImplementationCoverage.test.ts:17
-      - packages/core/tests/assessImplementationCoverage.test.ts:29
-      - packages/core/tests/assessImplementationCoverage.test.ts:38
-      - packages/core/tests/assessImplementationCoverage.test.ts:64
-      - packages/core/tests/assessImplementationCoverage.test.ts:65
-      - packages/core/tests/assessImplementationCoverage.test.ts:68
-      - packages/core/tests/assessImplementationCoverage.test.ts:72
-      - packages/core/tests/assessImplementationCoverage.test.ts:77
-      - packages/core/tests/assessImplementationCoverage.test.ts:95
-      - packages/core/tests/assessImplementationCoverage.test.ts:99
-      - packages/core/tests/assessmentAdvice.test.ts:102
-      - packages/core/tests/assessmentAdvice.test.ts:116
-      - packages/core/tests/assessmentAdvice.test.ts:117
-      - packages/core/tests/assessmentAdvice.test.ts:14
-      - packages/core/tests/assessmentAdvice.test.ts:157
-      - packages/core/tests/assessmentAdvice.test.ts:166
-      - packages/core/tests/assessmentAdvice.test.ts:175
-      - packages/core/tests/assessmentAdvice.test.ts:176
-      - packages/core/tests/assessmentAdvice.test.ts:177
-      - packages/core/tests/assessmentAdvice.test.ts:178
-      - packages/core/tests/assessmentAdvice.test.ts:28
-      - packages/core/tests/assessmentAdvice.test.ts:32
-      - packages/core/tests/assessmentAdvice.test.ts:41
-      - packages/core/tests/assessmentAdvice.test.ts:60
-      - packages/core/tests/assessmentAdvice.test.ts:61
-      - packages/core/tests/assessmentAdvice.test.ts:66
-      - packages/core/tests/assessmentAdvice.test.ts:75
-      - packages/core/tests/assessmentAdvice.test.ts:89
-      - packages/core/tests/assessmentAdvice.test.ts:90
-      - packages/core/tests/assessmentAdvice.test.ts:93
-      - packages/core/tests/capabilityStatus.test.ts:10
-      - packages/core/tests/capabilityStatus.test.ts:101
-      - packages/core/tests/capabilityStatus.test.ts:102
-      - packages/core/tests/capabilityStatus.test.ts:109
-      - packages/core/tests/capabilityStatus.test.ts:15
-      - packages/core/tests/capabilityStatus.test.ts:19
-      - packages/core/tests/capabilityStatus.test.ts:29
-      - packages/core/tests/capabilityStatus.test.ts:36
-      - packages/core/tests/capabilityStatus.test.ts:42
-      - packages/core/tests/capabilityStatus.test.ts:5
-      - packages/core/tests/capabilityStatus.test.ts:55
-      - packages/core/tests/capabilityStatus.test.ts:74
-      - packages/core/tests/syncReviewEvidence.test.ts:11
-      - packages/core/tests/syncReviewEvidence.test.ts:16
-      - packages/core/tests/syncReviewEvidence.test.ts:29
-      - packages/core/tests/syncReviewEvidence.test.ts:38
-      - packages/core/tests/syncReviewEvidence.test.ts:51
-      - packages/core/tests/syncReviewEvidence.test.ts:61
-      - packages/core/tests/syncReviewEvidence.test.ts:65
-      - packages/core/tests/syncReviewEvidence.test.ts:72
-      - packages/core/tests/syncReviewEvidence.test.ts:75
-      - packages/core/tests/syncReviewEvidence.test.ts:76
-      - packages/core/tests/syncReviewEvidence.test.ts:79
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for core/assessment/assess-implementation-coverage.
+    depth: verified
+    source: coding-agent
+    intent_summary: Implementation coverage assessment is implemented as a
+      deterministic evidence collector with advisory/status views, noisy review
+      targeting, deterministic sync snapshots, and coding-agent/human review
+      precedence.
+    done: true
     criteria:
       - criterion: Reads the referenced implementation files for one capability.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/assessImplementationCoverage.ts:189
-          - packages/core/src/assessmentAdvice.ts:101
-          - packages/core/src/assessmentAdvice.ts:111
-          - packages/core/src/capabilityStatus.ts:212
-          - packages/core/src/capabilityStatus.ts:214
-          - packages/core/src/capabilityStatus.ts:215
-          - packages/core/src/capabilityStatus.ts:251
-          - packages/core/src/capabilityStatus.ts:288
-          - packages/core/src/syncReviewEvidence.ts:61
-          - packages/core/src/schema.ts:184
-          - packages/core/src/types.ts:82
-          - packages/cli/src/index.ts:53
-          - packages/cli/src/index.ts:637
-          - packages/cli/src/index.ts:682
-          - packages/cli/src/index.ts:691
-          - packages/cli/src/index.ts:705
-          - packages/core/tests/assessImplementationCoverage.test.ts:38
-          - packages/core/tests/assessImplementationCoverage.test.ts:77
-          - packages/core/tests/assessImplementationCoverage.test.ts:136
-          - packages/core/tests/assessmentAdvice.test.ts:75
-          - packages/core/tests/assessmentAdvice.test.ts:166
-          - packages/core/tests/assessmentAdvice.test.ts:177
-          - packages/core/tests/capabilityStatus.test.ts:55
-          - packages/core/tests/capabilityStatus.test.ts:109
-          - packages/core/tests/syncReviewEvidence.test.ts:65
-          - packages/core/tests/syncReviewEvidence.test.ts:79
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/assessImplementationCoverage.ts:148
+          - packages/core/src/assessImplementationCoverage.ts:155
+          - packages/core/src/assessImplementationCoverage.ts:213
+          - packages/core/src/assessImplementationCoverage.ts:224
+        notes: Assessment loads the requested capability and reads each
+          agent.implementation reference.
       - criterion: Presents each acceptance criterion beside relevant implementation
           evidence.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/assessImplementationCoverage.ts:201
-          - packages/core/src/assessmentAdvice.ts:1
-          - packages/core/src/assessmentAdvice.ts:33
-          - packages/core/src/assessmentAdvice.ts:121
-          - packages/core/src/assessmentAdvice.ts:171
-          - packages/core/src/assessmentAdvice.ts:183
-          - packages/core/src/syncReviewEvidence.ts:24
-          - packages/core/src/syncReviewEvidence.ts:61
-          - packages/cli/src/index.ts:149
-          - packages/cli/src/index.ts:152
-          - packages/cli/src/index.ts:172
-          - packages/cli/src/index.ts:174
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/assessImplementationCoverage.ts:237
+          - packages/core/src/assessImplementationCoverage.ts:259
+          - packages/core/src/assessImplementationCoverage.ts:261
+          - packages/core/src/assessImplementationCoverage.ts:267
+        notes: The report maps every acceptance criterion to assessed coverage and
+          formats evidence below each criterion.
       - criterion: Marks criteria as covered, uncovered, or uncertain.
         status: covered
         evidence:
           - packages/core/src/assessImplementationCoverage.ts:5
-          - packages/core/src/assessmentAdvice.ts:207
-          - packages/core/src/assessmentAdvice.ts:218
-          - packages/core/src/assessmentAdvice.ts:229
-          - packages/core/src/assessmentAdvice.ts:239
-          - packages/core/src/syncReviewEvidence.ts:20
-          - packages/core/src/schema.ts:40
-          - packages/core/src/types.ts:22
-          - packages/core/tests/assessImplementationCoverage.test.ts:38
-          - packages/core/tests/assessImplementationCoverage.test.ts:68
-          - packages/core/tests/assessImplementationCoverage.test.ts:95
-          - packages/core/tests/assessImplementationCoverage.test.ts:122
-          - packages/core/tests/assessmentAdvice.test.ts:66
-          - packages/core/tests/assessmentAdvice.test.ts:93
-          - packages/core/tests/syncReviewEvidence.test.ts:38
-          - packages/core/tests/syncReviewEvidence.test.ts:51
-        notes: The criterion text appears directly in referenced implementation
-          evidence. No action needed.
+          - packages/core/src/assessImplementationCoverage.ts:175
+          - packages/core/src/assessImplementationCoverage.ts:196
+          - packages/core/src/assessImplementationCoverage.ts:205
+        notes: The assessor returns the declared status union and classifies
+          no-readable/no-evidence/exact/related evidence cases.
       - criterion: Reports missing or unreadable references as uncovered evidence.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/assessImplementationCoverage.ts:32
-          - packages/core/src/assessImplementationCoverage.ts:173
+          - packages/core/src/assessImplementationCoverage.ts:148
+          - packages/core/src/assessImplementationCoverage.ts:161
+          - packages/core/src/assessImplementationCoverage.ts:175
           - packages/core/src/assessImplementationCoverage.ts:238
-          - packages/core/src/assessImplementationCoverage.ts:250
-          - packages/core/src/assessImplementationCoverage.ts:253
-          - packages/core/src/assessmentAdvice.ts:10
-          - packages/core/src/assessmentAdvice.ts:66
-          - packages/core/src/assessmentAdvice.ts:94
-          - packages/core/src/assessmentAdvice.ts:106
-          - packages/core/src/assessmentAdvice.ts:108
-          - packages/core/src/capabilityStatus.ts:48
-          - packages/core/src/capabilityStatus.ts:69
-          - packages/core/src/capabilityStatus.ts:94
-          - packages/core/src/capabilityStatus.ts:114
-          - packages/core/src/capabilityStatus.ts:213
-          - packages/core/src/schema.ts:236
-          - packages/core/src/schema.ts:246
-          - packages/core/src/types.ts:82
-          - packages/cli/src/index.ts:657
-          - packages/cli/src/index.ts:705
-          - packages/cli/src/index.ts:939
-          - packages/cli/src/index.ts:956
-          - packages/cli/src/index.ts:957
-          - packages/core/tests/assessImplementationCoverage.test.ts:65
-          - packages/core/tests/assessImplementationCoverage.test.ts:77
-          - packages/core/tests/assessImplementationCoverage.test.ts:95
-          - packages/core/tests/assessImplementationCoverage.test.ts:105
-          - packages/core/tests/assessImplementationCoverage.test.ts:121
-          - packages/core/tests/assessmentAdvice.test.ts:28
-          - packages/core/tests/assessmentAdvice.test.ts:60
-          - packages/core/tests/assessmentAdvice.test.ts:61
-          - packages/core/tests/assessmentAdvice.test.ts:75
-          - packages/core/tests/assessmentAdvice.test.ts:89
-          - packages/core/tests/capabilityStatus.test.ts:29
-          - packages/core/tests/capabilityStatus.test.ts:55
-          - packages/core/tests/capabilityStatus.test.ts:74
-          - packages/core/tests/syncReviewEvidence.test.ts:79
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+        notes: Unreadable references are returned in missingReferences and criteria with
+          no readable references are uncovered.
       - criterion: Provides an advisory report that groups coverage findings by
           recommended action.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/assessmentAdvice.ts:177
-          - packages/core/src/assessmentAdvice.ts:282
-          - packages/core/src/assessmentAdvice.ts:349
-          - packages/core/src/capabilityStatus.ts:239
-          - packages/core/src/schema.ts:69
-          - packages/core/src/schema.ts:104
-          - packages/core/src/types.ts:60
-          - packages/cli/src/index.ts:886
-          - packages/cli/src/index.ts:901
-          - packages/core/tests/assessmentAdvice.test.ts:41
-          - packages/core/tests/assessmentAdvice.test.ts:61
-          - packages/core/tests/assessmentAdvice.test.ts:90
-          - packages/core/tests/assessmentAdvice.test.ts:117
-          - packages/core/tests/assessmentAdvice.test.ts:157
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/assessmentAdvice.ts:91
+          - packages/core/src/assessmentAdvice.ts:251
+          - packages/core/src/assessmentAdvice.ts:281
+          - packages/core/src/assessmentAdvice.ts:340
+          - packages/core/src/assessmentAdvice.ts:358
+        notes: Advice classifies criteria into statuses/actions, summarizes counts, and
+          formats recommended action sections.
       - criterion: Provides a developer-facing status summary that separates
           needs-action, needs-review, ok, and planned capabilities.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/assessImplementationCoverage.ts:218
-          - packages/core/src/assessImplementationCoverage.ts:255
-          - packages/core/src/assessmentAdvice.ts:39
-          - packages/core/src/assessmentAdvice.ts:51
-          - packages/core/src/assessmentAdvice.ts:98
-          - packages/core/src/assessmentAdvice.ts:102
-          - packages/core/src/assessmentAdvice.ts:108
-          - packages/core/src/capabilityStatus.ts:6
-          - packages/core/src/capabilityStatus.ts:8
-          - packages/core/src/capabilityStatus.ts:11
-          - packages/core/src/capabilityStatus.ts:32
-          - packages/core/src/capabilityStatus.ts:34
-          - packages/core/src/syncReviewEvidence.ts:20
-          - packages/core/src/syncReviewEvidence.ts:24
-          - packages/core/src/syncReviewEvidence.ts:27
-          - packages/core/src/syncReviewEvidence.ts:42
-          - packages/core/src/syncReviewEvidence.ts:44
-          - packages/core/src/schema.ts:13
-          - packages/core/src/schema.ts:40
-          - packages/core/src/schema.ts:44
-          - packages/core/src/schema.ts:120
-          - packages/core/src/schema.ts:206
-          - packages/core/src/types.ts:1
-          - packages/core/src/types.ts:22
-          - packages/core/src/types.ts:26
-          - packages/core/src/types.ts:34
-          - packages/core/src/types.ts:82
-          - packages/core/src/index.ts:7
-          - packages/core/src/index.ts:8
-          - packages/core/src/index.ts:34
-          - packages/core/src/index.ts:55
-          - packages/core/src/index.ts:58
-          - packages/cli/src/index.ts:15
-          - packages/cli/src/index.ts:21
-          - packages/cli/src/index.ts:62
-          - packages/cli/src/index.ts:144
-          - packages/cli/src/index.ts:146
-          - packages/core/tests/assessImplementationCoverage.test.ts:17
-          - packages/core/tests/assessImplementationCoverage.test.ts:29
-          - packages/core/tests/assessImplementationCoverage.test.ts:72
-          - packages/core/tests/assessImplementationCoverage.test.ts:99
-          - packages/core/tests/assessmentAdvice.test.ts:14
-          - packages/core/tests/assessmentAdvice.test.ts:28
-          - packages/core/tests/assessmentAdvice.test.ts:32
-          - packages/core/tests/assessmentAdvice.test.ts:60
-          - packages/core/tests/assessmentAdvice.test.ts:61
-          - packages/core/tests/capabilityStatus.test.ts:5
-          - packages/core/tests/capabilityStatus.test.ts:10
-          - packages/core/tests/capabilityStatus.test.ts:15
-          - packages/core/tests/capabilityStatus.test.ts:19
-          - packages/core/tests/capabilityStatus.test.ts:29
-          - packages/core/tests/syncReviewEvidence.test.ts:11
-          - packages/core/tests/syncReviewEvidence.test.ts:16
-          - packages/core/tests/syncReviewEvidence.test.ts:29
-          - packages/core/tests/syncReviewEvidence.test.ts:61
-          - packages/core/tests/syncReviewEvidence.test.ts:65
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
-      - criterion: Advisory reports prefer saved agent.review criteria over
-          deterministic text evidence.
-        status: partial
+          - packages/core/src/capabilityStatus.ts:58
+          - packages/core/src/capabilityStatus.ts:129
+          - packages/core/src/capabilityStatus.ts:173
+          - packages/core/src/capabilityStatus.ts:185
+          - packages/core/src/capabilityStatus.ts:232
+        notes: Status health maps capabilities into action/review/ok/planned buckets and
+          formats overview/detail output.
+      - criterion: Advisory reports prefer saved coding-agent or human agent.review
+          criteria over deterministic text evidence.
+        status: covered
         evidence:
-          - packages/core/src/assessImplementationCoverage.ts:209
-          - packages/core/src/assessmentAdvice.ts:132
-          - packages/core/src/assessmentAdvice.ts:177
-          - packages/core/src/assessmentAdvice.ts:183
-          - packages/core/src/assessmentAdvice.ts:188
-          - packages/core/src/assessmentAdvice.ts:207
-          - packages/core/src/capabilityStatus.ts:218
-          - packages/core/src/capabilityStatus.ts:239
-          - packages/core/src/capabilityStatus.ts:286
-          - packages/core/src/syncReviewEvidence.ts:15
+          - packages/core/src/assessmentAdvice.ts:192
+          - packages/core/src/assessmentAdvice.ts:200
+          - packages/core/src/assessmentAdvice.ts:204
+          - packages/core/src/assessmentAdvice.ts:206
+          - packages/core/src/assessmentAdvice.ts:281
+          - packages/core/src/assessmentAdvice.ts:283
+        notes: Saved reviews are used unless their source is deterministic-assessment;
+          rationale distinguishes coding-agent and human review.
+      - criterion: Deterministic review synchronization records an evidence snapshot
+          without treating it as coding-agent confirmation.
+        status: covered
+        evidence:
           - packages/core/src/syncReviewEvidence.ts:61
-          - packages/core/src/syncReviewEvidence.ts:73
-          - packages/core/src/syncReviewEvidence.ts:108
-          - packages/core/src/schema.ts:40
-          - packages/core/src/schema.ts:68
-          - packages/core/src/schema.ts:103
-          - packages/core/src/types.ts:22
-          - packages/core/src/types.ts:59
-          - packages/core/src/index.ts:15
-          - packages/core/src/index.ts:49
-          - packages/cli/src/index.ts:26
-          - packages/cli/src/index.ts:172
-          - packages/cli/src/index.ts:182
-          - packages/cli/src/index.ts:299
-          - packages/cli/src/index.ts:860
-          - packages/core/tests/assessImplementationCoverage.test.ts:38
-          - packages/core/tests/assessImplementationCoverage.test.ts:64
-          - packages/core/tests/assessImplementationCoverage.test.ts:65
-          - packages/core/tests/assessImplementationCoverage.test.ts:68
-          - packages/core/tests/assessImplementationCoverage.test.ts:77
-          - packages/core/tests/assessmentAdvice.test.ts:61
-          - packages/core/tests/assessmentAdvice.test.ts:75
-          - packages/core/tests/assessmentAdvice.test.ts:89
-          - packages/core/tests/assessmentAdvice.test.ts:90
-          - packages/core/tests/assessmentAdvice.test.ts:117
-          - packages/core/tests/capabilityStatus.test.ts:55
-          - packages/core/tests/syncReviewEvidence.test.ts:38
-          - packages/core/tests/syncReviewEvidence.test.ts:61
-          - packages/core/tests/syncReviewEvidence.test.ts:72
-          - packages/core/tests/syncReviewEvidence.test.ts:79
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/syncReviewEvidence.ts:63
+          - packages/core/src/syncReviewEvidence.ts:84
+          - packages/core/src/syncReviewEvidence.ts:88
+          - packages/core/src/assessmentAdvice.ts:200
+          - packages/core/tests/syncReviewEvidence.test.ts:71
+        notes: sync-review writes source deterministic-assessment, omits the evidence
+          cache from YAML, and advice ignores deterministic review as
+          confirmation.
       - criterion: Lists noisy capabilities that are good candidates for semantic Codex
           review.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/assessImplementationCoverage.ts:218
-          - packages/core/src/assessmentAdvice.ts:51
-          - packages/core/src/assessmentAdvice.ts:252
-          - packages/core/src/assessmentAdvice.ts:259
-          - packages/core/src/assessmentAdvice.ts:282
-          - packages/core/src/assessmentAdvice.ts:297
-          - packages/core/src/capabilityStatus.ts:34
-          - packages/core/src/capabilityStatus.ts:133
-          - packages/core/src/capabilityStatus.ts:134
-          - packages/core/src/capabilityStatus.ts:136
-          - packages/core/src/capabilityStatus.ts:175
-          - packages/core/src/syncReviewEvidence.ts:77
-          - packages/core/src/syncReviewEvidence.ts:87
-          - packages/core/src/syncReviewEvidence.ts:88
-          - packages/core/src/types.ts:117
-          - packages/core/src/types.ts:140
-          - packages/core/src/types.ts:151
-          - packages/core/src/index.ts:7
           - packages/cli/src/index.ts:144
           - packages/cli/src/index.ts:159
-          - packages/cli/src/index.ts:168
-          - packages/cli/src/index.ts:169
+          - packages/cli/src/index.ts:167
           - packages/cli/src/index.ts:182
-          - packages/core/tests/assessImplementationCoverage.test.ts:17
-          - packages/core/tests/assessImplementationCoverage.test.ts:29
-          - packages/core/tests/assessmentAdvice.test.ts:14
-          - packages/core/tests/assessmentAdvice.test.ts:32
-          - packages/core/tests/assessmentAdvice.test.ts:61
-          - packages/core/tests/assessmentAdvice.test.ts:90
-          - packages/core/tests/assessmentAdvice.test.ts:102
-          - packages/core/tests/capabilityStatus.test.ts:15
-          - packages/core/tests/capabilityStatus.test.ts:36
-          - packages/core/tests/capabilityStatus.test.ts:101
-          - packages/core/tests/capabilityStatus.test.ts:102
-          - packages/core/tests/syncReviewEvidence.test.ts:11
-          - packages/core/tests/syncReviewEvidence.test.ts:16
-          - packages/core/tests/syncReviewEvidence.test.ts:29
-          - packages/core/tests/syncReviewEvidence.test.ts:65
-          - packages/core/tests/syncReviewEvidence.test.ts:75
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/cli/src/index.ts:912
+        notes: review-noisy scores weak evidence, assessor limitations, and gaps, then
+          prints agent-review commands.
       - criterion: Can update agent.review from current implementation evidence without
           changing capability status.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/assessImplementationCoverage.ts:225
-          - packages/core/src/assessImplementationCoverage.ts:255
-          - packages/core/src/assessmentAdvice.ts:4
-          - packages/core/src/assessmentAdvice.ts:39
-          - packages/core/src/assessmentAdvice.ts:98
-          - packages/core/src/assessmentAdvice.ts:101
-          - packages/core/src/assessmentAdvice.ts:102
-          - packages/core/src/capabilityStatus.ts:1
-          - packages/core/src/capabilityStatus.ts:8
-          - packages/core/src/capabilityStatus.ts:11
-          - packages/core/src/capabilityStatus.ts:32
-          - packages/core/src/capabilityStatus.ts:34
-          - packages/core/src/syncReviewEvidence.ts:20
-          - packages/core/src/syncReviewEvidence.ts:24
-          - packages/core/src/syncReviewEvidence.ts:27
-          - packages/core/src/syncReviewEvidence.ts:42
-          - packages/core/src/syncReviewEvidence.ts:44
-          - packages/core/src/schema.ts:13
-          - packages/core/src/schema.ts:40
-          - packages/core/src/schema.ts:44
-          - packages/core/src/schema.ts:120
-          - packages/core/src/schema.ts:154
-          - packages/core/src/types.ts:1
-          - packages/core/src/types.ts:22
-          - packages/core/src/types.ts:26
-          - packages/core/src/types.ts:34
-          - packages/core/src/types.ts:82
-          - packages/core/src/index.ts:8
-          - packages/core/src/index.ts:34
-          - packages/core/src/index.ts:55
-          - packages/core/src/index.ts:58
-          - packages/cli/src/index.ts:15
-          - packages/cli/src/index.ts:21
-          - packages/cli/src/index.ts:146
-          - packages/cli/src/index.ts:149
-          - packages/cli/src/index.ts:152
-          - packages/core/tests/assessmentAdvice.test.ts:28
-          - packages/core/tests/assessmentAdvice.test.ts:60
-          - packages/core/tests/assessmentAdvice.test.ts:89
-          - packages/core/tests/assessmentAdvice.test.ts:116
-          - packages/core/tests/assessmentAdvice.test.ts:176
-          - packages/core/tests/capabilityStatus.test.ts:5
-          - packages/core/tests/capabilityStatus.test.ts:10
-          - packages/core/tests/capabilityStatus.test.ts:19
-          - packages/core/tests/capabilityStatus.test.ts:29
-          - packages/core/tests/capabilityStatus.test.ts:42
-          - packages/core/tests/syncReviewEvidence.test.ts:11
-          - packages/core/tests/syncReviewEvidence.test.ts:61
-          - packages/core/tests/syncReviewEvidence.test.ts:75
-          - packages/core/tests/syncReviewEvidence.test.ts:76
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/syncReviewEvidence.ts:72
+          - packages/core/src/syncReviewEvidence.ts:86
+          - packages/core/src/syncReviewEvidence.ts:88
+          - packages/core/tests/syncReviewEvidence.test.ts:68
+          - packages/core/tests/syncReviewEvidence.test.ts:69
+          - packages/cli/src/index.ts:1160
+        notes: sync-review updates only the agent.review section and the regression test
+          confirms status remains implemented.
       - criterion: Allows accepted advisory findings to be ignored with an explicit
           reason.
-        status: partial
+        status: covered
         evidence:
+          - packages/core/src/assessmentAdvice.ts:155
+          - packages/core/src/assessmentAdvice.ts:169
           - packages/core/src/assessmentAdvice.ts:177
-          - packages/core/src/assessmentAdvice.ts:282
-          - packages/core/src/assessmentAdvice.ts:349
-          - packages/core/src/capabilityStatus.ts:107
-          - packages/core/src/schema.ts:69
-          - packages/core/src/schema.ts:104
-          - packages/core/src/types.ts:60
-          - packages/core/tests/assessmentAdvice.test.ts:157
-          - packages/core/tests/assessmentAdvice.test.ts:175
-          - packages/core/tests/assessmentAdvice.test.ts:178
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/assessmentAdvice.ts:288
+        notes: ignore_findings rules match findings and replace advice with an ignored
+          status that carries the explicit reason.
       - criterion: Keeps the first version deterministic or review-assisted rather than
           silently trusting an AI judgment.
-        status: uncertain
-        evidence: []
-        notes: The criterion is broad or compound, which makes deterministic evidence
-          matching brittle. Split the criterion into smaller observable
-          behaviors, or add more targeted implementation/test references.
-    ignore_findings: []
-    done: false
+        status: covered
+        evidence:
+          - packages/core/src/agentReview.ts:37
+          - packages/core/src/agentReview.ts:38
+          - packages/core/src/agentReview.ts:39
+          - packages/core/src/agentReview.ts:42
+          - packages/core/src/assessmentAdvice.ts:200
+        notes: Agent prompts instruct review agents to inspect code and treat
+          deterministic evidence as a starting point only; advice does not trust
+          deterministic snapshots as confirmation.

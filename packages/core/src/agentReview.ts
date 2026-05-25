@@ -19,6 +19,7 @@ function reviewOutputInstructions(): string {
     "",
     "```json",
     "{",
+    '  "source": "coding-agent",',
     '  "intent_summary": "string",',
     '  "criteria": [',
     "    {",
@@ -33,8 +34,11 @@ function reviewOutputInstructions(): string {
     "}",
     "```",
     "",
+    "Act as a coding agent reviewing the repository, not as a text matcher.",
+    "Inspect the referenced source, tests, and related code paths directly before deciding whether each criterion is implemented.",
+    "Use the deterministic report only as a starting evidence bundle; do not trust it as proof.",
     "Set `done` to true only when every criterion is covered with concrete file-path evidence.",
-    "Use `partial` or `uncertain` when the deterministic report points to possible evidence but semantic coverage is not proven.",
+    "Use `partial` when only part of a behavior is implemented, `uncovered` when the code does not implement it, and `uncertain` only when the repository evidence is insufficient to decide.",
     "Do not change capability status; this review is evidence for a human or policy-controlled acceptance step."
   ].join("\n");
 }

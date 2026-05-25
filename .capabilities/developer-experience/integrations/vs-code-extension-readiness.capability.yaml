@@ -39,34 +39,21 @@ agent:
     ignore_gaps: []
   review:
     depth: partial
-    gaps:
-      - MVP does not include VS Code extension code. Add
-        agent.implementation.references to
-        developer-experience/integrations/vs-code-extension-readiness, or lower
-        the status if this capability is only planned.
-      - Compiled JSON contains enough path and graph data for a future
-        extension. Add agent.implementation.references to
-        developer-experience/integrations/vs-code-extension-readiness, or lower
-        the status if this capability is only planned.
-    evidence: []
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for
-      developer-experience/integrations/vs-code-extension-readiness.
+    source: coding-agent
+    intent_summary: VS Code extension readiness is currently planned. I found no
+      implementation references to inspect, so the acceptance criteria are not
+      implemented yet.
+    done: false
     criteria:
       - criterion: MVP does not include VS Code extension code.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to developer-experience/integrations/vs-code-extension-readiness, or
-          lower the status if this capability is only planned.
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
       - criterion: Compiled JSON contains enough path and graph data for a future
           extension.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to developer-experience/integrations/vs-code-extension-readiness, or
-          lower the status if this capability is only planned.
-    ignore_findings: []
-    done: false
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
+    gaps:
+      - MVP does not include VS Code extension code.
+      - Compiled JSON contains enough path and graph data for a future extension.

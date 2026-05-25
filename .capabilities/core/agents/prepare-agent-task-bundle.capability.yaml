@@ -61,152 +61,76 @@ agent:
     gaps: []
     ignore_gaps: []
   review:
-    depth: partial
-    gaps:
-      - Reads one capability by ID from the configured capability map. Review
-        the cited evidence. If it is correct, save agent.review evidence or make
-        the criterion/reference wording more explicit.
-      - Includes the capability title, status, summary, intent, acceptance
-        criteria, guidance, dependencies, implementation references, and
-        verification checks. Review the cited evidence. If it is correct, save
-        agent.review evidence or make the criterion/reference wording more
-        explicit.
-      - Supports implementation and review task modes. Review the cited
-        evidence. If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-      - Optionally includes the contents of existing implementation reference
-        files. Review the cited evidence. If it is correct, save agent.review
-        evidence or make the criterion/reference wording more explicit.
-      - Reports missing implementation reference files in the bundle instead of
-        failing silently. Review the cited evidence. If it is correct, save
-        agent.review evidence or make the criterion/reference wording more
-        explicit.
-    evidence:
-      - packages/cli/src/index.ts:124
-      - packages/cli/src/index.ts:128
-      - packages/cli/src/index.ts:146
-      - packages/cli/src/index.ts:149
-      - packages/cli/src/index.ts:15
-      - packages/cli/src/index.ts:163
-      - packages/cli/src/index.ts:182
-      - packages/cli/src/index.ts:21
-      - packages/cli/src/index.ts:235
-      - packages/cli/src/index.ts:268
-      - packages/cli/src/index.ts:276
-      - packages/cli/src/index.ts:51
-      - packages/cli/src/index.ts:56
-      - packages/cli/src/index.ts:637
-      - packages/cli/src/index.ts:657
-      - packages/cli/src/index.ts:66
-      - packages/cli/src/index.ts:682
-      - packages/cli/src/index.ts:705
-      - packages/cli/src/index.ts:938
-      - packages/cli/src/index.ts:939
-      - packages/cli/src/index.ts:975
-      - packages/core/src/agentTask.ts:114
-      - packages/core/src/agentTask.ts:157
-      - packages/core/src/agentTask.ts:4
-      - packages/core/src/agentTask.ts:41
-      - packages/core/src/agentTask.ts:6
-      - packages/core/src/agentTask.ts:60
-      - packages/core/src/agentTask.ts:97
-      - packages/core/src/index.ts:19
-      - packages/core/src/index.ts:34
-      - packages/core/src/index.ts:55
-      - packages/core/src/index.ts:8
-      - packages/core/tests/agentTask.test.ts:35
-      - packages/core/tests/agentTask.test.ts:63
-      - packages/core/tests/agentTask.test.ts:71
-      - packages/core/tests/agentTask.test.ts:74
-      - packages/core/tests/agentTask.test.ts:76
-      - packages/core/tests/agentTask.test.ts:83
-      - packages/core/tests/agentTask.test.ts:93
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for core/agents/prepare-agent-task-bundle.
+    depth: verified
+    source: coding-agent
+    intent_summary: Agent task bundle generation is implemented. It loads one
+      capability, renders the declared context and verification data, supports
+      implement/review modes, includes reference contents when requested, and
+      reports missing references.
+    done: true
     criteria:
       - criterion: Reads one capability by ID from the configured capability map.
-        status: partial
+        status: covered
         evidence:
-          - packages/cli/src/index.ts:163
-          - packages/cli/src/index.ts:182
-          - packages/cli/src/index.ts:235
-          - packages/cli/src/index.ts:268
-          - packages/cli/src/index.ts:276
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/agentTask.ts:121
+          - packages/core/src/agentTask.ts:128
+          - packages/core/src/agentTask.ts:129
+          - packages/core/src/agentTask.ts:131
+        notes: buildAgentTaskBundle loads the capability map, finds the requested id,
+          and errors if it is absent.
       - criterion: Includes the capability title, status, summary, intent, acceptance
           criteria, guidance, dependencies, implementation references, and
           verification checks.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/agentTask.ts:4
-          - packages/core/src/agentTask.ts:41
-          - packages/core/src/agentTask.ts:60
-          - packages/core/src/agentTask.ts:97
-          - packages/core/src/agentTask.ts:114
-          - packages/core/src/index.ts:8
-          - packages/core/src/index.ts:19
-          - packages/core/src/index.ts:34
-          - packages/core/src/index.ts:55
-          - packages/cli/src/index.ts:15
-          - packages/cli/src/index.ts:21
-          - packages/cli/src/index.ts:66
-          - packages/cli/src/index.ts:146
-          - packages/cli/src/index.ts:149
-          - packages/core/tests/agentTask.test.ts:83
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/agentTask.ts:111
+          - packages/core/src/agentTask.ts:140
+          - packages/core/src/agentTask.ts:146
+          - packages/core/src/agentTask.ts:147
+          - packages/core/src/agentTask.ts:148
+          - packages/core/src/agentTask.ts:149
+          - packages/core/src/agentTask.ts:152
+          - packages/core/src/agentTask.ts:153
+          - packages/core/src/agentTask.ts:154
+          - packages/core/src/agentTask.ts:155
+        notes: The prompt includes a capability summary plus intent, acceptance,
+          guidance, dependencies, references, automated checks, and manual
+          checks.
       - criterion: Supports implementation and review task modes.
-        status: partial
+        status: covered
         evidence:
           - packages/core/src/agentTask.ts:6
-          - packages/cli/src/index.ts:124
-          - packages/cli/src/index.ts:128
-          - packages/cli/src/index.ts:705
-          - packages/cli/src/index.ts:938
-          - packages/cli/src/index.ts:975
+          - packages/core/src/agentTask.ts:54
+          - packages/core/src/agentTask.ts:55
+          - packages/core/src/agentTask.ts:65
+          - packages/core/src/agentTask.ts:126
           - packages/core/tests/agentTask.test.ts:63
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+        notes: AgentTaskMode allows implement or review, taskInstructions renders
+          distinct instructions, and tests exercise review mode.
       - criterion: Optionally includes the contents of existing implementation reference
           files.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/agentTask.ts:157
-          - packages/cli/src/index.ts:51
-          - packages/cli/src/index.ts:56
-          - packages/cli/src/index.ts:637
-          - packages/cli/src/index.ts:657
-          - packages/cli/src/index.ts:682
-          - packages/core/tests/agentTask.test.ts:35
-          - packages/core/tests/agentTask.test.ts:74
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/agentTask.ts:74
+          - packages/core/src/agentTask.ts:81
+          - packages/core/src/agentTask.ts:91
+          - packages/core/src/agentTask.ts:96
+          - packages/core/src/agentTask.ts:100
+          - packages/core/src/agentTask.ts:106
+          - packages/core/src/agentTask.ts:127
+          - packages/core/tests/agentTask.test.ts:69
+        notes: Reference contents are rendered when includeReferences is true and only
+          paths are rendered when false.
       - criterion: Reports missing implementation reference files in the bundle instead
           of failing silently.
-        status: partial
+        status: covered
         evidence:
-          - packages/cli/src/index.ts:637
-          - packages/cli/src/index.ts:657
-          - packages/cli/src/index.ts:682
-          - packages/cli/src/index.ts:705
-          - packages/cli/src/index.ts:939
-          - packages/core/tests/agentTask.test.ts:71
+          - packages/core/src/agentTask.ts:86
+          - packages/core/src/agentTask.ts:102
+          - packages/core/src/agentTask.ts:138
+          - packages/core/src/agentTask.ts:164
           - packages/core/tests/agentTask.test.ts:74
-          - packages/core/tests/agentTask.test.ts:76
-          - packages/core/tests/agentTask.test.ts:83
-          - packages/core/tests/agentTask.test.ts:93
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
-    ignore_findings: []
-    done: false
+          - packages/core/tests/agentTask.test.ts:95
+          - packages/core/tests/agentTask.test.ts:96
+        notes: Missing references are returned in missingReferences and rendered as
+          Missing or unreadable in the prompt.

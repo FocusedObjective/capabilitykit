@@ -62,71 +62,43 @@ agent:
     ignore_gaps: []
   review:
     depth: partial
-    gaps:
-      - Groups agent-generated capabilities into meaningful area and subarea
-        folders. Add agent.implementation.references to
-        core/discovery/organize-discovered-capability-map, or lower the status
-        if this capability is only planned.
-      - Suggests capability IDs and filenames that are stable, readable, and
-        aligned with the generated folder structure. Add
-        agent.implementation.references to
-        core/discovery/organize-discovered-capability-map, or lower the status
-        if this capability is only planned.
-      - Detects likely dependencies between discovered capabilities when code
-        evidence or workflow relationships support them. Add
-        agent.implementation.references to
-        core/discovery/organize-discovered-capability-map, or lower the status
-        if this capability is only planned.
-      - Provides a summary index of generated areas and top-level capabilities.
-        Add agent.implementation.references to
-        core/discovery/organize-discovered-capability-map, or lower the status
-        if this capability is only planned.
-      - Flags ambiguous grouping decisions for human review instead of hiding
-        them. Add agent.implementation.references to
-        core/discovery/organize-discovered-capability-map, or lower the status
-        if this capability is only planned.
-    evidence: []
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for core/discovery/organize-discovered-capability-map.
+    source: coding-agent
+    intent_summary: Organize discovered capability map is currently planned. I found
+      no implementation references to inspect, so the acceptance criteria are
+      not implemented yet.
+    done: false
     criteria:
       - criterion: Groups agent-generated capabilities into meaningful area and subarea
           folders.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to core/discovery/organize-discovered-capability-map, or lower the
-          status if this capability is only planned.
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
       - criterion: Suggests capability IDs and filenames that are stable, readable, and
           aligned with the generated folder structure.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to core/discovery/organize-discovered-capability-map, or lower the
-          status if this capability is only planned.
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
       - criterion: Detects likely dependencies between discovered capabilities when code
           evidence or workflow relationships support them.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to core/discovery/organize-discovered-capability-map, or lower the
-          status if this capability is only planned.
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
       - criterion: Provides a summary index of generated areas and top-level capabilities.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to core/discovery/organize-discovered-capability-map, or lower the
-          status if this capability is only planned.
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
       - criterion: Flags ambiguous grouping decisions for human review instead of hiding
           them.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to core/discovery/organize-discovered-capability-map, or lower the
-          status if this capability is only planned.
-    ignore_findings: []
-    done: false
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
+    gaps:
+      - Groups agent-generated capabilities into meaningful area and subarea
+        folders.
+      - Suggests capability IDs and filenames that are stable, readable, and
+        aligned with the generated folder structure.
+      - Detects likely dependencies between discovered capabilities when code
+        evidence or workflow relationships support them.
+      - Provides a summary index of generated areas and top-level capabilities.
+      - Flags ambiguous grouping decisions for human review instead of hiding
+        them.

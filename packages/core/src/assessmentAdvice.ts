@@ -1,7 +1,7 @@
 import { assessImplementationCoverage, type AcceptanceCriterionCoverage } from "./assessImplementationCoverage.js";
 import { loadCapabilities } from "./loadCapabilities.js";
 import { validateLoadedCapabilities } from "./validateCapabilities.js";
-import type { AgentReviewCriterion, AssessmentFindingIgnore, Capability, VerificationGap } from "./types.js";
+import type { AgentReviewCriterion, AgentReviewSource, AssessmentFindingIgnore, Capability, VerificationGap } from "./types.js";
 
 export type AssessmentAdviceStatus =
   | "covered"
@@ -190,21 +190,27 @@ function evidenceFromReview(evidence: string): AcceptanceCriterionCoverage["evid
 }
 
 function adviceFromSavedReview(
-  review: AgentReviewCriterion | undefined
+  review: AgentReviewCriterion | undefined,
+  source: AgentReviewSource | undefined
 ): Omit<CriterionAssessmentAdvice, "capabilityId" | "title" | "criterion"> | undefined {
   if (!review) {
     return undefined;
   }
 
+  if (source === "deterministic-assessment") {
+    return undefined;
+  }
+
   const evidence = review.evidence.map(evidenceFromReview);
   const notes = review.notes ? ` Notes: ${review.notes}` : "";
+  const reviewer = source === "human" ? "human review" : "coding-agent review";
 
   if (review.status === "covered") {
     return {
       status: "covered",
       confidence: "high",
       action: "none",
-      rationale: `Saved agent.review marks this criterion covered.${notes}`,
+      rationale: `Saved ${reviewer} marks this criterion covered.${notes}`,
       recommendation: "No action needed.",
       evidence
     };
@@ -215,7 +221,7 @@ function adviceFromSavedReview(
       status: "weak-evidence",
       confidence: "high",
       action: "inspect-evidence",
-      rationale: `Saved agent.review marks this criterion partially covered.${notes}`,
+      rationale: `Saved ${reviewer} marks this criterion partially covered.${notes}`,
       recommendation: "Review the saved evidence and resolve the remaining partial coverage before marking this criterion covered.",
       evidence
     };
@@ -226,7 +232,7 @@ function adviceFromSavedReview(
       status: "implementation-gap",
       confidence: "high",
       action: "add-code-or-test",
-      rationale: `Saved agent.review marks this criterion uncovered.${notes}`,
+      rationale: `Saved ${reviewer} marks this criterion uncovered.${notes}`,
       recommendation: "Implement or test this behavior, or update the capability if the criterion no longer reflects intended behavior.",
       evidence
     };
@@ -236,7 +242,7 @@ function adviceFromSavedReview(
     status: "assessor-limitation",
     confidence: "high",
     action: "manual-review",
-    rationale: `Saved agent.review marks this criterion uncertain.${notes}`,
+    rationale: `Saved ${reviewer} marks this criterion uncertain.${notes}`,
     recommendation: "Run a human or Codex review for this criterion, or split the criterion into smaller observable behavior.",
     evidence
   };
@@ -274,7 +280,7 @@ export async function adviseImplementationCoverage(
       references,
       criteria: coverage.criteria.map((criterion) => {
         const savedReview = item.capability.agent?.review?.criteria?.find((review) => review.criterion === criterion.criterion);
-        const savedAdvice = adviceFromSavedReview(savedReview);
+        const savedAdvice = adviceFromSavedReview(savedReview, item.capability.agent?.review?.source);
         const baseAdvice = savedAdvice ?? {
           evidence: criterion.evidence,
           ...classifyCriterion(item.capability, criterion, references)

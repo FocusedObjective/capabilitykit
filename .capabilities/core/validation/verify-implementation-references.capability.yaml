@@ -53,101 +53,34 @@ agent:
     gaps: []
     ignore_gaps: []
   review:
-    depth: partial
-    gaps:
-      - Checks agent.implementation.references for capabilities marked
-        implemented or verified. Review the cited evidence. If it is correct,
-        save agent.review evidence or make the criterion/reference wording more
-        explicit.
-      - Reports a verification gap when a referenced implementation path does
-        not exist. Review the cited evidence. If it is correct, save
-        agent.review evidence or make the criterion/reference wording more
-        explicit.
-      - Does not report a gap for agent.implementation.references values that
-        resolve under the project root. Review the cited evidence. If it is
-        correct, save agent.review evidence or make the criterion/reference
-        wording more explicit.
-    evidence:
-      - packages/core/src/validateCapabilities.ts:107
-      - packages/core/src/validateCapabilities.ts:111
-      - packages/core/src/validateCapabilities.ts:115
-      - packages/core/src/validateCapabilities.ts:153
-      - packages/core/src/validateCapabilities.ts:21
-      - packages/core/src/validateCapabilities.ts:22
-      - packages/core/src/validateCapabilities.ts:25
-      - packages/core/src/validateCapabilities.ts:26
-      - packages/core/src/validateCapabilities.ts:39
-      - packages/core/src/validateCapabilities.ts:64
-      - packages/core/src/validateCapabilities.ts:86
-      - packages/core/tests/validation.test.ts:105
-      - packages/core/tests/validation.test.ts:106
-      - packages/core/tests/validation.test.ts:11
-      - packages/core/tests/validation.test.ts:12
-      - packages/core/tests/validation.test.ts:138
-      - packages/core/tests/validation.test.ts:141
-      - packages/core/tests/validation.test.ts:3
-      - packages/core/tests/validation.test.ts:41
-      - packages/core/tests/validation.test.ts:59
-      - packages/core/tests/validation.test.ts:64
-      - packages/core/tests/validation.test.ts:74
-      - packages/core/tests/validation.test.ts:75
-      - packages/core/tests/validation.test.ts:76
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for core/validation/verify-implementation-references.
+    depth: verified
+    source: coding-agent
+    intent_summary: Coding-agent review confirmed implemented/verified capabilities
+      have implementation reference paths checked under the project root,
+      missing paths become verification gaps, and existing paths are accepted.
+    done: true
     criteria:
       - criterion: Checks agent.implementation.references for capabilities marked
           implemented or verified.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/validateCapabilities.ts:21
-          - packages/core/src/validateCapabilities.ts:22
-          - packages/core/src/validateCapabilities.ts:39
-          - packages/core/src/validateCapabilities.ts:64
-          - packages/core/src/validateCapabilities.ts:86
-          - packages/core/tests/validation.test.ts:3
-          - packages/core/tests/validation.test.ts:12
-          - packages/core/tests/validation.test.ts:41
-          - packages/core/tests/validation.test.ts:59
-          - packages/core/tests/validation.test.ts:74
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/validateCapabilities.ts:118
+          - packages/core/src/validateCapabilities.ts:130
+          - packages/core/src/validateCapabilities.ts:131
+          - packages/core/tests/validation.test.ts:144
       - criterion: Reports a verification gap when a referenced implementation path does
           not exist.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/validateCapabilities.ts:39
-          - packages/core/src/validateCapabilities.ts:107
-          - packages/core/src/validateCapabilities.ts:111
-          - packages/core/src/validateCapabilities.ts:115
-          - packages/core/src/validateCapabilities.ts:153
-          - packages/core/tests/validation.test.ts:11
-          - packages/core/tests/validation.test.ts:64
-          - packages/core/tests/validation.test.ts:74
-          - packages/core/tests/validation.test.ts:75
-          - packages/core/tests/validation.test.ts:76
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/src/validateCapabilities.ts:25
+          - packages/core/src/validateCapabilities.ts:132
+          - packages/core/src/validateCapabilities.ts:136
+          - packages/core/tests/validation.test.ts:163
       - criterion: Does not report a gap for agent.implementation.references values that
           resolve under the project root.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/validateCapabilities.ts:21
-          - packages/core/src/validateCapabilities.ts:22
           - packages/core/src/validateCapabilities.ts:25
-          - packages/core/src/validateCapabilities.ts:26
-          - packages/core/src/validateCapabilities.ts:39
-          - packages/core/tests/validation.test.ts:12
-          - packages/core/tests/validation.test.ts:105
-          - packages/core/tests/validation.test.ts:106
-          - packages/core/tests/validation.test.ts:138
-          - packages/core/tests/validation.test.ts:141
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
-    ignore_findings: []
-    done: false
+          - packages/core/src/validateCapabilities.ts:132
+          - packages/core/tests/validation.test.ts:155
+          - packages/core/tests/validation.test.ts:170

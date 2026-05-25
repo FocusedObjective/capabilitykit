@@ -136,6 +136,7 @@ agent:
       - Review it.
   review:
     depth: verified
+    source: coding-agent
     done: true
     criteria:
       - criterion: Behavior is semantically reviewed.
@@ -151,7 +152,45 @@ agent:
 
     expect(report.summary.statuses.covered).toBe(1);
     expect(report.capabilities[0]?.criteria[0]?.action).toBe("none");
-    expect(report.capabilities[0]?.criteria[0]?.rationale).toContain("Saved agent.review");
+    expect(report.capabilities[0]?.criteria[0]?.rationale).toContain("Saved coding-agent review");
+  });
+
+  it("does not treat synchronized deterministic review evidence as agent confirmation", async () => {
+    const rootDir = await createProject(`
+id: core/example
+title: Example
+status: implemented
+area: core
+summary: Example summary.
+intent: Example intent.
+acceptance:
+  - Reports missing implementation reference files.
+agent:
+  implementation:
+    references:
+      - src/example.ts
+  verification:
+    manual:
+      - Review it.
+  review:
+    depth: partial
+    source: deterministic-assessment
+    done: false
+    criteria:
+      - criterion: Reports missing implementation reference files.
+        status: covered
+        evidence:
+          - src/example.ts:1
+        notes: This is only a deterministic snapshot.
+`);
+    await mkdir(path.join(rootDir, "src"), { recursive: true });
+    await writeFile(path.join(rootDir, "src", "example.ts"), "throw new Error('missing implementation reference');\n");
+
+    const report = await adviseImplementationCoverage(rootDir, "core/example");
+
+    expect(report.summary.statuses.covered).toBe(0);
+    expect(report.summary.statuses["weak-evidence"]).toBe(1);
+    expect(report.capabilities[0]?.criteria[0]?.rationale).toContain("deterministic matching cannot prove");
   });
 
   it("ignores accepted advisory findings from capability metadata", async () => {

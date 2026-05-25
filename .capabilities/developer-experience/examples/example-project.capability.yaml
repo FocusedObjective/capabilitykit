@@ -47,69 +47,30 @@ agent:
     gaps: []
     ignore_gaps: []
   review:
-    depth: partial
-    gaps:
-      - Includes account and checkout capability areas. Review the cited
-        evidence. If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-      - Example files include agent.verification sections. Review the cited
-        evidence. If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-      - Example files are valid against the MVP schema. Review the cited
-        evidence. If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-    evidence:
-      - examples/basic-app/.capabilities/account/login.capability.yaml:4
-      - examples/basic-app/.capabilities/account/profile.capability.yaml:27
-      - examples/basic-app/.capabilities/account/profile.capability.yaml:4
-      - examples/basic-app/.capabilities/checkout/cart.capability.yaml:4
-      - examples/basic-app/.capabilities/checkout/payment.capability.yaml:4
-      - packages/core/tests/parser.test.ts:100
-      - packages/core/tests/parser.test.ts:101
-      - packages/core/tests/parser.test.ts:102
-      - packages/core/tests/parser.test.ts:103
-      - packages/core/tests/parser.test.ts:110
-      - packages/core/tests/parser.test.ts:89
-      - packages/core/tests/parser.test.ts:98
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for developer-experience/examples/example-project.
+    depth: verified
+    source: coding-agent
+    intent_summary: Coding-agent review confirmed the example app includes account
+      and checkout capability areas, verification sections in example files, and
+      parser tests that validate the example capability files against the
+      schema.
+    done: true
     criteria:
       - criterion: Includes account and checkout capability areas.
-        status: partial
+        status: covered
         evidence:
           - examples/basic-app/.capabilities/account/login.capability.yaml:4
-          - examples/basic-app/.capabilities/account/profile.capability.yaml:4
-          - examples/basic-app/.capabilities/checkout/cart.capability.yaml:4
           - examples/basic-app/.capabilities/checkout/payment.capability.yaml:4
-          - packages/core/tests/parser.test.ts:100
-          - packages/core/tests/parser.test.ts:101
-          - packages/core/tests/parser.test.ts:102
-          - packages/core/tests/parser.test.ts:103
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
+          - packages/core/tests/parser.test.ts:99
       - criterion: Example files include agent.verification sections.
-        status: partial
+        status: covered
         evidence:
-          - examples/basic-app/.capabilities/account/profile.capability.yaml:27
-          - packages/core/tests/parser.test.ts:98
-          - packages/core/tests/parser.test.ts:101
+          - examples/basic-app/.capabilities/account/login.capability.yaml:20
+          - examples/basic-app/.capabilities/checkout/payment.capability.yaml:21
           - packages/core/tests/parser.test.ts:110
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
       - criterion: Example files are valid against the MVP schema.
-        status: partial
+        status: covered
         evidence:
-          - examples/basic-app/.capabilities/account/profile.capability.yaml:27
-          - packages/core/tests/parser.test.ts:89
           - packages/core/tests/parser.test.ts:98
-          - packages/core/tests/parser.test.ts:101
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
-    ignore_findings: []
-    done: false
+          - packages/core/tests/parser.test.ts:106
+          - packages/core/tests/parser.test.ts:108
+          - packages/core/tests/parser.test.ts:109

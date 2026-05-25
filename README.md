@@ -36,15 +36,15 @@ npm run capabilitykit -- impact core/graph/compile-capabilities
 
 `impact` traverses explicit `agent.depends_on` relationships to show direct and transitive dependents. A small edit to a foundational capability can affect agent handoff, diff reporting, CLI behavior, and verification commands; the graph makes that visible before review narrows too early.
 
-## Dependency Graph
+## Dependency Viewer
 
-CapabilityKit can generate a self-contained SVG dependency graph:
+CapabilityKit can generate a self-contained HTML dependency viewer with a side panel and SVG fallback:
 
 ```bash
-npm run capabilitykit -- graph
+npm run capabilitykit -- graph-viewer
 ```
 
-The default local output is `.capabilities/dependency-graph.svg`. The website deploy publishes a browser-openable copy at [capabilitykit.com/dependency-graph.svg](https://capabilitykit.com/dependency-graph.svg) for the animated layout, dragging, highlighting, zoom, and spacing controls.
+The default local outputs are `.capabilities/dependency-viewer.html` and `.capabilities/dependency-graph.svg`. The website embeds the published viewer on the home page and keeps a browser-openable SVG copy at [capabilitykit.com/dependency-graph.svg](https://capabilitykit.com/dependency-graph.svg).
 
 ## What A Capability Captures
 
@@ -167,6 +167,7 @@ capabilitykit compile
 - `capabilitykit advise [capability-id]` groups assessment findings into recommended next actions.
 - `capabilitykit impact <capability-id>` reports direct and transitive downstream capabilities plus suggested verification.
 - `capabilitykit graph` writes an interactive SVG dependency graph to `.capabilities/dependency-graph.svg`.
+- `capabilitykit graph-viewer` writes the richer HTML dependency viewer and SVG fallback.
 - `capabilitykit validate` validates capability files and reports verification gaps.
 - `capabilitykit compile` writes normalized JSON to `.capabilities/dist/capabilities.json`.
 - `capabilitykit inspect <capability-id>` prints one capability and its relationships.

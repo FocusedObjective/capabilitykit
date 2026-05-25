@@ -38,6 +38,7 @@ const assessmentFindingIgnoreSchema = z.object({
 });
 
 const agentReviewCriterionStatusSchema = z.enum(["covered", "partial", "uncovered", "uncertain"]);
+const agentReviewSourceSchema = z.enum(["coding-agent", "human", "deterministic-assessment"]);
 
 const agentReviewCriterionSchema = z.object({
   criterion: nonEmptyString,
@@ -62,6 +63,7 @@ type AgentSection = {
   };
   review?: {
     depth?: "none" | "referenced" | "partial" | "behavioral" | "tested" | "verified" | "unknown";
+    source?: z.infer<typeof agentReviewSourceSchema>;
     gaps?: string[];
     evidence?: string[];
     intent_summary?: string;
@@ -97,6 +99,7 @@ const agentSectionSchema = z
     review: z
       .object({
         depth: z.enum(["none", "referenced", "partial", "behavioral", "tested", "verified", "unknown"]).optional(),
+        source: agentReviewSourceSchema.optional(),
         gaps: z.array(nonEmptyString).optional().default([]),
         evidence: z.array(nonEmptyString).optional().default([]),
         intent_summary: nonEmptyString.optional(),

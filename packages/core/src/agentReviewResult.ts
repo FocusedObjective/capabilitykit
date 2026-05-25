@@ -8,8 +8,10 @@ import { setAgentSectionComment } from "./agentSectionComment.js";
 import type { AgentReviewCriterion, Capability } from "./types.js";
 
 const reviewStatusSchema = z.enum(["covered", "partial", "uncovered", "uncertain"]);
+const reviewSourceSchema = z.enum(["coding-agent", "human", "deterministic-assessment"]);
 
 const reviewResultSchema = z.object({
+  source: reviewSourceSchema.optional().default("coding-agent"),
   intent_summary: z.string().trim().min(1),
   criteria: z.array(
     z.object({
@@ -168,8 +170,13 @@ export async function validateAgentReviewResult(
   };
 }
 
-function reviewEvidence(criteria: AgentReviewCriterion[]): string[] {
-  return Array.from(new Set(criteria.flatMap((criterion) => criterion.evidence)));
+function pruneEmptyReviewCriterion(criterion: AgentReviewCriterion): Record<string, unknown> {
+  return {
+    criterion: criterion.criterion,
+    status: criterion.status,
+    ...(criterion.evidence.length > 0 ? { evidence: criterion.evidence } : {}),
+    ...(criterion.notes ? { notes: criterion.notes } : {})
+  };
 }
 
 export async function saveAgentReviewResult(
@@ -195,11 +202,11 @@ export async function saveAgentReviewResult(
   const document = parseDocument(await fs.readFile(match.filePath, "utf8"));
   document.setIn(["agent", "review"], {
     depth: validation.depth,
+    source: validation.review.source,
     intent_summary: validation.review.intent_summary,
     done: validation.review.done,
-    criteria: validation.review.criteria,
-    evidence: reviewEvidence(validation.review.criteria),
-    gaps: validation.review.remaining_gaps
+    criteria: validation.review.criteria.map(pruneEmptyReviewCriterion),
+    ...(validation.review.remaining_gaps.length > 0 ? { gaps: validation.review.remaining_gaps } : {})
   });
 
   setAgentSectionComment(document, agentMetadataCommentLines(capabilityId));

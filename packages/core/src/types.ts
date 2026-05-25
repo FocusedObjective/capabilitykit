@@ -20,6 +20,7 @@ export interface AssessmentFindingIgnore {
 }
 
 export type AgentReviewCriterionStatus = "covered" | "partial" | "uncovered" | "uncertain";
+export type AgentReviewSource = "coding-agent" | "human" | "deterministic-assessment";
 
 export interface AgentReviewCriterion {
   criterion: string;
@@ -53,6 +54,7 @@ export interface Capability {
     };
     review?: {
       depth?: "none" | "referenced" | "partial" | "behavioral" | "tested" | "verified" | "unknown";
+      source?: AgentReviewSource;
       gaps?: string[];
       evidence?: string[];
       intent_summary?: string;

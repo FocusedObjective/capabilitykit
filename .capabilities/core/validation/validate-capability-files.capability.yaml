@@ -57,185 +57,42 @@ agent:
     gaps: []
     ignore_gaps: []
   review:
-    depth: partial
-    gaps:
-      - Reports YAML and schema errors with file paths. Review the cited
-        evidence. If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-      - Detects duplicate capability IDs. Review the cited evidence. If it is
-        correct, save agent.review evidence or make the criterion/reference
-        wording more explicit.
-      - Detects broken agent.depends_on references. Review the cited evidence.
-        If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-      - Reports missing automated checks, missing manual review guidance, and
-        missing agent.implementation.references values. Review the cited
-        evidence. If it is correct, save agent.review evidence or make the
-        criterion/reference wording more explicit.
-    evidence:
-      - packages/cli/src/index.ts:124
-      - packages/cli/src/index.ts:128
-      - packages/cli/src/index.ts:131
-      - packages/cli/src/index.ts:135
-      - packages/cli/src/index.ts:163
-      - packages/cli/src/index.ts:182
-      - packages/cli/src/index.ts:194
-      - packages/cli/src/index.ts:225
-      - packages/cli/src/index.ts:235
-      - packages/cli/src/index.ts:294
-      - packages/cli/src/index.ts:295
-      - packages/cli/src/index.ts:325
-      - packages/cli/src/index.ts:53
-      - packages/cli/src/index.ts:657
-      - packages/cli/src/index.ts:684
-      - packages/cli/src/index.ts:705
-      - packages/cli/src/index.ts:80
-      - packages/core/src/loadCapabilities.ts:79
-      - packages/core/src/loadCapabilities.ts:90
-      - packages/core/src/parseCapability.ts:32
-      - packages/core/src/parseCapability.ts:56
-      - packages/core/src/schema.ts:126
-      - packages/core/src/schema.ts:131
-      - packages/core/src/schema.ts:143
-      - packages/core/src/schema.ts:154
-      - packages/core/src/schema.ts:165
-      - packages/core/src/schema.ts:166
-      - packages/core/src/schema.ts:52
-      - packages/core/src/schema.ts:58
-      - packages/core/src/schema.ts:82
-      - packages/core/src/schema.ts:91
-      - packages/core/src/validateCapabilities.ts:102
-      - packages/core/src/validateCapabilities.ts:107
-      - packages/core/src/validateCapabilities.ts:111
-      - packages/core/src/validateCapabilities.ts:119
-      - packages/core/src/validateCapabilities.ts:21
-      - packages/core/src/validateCapabilities.ts:22
-      - packages/core/src/validateCapabilities.ts:62
-      - packages/core/src/validateCapabilities.ts:65
-      - packages/core/src/validateCapabilities.ts:67
-      - packages/core/src/validateCapabilities.ts:74
-      - packages/core/src/validateCapabilities.ts:75
-      - packages/core/src/validateCapabilities.ts:86
-      - packages/core/src/validateCapabilities.ts:89
-      - packages/core/src/validateCapabilities.ts:90
-      - packages/core/tests/parser.test.ts:101
-      - packages/core/tests/parser.test.ts:66
-      - packages/core/tests/parser.test.ts:76
-      - packages/core/tests/parser.test.ts:80
-      - packages/core/tests/parser.test.ts:95
-      - packages/core/tests/validation.test.ts:12
-      - packages/core/tests/validation.test.ts:141
-      - packages/core/tests/validation.test.ts:20
-      - packages/core/tests/validation.test.ts:52
-      - packages/core/tests/validation.test.ts:55
-      - packages/core/tests/validation.test.ts:58
-      - packages/core/tests/validation.test.ts:59
-      - packages/core/tests/validation.test.ts:61
-      - packages/core/tests/validation.test.ts:68
-      - packages/core/tests/validation.test.ts:74
-      - packages/core/tests/validation.test.ts:75
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for core/validation/validate-capability-files.
+    depth: verified
+    source: coding-agent
+    intent_summary: Coding-agent review confirmed capability validation reports
+      parse/schema errors with paths, detects duplicate IDs and broken
+      dependencies, and surfaces verification/reference gaps through core
+      validation and the CLI.
+    done: true
     criteria:
       - criterion: Reports YAML and schema errors with file paths.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/parseCapability.ts:32
-          - packages/core/src/parseCapability.ts:56
-          - packages/core/src/loadCapabilities.ts:79
-          - packages/core/src/loadCapabilities.ts:90
-          - packages/cli/src/index.ts:53
-          - packages/cli/src/index.ts:80
-          - packages/cli/src/index.ts:135
-          - packages/cli/src/index.ts:295
-          - packages/cli/src/index.ts:684
+          - packages/core/src/parseCapability.ts:30
+          - packages/core/src/parseCapability.ts:31
+          - packages/core/src/parseCapability.ts:53
+          - packages/core/src/loadCapabilities.ts:157
           - packages/core/tests/parser.test.ts:80
-          - packages/core/tests/parser.test.ts:95
-          - packages/core/tests/parser.test.ts:101
-          - packages/core/tests/validation.test.ts:20
-          - packages/core/tests/validation.test.ts:55
-          - packages/core/tests/validation.test.ts:61
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
       - criterion: Detects duplicate capability IDs.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/schema.ts:154
           - packages/core/src/validateCapabilities.ts:62
-          - packages/core/src/validateCapabilities.ts:65
-          - packages/core/src/validateCapabilities.ts:67
+          - packages/core/src/validateCapabilities.ts:70
           - packages/core/src/validateCapabilities.ts:74
-          - packages/core/src/validateCapabilities.ts:75
-          - packages/cli/src/index.ts:163
-          - packages/cli/src/index.ts:182
-          - packages/cli/src/index.ts:235
-          - packages/cli/src/index.ts:325
-          - packages/cli/src/index.ts:705
           - packages/core/tests/validation.test.ts:52
-          - packages/core/tests/validation.test.ts:55
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
       - criterion: Detects broken agent.depends_on references.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/schema.ts:52
-          - packages/core/src/schema.ts:82
-          - packages/core/src/schema.ts:126
-          - packages/core/src/schema.ts:165
-          - packages/core/src/schema.ts:166
-          - packages/core/src/validateCapabilities.ts:22
           - packages/core/src/validateCapabilities.ts:86
+          - packages/core/src/validateCapabilities.ts:87
           - packages/core/src/validateCapabilities.ts:89
-          - packages/core/src/validateCapabilities.ts:90
-          - packages/core/src/validateCapabilities.ts:119
-          - packages/cli/src/index.ts:194
-          - packages/cli/src/index.ts:225
-          - packages/cli/src/index.ts:294
-          - packages/cli/src/index.ts:295
-          - packages/cli/src/index.ts:657
-          - packages/core/tests/parser.test.ts:76
-          - packages/core/tests/validation.test.ts:12
           - packages/core/tests/validation.test.ts:58
-          - packages/core/tests/validation.test.ts:59
-          - packages/core/tests/validation.test.ts:61
-          - packages/core/tests/validation.test.ts:141
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
       - criterion: Reports missing automated checks, missing manual review guidance, and
           missing agent.implementation.references values.
-        status: partial
+        status: covered
         evidence:
-          - packages/core/src/schema.ts:58
-          - packages/core/src/schema.ts:91
-          - packages/core/src/schema.ts:131
-          - packages/core/src/schema.ts:143
-          - packages/core/src/schema.ts:154
-          - packages/core/src/validateCapabilities.ts:21
-          - packages/core/src/validateCapabilities.ts:22
-          - packages/core/src/validateCapabilities.ts:102
-          - packages/core/src/validateCapabilities.ts:107
-          - packages/core/src/validateCapabilities.ts:111
-          - packages/cli/src/index.ts:124
-          - packages/cli/src/index.ts:128
-          - packages/cli/src/index.ts:131
-          - packages/cli/src/index.ts:135
-          - packages/cli/src/index.ts:182
-          - packages/core/tests/parser.test.ts:66
-          - packages/core/tests/parser.test.ts:76
-          - packages/core/tests/validation.test.ts:12
-          - packages/core/tests/validation.test.ts:59
-          - packages/core/tests/validation.test.ts:68
-          - packages/core/tests/validation.test.ts:74
-          - packages/core/tests/validation.test.ts:75
-        notes: Related implementation text was found, but deterministic matching cannot
-          prove the behavior. Review the cited evidence. If it is correct, save
-          agent.review evidence or make the criterion/reference wording more
-          explicit.
-    ignore_findings: []
-    done: false
+          - packages/core/src/validateCapabilities.ts:106
+          - packages/core/src/validateCapabilities.ts:110
+          - packages/core/src/validateCapabilities.ts:121
+          - packages/core/tests/validation.test.ts:64
+          - packages/core/tests/validation.test.ts:138

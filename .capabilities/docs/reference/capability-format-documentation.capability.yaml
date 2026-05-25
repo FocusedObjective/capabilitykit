@@ -45,21 +45,35 @@ agent:
     ignore_gaps: []
   review:
     depth: verified
-    gaps: []
-    evidence:
-      - README.md:221
-      - README.md:49
-      - README.md:5
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for docs/reference/capability-format-documentation.
+    source: coding-agent
+    intent_summary: Coding-agent review confirmed the README documents what
+      capabilities are, shows a YAML example, explains verification gaps, and
+      describes the file path to capability ID hierarchy convention.
+    done: true
     criteria:
       - criterion: README explains what a capability is.
         status: covered
         evidence:
-          - README.md:5
           - README.md:49
-          - README.md:221
-        notes: The criterion text appears directly in referenced implementation
-          evidence. No action needed.
-    ignore_findings: []
-    done: true
+          - README.md:51
+          - README.md:85
+      - criterion: README includes an example capability file.
+        status: covered
+        evidence:
+          - README.md:53
+          - README.md:54
+          - README.md:83
+      - criterion: README explains verification gaps.
+        status: covered
+        evidence:
+          - README.md:195
+          - README.md:197
+          - README.md:201
+          - README.md:203
+      - criterion: README explains how folder hierarchy and capability IDs should align.
+        status: covered
+        evidence:
+          - README.md:179
+          - README.md:181
+          - README.md:183
+          - README.md:193

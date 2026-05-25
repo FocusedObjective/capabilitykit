@@ -68,9 +68,11 @@ describe("syncReviewEvidence", () => {
     expect(result.results[0]?.changed).toBe(true);
     expect(parsed.status).toBe("implemented");
     expect(parsed.agent.review.depth).toBe("partial");
+    expect(parsed.agent.review.source).toBe("deterministic-assessment");
     expect(parsed.agent.review.done).toBe(false);
     expect(parsed.agent.review.criteria).toHaveLength(2);
     expect(parsed.agent.review.gaps.length).toBeGreaterThan(0);
+    expect(parsed.agent.review.evidence).toBeUndefined();
     expect(source).toContain("# machine managed agent metadata");
     expect(source).toContain("# refresh all review evidence: capabilitykit sync-review");
     expect(source).toContain("# refresh this review evidence: capabilitykit sync-review core/example");

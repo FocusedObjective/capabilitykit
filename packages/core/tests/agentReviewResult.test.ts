@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import YAML from "yaml";
 import { saveAgentReviewResult, validateAgentReviewResult } from "../src/agentReviewResult.js";
 import { loadCapabilities } from "../src/loadCapabilities.js";
 
@@ -126,8 +127,12 @@ describe("agent review results", () => {
 
     expect(result.validation.valid).toBe(true);
     const source = await readFile(path.join(rootDir, ".capabilities", "core", "example.capability.yaml"), "utf8");
+    const parsed = YAML.parse(source);
     expect(source).toContain("review:");
     expect(source).toContain("depth: verified");
+    expect(source).toContain("source: coding-agent");
+    expect(parsed.agent.review.evidence).toBeUndefined();
+    expect(parsed.agent.review.gaps).toBeUndefined();
     expect(source).toContain("status: implemented");
     expect(source).toContain("intent_summary: The capability proves review result ingestion.");
     expect(source).toContain("# machine managed agent metadata");

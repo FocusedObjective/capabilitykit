@@ -66,85 +66,53 @@ agent:
     ignore_gaps: []
   review:
     depth: partial
-    gaps:
-      - Converts selected agent-discovered capability candidates into valid
-        capability files. Add agent.implementation.references to
-        core/discovery/generate-draft-capability-files, or lower the status if
-        this capability is only planned.
-      - Writes files under a neat area and subfolder structure that reflects the
-        application's domains and workflows. Add agent.implementation.references
-        to core/discovery/generate-draft-capability-files, or lower the status
-        if this capability is only planned.
-      - Populates title, status, area, summary, intent, acceptance criteria,
-        implementation references, and verification placeholders. Add
-        agent.implementation.references to
-        core/discovery/generate-draft-capability-files, or lower the status if
-        this capability is only planned.
-      - Requires every generated capability to include concrete implementation
-        references from code inspection, not only documentation or package
-        metadata. Add agent.implementation.references to
-        core/discovery/generate-draft-capability-files, or lower the status if
-        this capability is only planned.
-      - Uses planned or needs-review status for generated files instead of
-        claiming implementation is verified. Add agent.implementation.references
-        to core/discovery/generate-draft-capability-files, or lower the status
-        if this capability is only planned.
-      - Refuses to overwrite existing capability files unless force is
-        requested. Add agent.implementation.references to
-        core/discovery/generate-draft-capability-files, or lower the status if
-        this capability is only planned.
-    evidence: []
-    intent_summary: Implementation evidence synchronized from deterministic
-      assessment for core/discovery/generate-draft-capability-files.
+    source: coding-agent
+    intent_summary: Generate draft capability files is currently planned. I found no
+      implementation references to inspect, so the acceptance criteria are not
+      implemented yet.
+    done: false
     criteria:
       - criterion: Converts selected agent-discovered capability candidates into valid
           capability files.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to core/discovery/generate-draft-capability-files, or lower the status
-          if this capability is only planned.
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
       - criterion: Writes files under a neat area and subfolder structure that reflects
           the application's domains and workflows.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to core/discovery/generate-draft-capability-files, or lower the status
-          if this capability is only planned.
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
       - criterion: Populates title, status, area, summary, intent, acceptance criteria,
           implementation references, and verification placeholders.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to core/discovery/generate-draft-capability-files, or lower the status
-          if this capability is only planned.
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
       - criterion: Requires every generated capability to include concrete
           implementation references from code inspection, not only documentation
           or package metadata.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to core/discovery/generate-draft-capability-files, or lower the status
-          if this capability is only planned.
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
       - criterion: Uses planned or needs-review status for generated files instead of
           claiming implementation is verified.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to core/discovery/generate-draft-capability-files, or lower the status
-          if this capability is only planned.
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
       - criterion: Refuses to overwrite existing capability files unless force is
           requested.
         status: uncovered
-        evidence: []
-        notes: The capability has no agent.implementation.references, so the assessor
-          has no concrete files to inspect. Add agent.implementation.references
-          to core/discovery/generate-draft-capability-files, or lower the status
-          if this capability is only planned.
-    ignore_findings: []
-    done: false
+        notes: Capability status is planned and no agent.implementation.references are
+          declared.
+    gaps:
+      - Converts selected agent-discovered capability candidates into valid
+        capability files.
+      - Writes files under a neat area and subfolder structure that reflects the
+        application's domains and workflows.
+      - Populates title, status, area, summary, intent, acceptance criteria,
+        implementation references, and verification placeholders.
+      - Requires every generated capability to include concrete implementation
+        references from code inspection, not only documentation or package
+        metadata.
+      - Uses planned or needs-review status for generated files instead of
+        claiming implementation is verified.
+      - Refuses to overwrite existing capability files unless force is requested.
