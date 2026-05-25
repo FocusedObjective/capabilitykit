@@ -1,0 +1,34 @@
+title: Model capability story-map metadata
+status: planned
+summary: Add optional planning metadata to capability specs so teams can represent Jeff Patton style story maps and release slices without changing capability identity.
+intent: Make story-map planning first-class in CapabilityKit by storing backbone, step, and release slicing in YAML while keeping path-derived area and id stable.
+acceptance:
+  - Capability format supports an optional planning.story_map object for each capability.
+  - Story-map metadata can represent backbone activity, user step, release target, and optional ordering.
+  - Planning metadata is human-authored and does not require renaming or moving capability files between releases.
+  - Validation emits clear errors for invalid story_map shapes and release values when configured.
+guidance:
+  - Treat planning.story_map as the canonical source of roadmap slicing.
+  - Keep release values constrained and project-configurable.
+  - Avoid encoding release phase in capability file paths.
+  - Preserve backward compatibility for capabilities that omit planning metadata.
+agent:
+  inputs:
+    - .capabilities/**/*.capability.yaml
+    - packages/core/src/schema.ts
+    - packages/core/src/types.ts
+  outputs:
+    - Updated schema and types for optional planning metadata
+    - Validation behavior documentation for story-map metadata
+  implementation:
+    references: []
+    inferred_from: []
+  verification:
+    automated:
+      - id: schema-story-map-tests
+        description: Unit tests validate accepted and rejected planning.story_map examples.
+        command: npm test
+    manual:
+      - Run capabilitykit validate and inspect a sample capability using planning.story_map.
+    gaps: []
+    ignore_gaps: []
