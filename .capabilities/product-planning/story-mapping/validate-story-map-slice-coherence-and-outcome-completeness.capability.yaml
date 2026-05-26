@@ -1,0 +1,49 @@
+title: Validate story-map slice coherence and outcome completeness
+status: planned
+summary: Add story-map checks that determine whether a recommended release slice
+  represents a meaningful end-to-end user and business outcome.
+intent: Move beyond metadata-based slice ordering by validating whether selected
+  capabilities form a coherent narrative path that users can complete and teams
+  can explain as an outcome.
+acceptance:
+  - CapabilityKit can evaluate a recommended slice for end-to-end coherence
+    across the mapped backbone activities.
+  - Slice validation can distinguish metadata coverage from a meaningful user
+    outcome that can be completed inside the slice.
+  - Validation results identify missing, weak, or disconnected steps that
+    prevent the slice from being a coherent walking skeleton.
+  - Story-map reports can explain why a slice is coherent or not without
+    mutating capability identity, status, or release assignment.
+  - Validation remains deterministic when based only on declared metadata and
+    clearly reports when human review or richer outcome metadata is needed.
+guidance:
+  - Prefer explicit outcome metadata or conservative deterministic rules over
+    pretending backbone coverage alone proves coherence.
+  - Keep validation separate from ordering so teams can still use provisional
+    delivery recommendations while improving metadata quality.
+  - Make uncertainty visible when CapabilityKit lacks enough information to
+    judge real user outcome completeness.
+planning:
+  story_map:
+    backbone: Story mapping
+    step: Validate slice coherence
+    release: story-mapping
+    order: 50
+#
+#
+agent:
+  # -----------------------------
+  # machine managed agent metadata
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review product-planning/story-mapping/validate-story-map-slice-coherence-and-outcome-completeness
+  # run deterministic review only: capabilitykit review product-planning/story-mapping/validate-story-map-slice-coherence-and-outcome-completeness --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review product-planning/story-mapping/validate-story-map-slice-coherence-and-outcome-completeness --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result product-planning/story-mapping/validate-story-map-slice-coherence-and-outcome-completeness --input review.json
+  # -----------------------------
+  depends_on:
+    - product-planning/story-mapping/recommend-story-map-slice-order-and-delivery-strategy
+    - product-planning/story-mapping/strengthen-story-map-presentation-and-readability
+  verification:
+    gaps:
+      - Slice coherence validation needs an explicit outcome model or
+        conservative deterministic rules before implementation starts.

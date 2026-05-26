@@ -38,17 +38,20 @@ function report(): CapabilityStatusReport {
   const mappedB = capability("core/b", "implemented", "ok", {
     release: "mvp",
     backbone: "Browse",
-    step: "Search"
+    step: "Search",
+    order: 20
   });
   const mappedA = capability("core/a", "planned", "planned", {
     release: "mvp",
     backbone: "Browse",
-    step: "Search"
+    step: "Search",
+    order: 10
   });
   const mappedV2 = capability("core/v2", "planned", "planned", {
     release: "v2",
     backbone: "Checkout",
-    step: "Pay"
+    step: "Pay",
+    order: 10
   });
   const unassigned = capability("core/unassigned", "planned", "planned");
 
@@ -57,8 +60,30 @@ function report(): CapabilityStatusReport {
     capabilities: [mappedB, mappedA, mappedV2, unassigned],
     byStoryMap: {
       releases: [
-        { release: "mvp", capabilities: [mappedB, mappedA] },
-        { release: "v2", capabilities: [mappedV2] }
+        {
+          release: "mvp",
+          capabilities: [mappedB, mappedA],
+          deliveryStrategy: {
+            release: "mvp",
+            recommendations: [
+              {
+                order: 1,
+                phase: "opening",
+                name: "Walking skeleton",
+                capabilityIds: ["core/a", "core/b"],
+                releaseStrategy: "Prove one coherent end-to-end slice before deepening individual steps.",
+                developmentStrategy: "Integrate the earliest capability from each backbone first.",
+                riskIntent: "core/a has normal delivery risk; core/b has normal delivery risk",
+                learningIntent: "Validate whether stakeholders can recognize the outcome.",
+                backboneCoverage: ["Browse"],
+                missingBackbones: ["Checkout"],
+                stepCoverageGaps: ["Checkout > Pay"],
+                rationale: "Starts with one step from each mapped backbone: Browse."
+              }
+            ]
+          }
+        },
+        { release: "v2", capabilities: [mappedV2], deliveryStrategy: { release: "v2", recommendations: [] } }
       ],
       unassigned: [unassigned]
     },
@@ -110,5 +135,30 @@ describe("story-map status output", () => {
     expect(html).toContain('"release":"mvp"');
     expect(html).toContain('"capabilityId":"core/unassigned"');
     expect(html).toContain("Search capabilities");
+  });
+
+  it("can include release and development strategy recommendations", () => {
+    const output = formatStoryMapStatusReport(report(), { recommendOrder: true });
+
+    expect(output).toContain("Recommended delivery strategy:");
+    expect(output).toContain("1. opening: Walking skeleton");
+    expect(output).toContain("Release: Prove one coherent end-to-end slice");
+    expect(output).toContain("Development: Integrate the earliest capability");
+    expect(output).toContain("Capabilities: core/a, core/b");
+    expect(output).toContain("Backbone coverage: Browse");
+    expect(output).toContain("Missing backbones: Checkout");
+    expect(output).toContain("Step coverage gaps: Checkout > Pay");
+  });
+
+  it("renders selected-release recommendations with coverage rationale", () => {
+    const filtered = filterStatusReportByRelease(report(), "mvp");
+    const output = formatStoryMapStatusReport(filtered, { recommendOrder: true });
+
+    expect(output).toContain("Release: mvp");
+    expect(output).not.toContain("Release: v2");
+    expect(output).toContain("Recommended delivery strategy:");
+    expect(output).toContain("Backbone coverage: Browse");
+    expect(output).toContain("Missing backbones: Checkout");
+    expect(output).toContain("Step coverage gaps: Checkout > Pay");
   });
 });

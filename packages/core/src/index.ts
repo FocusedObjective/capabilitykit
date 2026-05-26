@@ -31,7 +31,16 @@ export type {
 } from "./assessmentAdvice.js";
 export type { AgentReviewPrompt, AgentReviewPromptOptions } from "./agentReview.js";
 export type { CapabilityDiffEntry, CapabilityDiffKind, CapabilityDiffReport, CapabilityFieldDiff } from "./capabilityDiff.js";
-export type { CapabilityHealth, CapabilityStatusReport, CapabilityStatusSummary } from "./capabilityStatus.js";
+export type {
+  CapabilityHealth,
+  CapabilityStatusReport,
+  CapabilityStatusSummary,
+  StoryMapDeliveryPhase,
+  StoryMapDeliveryStrategy,
+  StoryMapGroup,
+  StoryMapReleaseReport,
+  StoryMapSliceRecommendation
+} from "./capabilityStatus.js";
 export type {
   AgentReviewValidationIssue,
   ParsedAgentReviewResult,

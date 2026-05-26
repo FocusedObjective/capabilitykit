@@ -1620,23 +1620,29 @@ program
   .option("--json", "print the status report as JSON")
   .option("--story-map", "group status output by story-map release, backbone, and step")
   .option("--release <release>", "limit status output to one story-map release")
-  .action(async (capabilityId: string | undefined, options: { json?: boolean; storyMap?: boolean; release?: string }) => {
-    let report = await summarizeCapabilityStatus(process.cwd(), capabilityId);
-    if (options.release) {
-      report = filterStatusReportByRelease(report, options.release);
-    }
-    if (options.json) {
-      console.log(JSON.stringify(report, null, 2));
-      return;
-    }
+  .option("--recommend-order", "include story-map slice ordering and delivery strategy recommendations")
+  .action(
+    async (
+      capabilityId: string | undefined,
+      options: { json?: boolean; storyMap?: boolean; release?: string; recommendOrder?: boolean }
+    ) => {
+      let report = await summarizeCapabilityStatus(process.cwd(), capabilityId);
+      if (options.release) {
+        report = filterStatusReportByRelease(report, options.release);
+      }
+      if (options.json) {
+        console.log(JSON.stringify(report, null, 2));
+        return;
+      }
 
-    if (options.storyMap) {
-      console.log(formatStoryMapStatusReport(report));
-      return;
-    }
+      if (options.storyMap) {
+        console.log(formatStoryMapStatusReport(report, { recommendOrder: options.recommendOrder }));
+        return;
+      }
 
-    console.log(formatCapabilityStatusReport(report));
-  });
+      console.log(formatCapabilityStatusReport(report));
+    }
+  );
 
 program
   .command("validate")

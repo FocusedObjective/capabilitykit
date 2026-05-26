@@ -1,5 +1,5 @@
 title: Recommend story-map slice ordering and delivery strategy
-status: planned
+status: implemented
 summary: Add explicit guidance and machine-readable recommendations for ordering
   story-map slices so teams deliver coherent end-to-end value earlier.
 intent: Help teams move from static map structure to actionable release strategy
@@ -7,7 +7,7 @@ intent: Help teams move from static map structure to actionable release strategy
   layers tied to outcomes and risk.
 acceptance:
   - CapabilityKit can derive a recommended slice order from story-map metadata
-    that starts with a coherent walking skeleton across major backbone
+    that starts with a walking-skeleton candidate across mapped backbone
     activities.
   - Recommendations can distinguish release strategy from development strategy,
     including opening, mid-game, and end-game delivery phases.
@@ -20,8 +20,8 @@ acceptance:
 guidance:
   - Prefer thin horizontal slices that span the narrative left-to-right flow
     before deepening any single step.
-  - Validate slice coherence by checking whether a user can complete a
-    meaningful end-to-end outcome inside each slice.
+  - Treat ordering recommendations as provisional until slice coherence can be
+    validated by dedicated outcome-completeness checks.
   - Encourage naming each slice by user and business outcome to support roadmap
     communication.
 planning:
@@ -30,3 +30,132 @@ planning:
     step: Recommend slice ordering
     release: story-mapping
     order: 30
+#
+#
+agent:
+  # -----------------------------
+  # machine managed agent metadata
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review product-planning/story-mapping/recommend-story-map-slice-order-and-delivery-strategy
+  # run deterministic review only: capabilitykit review product-planning/story-mapping/recommend-story-map-slice-order-and-delivery-strategy --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review product-planning/story-mapping/recommend-story-map-slice-order-and-delivery-strategy --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result product-planning/story-mapping/recommend-story-map-slice-order-and-delivery-strategy --input review.json
+  # -----------------------------
+  depends_on:
+    - product-planning/story-mapping/model-capability-story-map-metadata
+    - product-planning/story-mapping/plan-and-report-capabilities-by-story-map
+  implementation:
+    references:
+      - packages/core/src/capabilityStatus.ts
+      - packages/core/src/index.ts
+      - packages/cli/src/index.ts
+      - packages/cli/src/statusOutput.ts
+      - packages/core/tests/capabilityStatus.test.ts
+      - packages/cli/tests/statusOutput.test.ts
+  verification:
+    automated:
+      - id: story-map-delivery-strategy-tests
+        description: Unit tests verify derived delivery strategy recommendations and
+          optional CLI story-map recommendation output.
+        command: npm test -- packages/core/tests/capabilityStatus.test.ts
+          packages/cli/tests/statusOutput.test.ts
+      - id: story-map-delivery-strategy-build
+        description: TypeScript build verifies the recommendation data model and CLI
+          command option.
+        command: npm run build
+    manual:
+      - Run capabilitykit status --story-map --release story-mapping
+        --recommend-order and confirm the ordered strategy references walking
+        skeleton, progressive delivery, risk, learning, and coverage gaps.
+  review:
+    depth: verified
+    source: coding-agent
+    intent_summary: "This capability should turn story-map metadata into actionable
+      delivery recommendations: start with a thin walking skeleton across
+      backbone activities, then layer capabilities by delivery phase with
+      explicit release strategy, development strategy, risk, learning intent,
+      and coverage-gap rationale without changing existing capability records or
+      workflows."
+    criteria:
+      - criterion: CapabilityKit can derive a recommended slice order from story-map
+          metadata that starts with a walking-skeleton candidate across mapped
+          backbone activities.
+        status: covered
+        evidence:
+          - packages/core/src/capabilityStatus.ts:263
+          - packages/core/src/capabilityStatus.ts:287
+          - packages/core/src/capabilityStatus.ts:299
+          - packages/core/src/capabilityStatus.ts:307
+          - packages/core/tests/capabilityStatus.test.ts:204
+          - packages/core/tests/capabilityStatus.test.ts:270
+        notes: The strategy sorts mapped capabilities using story-map
+          order/backbone/step, selects the earliest capability per backbone for
+          the opening slice, names it Walking skeleton, and tests assert the
+          opening recommendation.
+      - criterion: Recommendations can distinguish release strategy from development
+          strategy, including opening, mid-game, and end-game delivery phases.
+        status: covered
+        evidence:
+          - packages/core/src/capabilityStatus.ts:46
+          - packages/core/src/capabilityStatus.ts:53
+          - packages/core/src/capabilityStatus.ts:54
+          - packages/core/src/capabilityStatus.ts:307
+          - packages/core/src/capabilityStatus.ts:334
+          - packages/core/src/capabilityStatus.ts:355
+          - packages/cli/src/statusOutput.ts:55
+          - packages/cli/tests/statusOutput.test.ts:140
+        notes: The model has separate releaseStrategy and developmentStrategy fields,
+          supports opening/mid-game/end-game phases, and the CLI renders release
+          and development lines separately.
+      - criterion: Recommendations include risk and learning intent per slice so teams
+          can prioritize outcomes instead of isolated features.
+        status: covered
+        evidence:
+          - packages/core/src/capabilityStatus.ts:55
+          - packages/core/src/capabilityStatus.ts:56
+          - packages/core/src/capabilityStatus.ts:272
+          - packages/core/src/capabilityStatus.ts:314
+          - packages/core/src/capabilityStatus.ts:315
+          - packages/core/src/capabilityStatus.ts:342
+          - packages/core/src/capabilityStatus.ts:343
+          - packages/core/src/capabilityStatus.ts:363
+          - packages/core/src/capabilityStatus.ts:364
+          - packages/cli/src/statusOutput.ts:61
+        notes: Each recommendation includes computed risk signals and learning intent;
+          strategy text emphasizes coherent, user-visible outcomes rather than
+          isolated deep work.
+      - criterion: Teams can request ordering recommendations for a selected release and
+          receive rationale that references backbone and step coverage gaps.
+        status: covered
+        evidence:
+          - packages/cli/src/index.ts:1621
+          - packages/cli/src/index.ts:1622
+          - packages/cli/src/index.ts:1623
+          - packages/cli/src/index.ts:1630
+          - packages/cli/src/statusOutput.ts:3
+          - packages/cli/src/statusOutput.ts:52
+          - packages/cli/src/statusOutput.ts:60
+          - packages/cli/src/statusOutput.ts:63
+          - packages/cli/src/statusOutput.ts:65
+          - packages/cli/src/statusOutput.ts:68
+          - packages/cli/tests/statusOutput.test.ts:153
+        notes: The status command supports --story-map, --release, and
+          --recommend-order. The formatter prints rationale, backbone coverage,
+          missing backbones, and step coverage gaps for the selected release.
+      - criterion: Ordering recommendations remain additive and do not mutate existing
+          capability identity or required status workflows.
+        status: covered
+        evidence:
+          - packages/core/src/capabilityStatus.ts:169
+          - packages/core/src/capabilityStatus.ts:192
+          - packages/core/src/capabilityStatus.ts:237
+          - packages/core/src/capabilityStatus.ts:252
+          - packages/cli/src/index.ts:1623
+          - packages/cli/src/index.ts:1629
+          - packages/cli/src/index.ts:1638
+          - packages/core/src/index.ts:34
+          - packages/core/tests/capabilityStatus.test.ts:269
+        notes: Recommendations are computed as report data from loaded capabilities and
+          exposed via an optional status flag. The status path prints reports
+          and does not write capability files or alter statuses.
+    done: true

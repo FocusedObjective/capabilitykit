@@ -201,4 +201,85 @@ agent:
     expect(report.byStoryMap.unassigned.map((capability) => capability.capabilityId)).toEqual(["core/unmapped"]);
   });
 
+  it("derives deterministic story-map delivery strategy recommendations", async () => {
+    const rootDir = await createProject({
+      search: `
+title: Search
+status: implemented
+summary: Search summary.
+intent: Search intent.
+acceptance:
+  - Search works.
+planning:
+  story_map:
+    backbone: Explore
+    step: Search
+    release: mvp
+    order: 10
+agent:
+  implementation:
+    references:
+      - src/search.ts
+  verification:
+    manual:
+      - Review it.
+`,
+      pay: `
+title: Pay
+status: planned
+summary: Pay summary.
+intent: Pay intent.
+acceptance:
+  - Pay works.
+planning:
+  story_map:
+    backbone: Checkout
+    step: Pay
+    release: mvp
+    order: 20
+agent:
+  verification:
+    manual:
+      - Review it.
+`,
+      receipt: `
+title: Receipt
+status: implemented
+summary: Receipt summary.
+intent: Receipt intent.
+acceptance:
+  - Receipt works.
+planning:
+  story_map:
+    backbone: Checkout
+    step: Receipt
+    release: mvp
+    order: 30
+agent:
+  verification:
+    manual:
+      - Review it.
+`
+    });
+    await writeFile(path.join(rootDir, "src", "search.ts"), "Search works.\n");
+
+    const report = await summarizeCapabilityStatus(rootDir);
+    const mvp = report.byStoryMap.releases.find((entry) => entry.release === "mvp");
+
+    expect(mvp?.deliveryStrategy.release).toBe("mvp");
+    expect(mvp?.deliveryStrategy.recommendations[0]).toMatchObject({
+      phase: "opening",
+      name: "Walking skeleton",
+      capabilityIds: ["core/pay", "core/search"],
+      releaseStrategy: expect.stringContaining("end-to-end")
+    });
+    expect(mvp?.deliveryStrategy.recommendations.at(-1)).toMatchObject({
+      phase: "end-game",
+      capabilityIds: ["core/receipt"],
+      developmentStrategy: expect.stringContaining("verification"),
+      missingBackbones: ["Explore"],
+      stepCoverageGaps: ["Checkout > Pay", "Explore > Search"]
+    });
+  });
+
 });

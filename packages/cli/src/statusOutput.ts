@@ -25,7 +25,10 @@ export function filterStatusReportByRelease(report: CapabilityStatusReport, rele
   };
 }
 
-export function formatStoryMapStatusReport(report: CapabilityStatusReport): string {
+export function formatStoryMapStatusReport(
+  report: CapabilityStatusReport,
+  options: { recommendOrder?: boolean } = {}
+): string {
   const lines: string[] = [
     `CapabilityKit Story Map Status: ${report.project}`,
     "",
@@ -44,6 +47,27 @@ export function formatStoryMapStatusReport(report: CapabilityStatusReport): stri
       lines.push(`  ${backbone} > ${step}`);
       for (const capability of capabilities.sort((a, b) => a.capabilityId.localeCompare(b.capabilityId))) {
         lines.push(`    - ${capability.capabilityId} [${capability.status}] (${capability.health})`);
+      }
+    }
+    if (options.recommendOrder && release.deliveryStrategy.recommendations.length > 0) {
+      lines.push("", "  Recommended delivery strategy:");
+      for (const recommendation of release.deliveryStrategy.recommendations) {
+        lines.push(
+          `    ${recommendation.order}. ${recommendation.phase}: ${recommendation.name}`,
+          `       Release: ${recommendation.releaseStrategy}`,
+          `       Development: ${recommendation.developmentStrategy}`,
+          `       Capabilities: ${recommendation.capabilityIds.join(", ")}`,
+          `       Backbone coverage: ${recommendation.backboneCoverage.length > 0 ? recommendation.backboneCoverage.join(", ") : "none"}`,
+          `       Risk intent: ${recommendation.riskIntent}`,
+          `       Learning intent: ${recommendation.learningIntent}`,
+          `       Rationale: ${recommendation.rationale}`
+        );
+        if (recommendation.missingBackbones.length > 0) {
+          lines.push(`       Missing backbones: ${recommendation.missingBackbones.join(", ")}`);
+        }
+        if (recommendation.stepCoverageGaps.length > 0) {
+          lines.push(`       Step coverage gaps: ${recommendation.stepCoverageGaps.join("; ")}`);
+        }
       }
     }
   }

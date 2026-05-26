@@ -9,6 +9,7 @@ export interface StoryMapGroup {
   release: string;
   backbone: string;
   step: string;
+  order?: number;
 }
 
 export interface CapabilityStatusSummary {
@@ -39,6 +40,29 @@ export interface CapabilityStatusSummary {
 export interface StoryMapReleaseReport {
   release: string;
   capabilities: CapabilityStatusSummary[];
+  deliveryStrategy: StoryMapDeliveryStrategy;
+}
+
+export type StoryMapDeliveryPhase = "opening" | "mid-game" | "end-game";
+
+export interface StoryMapSliceRecommendation {
+  order: number;
+  phase: StoryMapDeliveryPhase;
+  name: string;
+  capabilityIds: string[];
+  releaseStrategy: string;
+  developmentStrategy: string;
+  riskIntent: string;
+  learningIntent: string;
+  backboneCoverage: string[];
+  missingBackbones: string[];
+  stepCoverageGaps: string[];
+  rationale: string;
+}
+
+export interface StoryMapDeliveryStrategy {
+  release: string;
+  recommendations: StoryMapSliceRecommendation[];
 }
 
 export interface CapabilityStatusReport {
@@ -187,7 +211,8 @@ export async function summarizeCapabilityStatus(rootDir: string, capabilityId?: 
         ? {
             release: loadedCapability.capability.planning.story_map.release,
             backbone: loadedCapability.capability.planning.story_map.backbone,
-            step: loadedCapability.capability.planning.story_map.step
+            step: loadedCapability.capability.planning.story_map.step,
+            order: loadedCapability.capability.planning.story_map.order
           }
         : undefined
     });
@@ -221,10 +246,134 @@ export async function summarizeCapabilityStatus(rootDir: string, capabilityId?: 
       unassigned,
       releases: [...releasesMap.entries()]
         .sort((a,b)=>a[0].localeCompare(b[0]))
-        .map(([release, capabilities]) => ({ release, capabilities }))
+        .map(([release, capabilities]) => ({
+          release,
+          capabilities,
+          deliveryStrategy: recommendDeliveryStrategy(release, capabilities)
+        }))
     },
     summary
   };
+}
+
+function sortedUnique(values: string[]): string[] {
+  return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+}
+
+function compareStoryMapCapabilities(a: CapabilityStatusSummary, b: CapabilityStatusSummary): number {
+  return (
+    (a.storyMap?.order ?? Number.MAX_SAFE_INTEGER) - (b.storyMap?.order ?? Number.MAX_SAFE_INTEGER) ||
+    (a.storyMap?.backbone ?? "").localeCompare(b.storyMap?.backbone ?? "") ||
+    (a.storyMap?.step ?? "").localeCompare(b.storyMap?.step ?? "") ||
+    a.capabilityId.localeCompare(b.capabilityId)
+  );
+}
+
+function riskSignals(capabilities: CapabilityStatusSummary[]): string[] {
+  const signals = sortedUnique(
+    capabilities.flatMap((capability) => {
+      const findings = [
+        capability.health === "action" ? `${capability.capabilityId} needs action` : "",
+        capability.health === "review" ? `${capability.capabilityId} needs review` : "",
+        capability.verification.gaps.length > 0 ? `${capability.capabilityId} has verification gaps` : "",
+        capability.references.missing.length > 0 ? `${capability.capabilityId} has missing references` : ""
+      ].filter(Boolean);
+      return findings.length > 0 ? findings : [`${capability.capabilityId} has normal delivery risk`];
+    })
+  );
+  return signals;
+}
+
+function recommendDeliveryStrategy(
+  release: string,
+  capabilities: CapabilityStatusSummary[]
+): StoryMapDeliveryStrategy {
+  const mapped = capabilities
+    .filter((capability): capability is CapabilityStatusSummary & { storyMap: StoryMapGroup } => Boolean(capability.storyMap))
+    .sort(compareStoryMapCapabilities);
+  const recommendations: StoryMapSliceRecommendation[] = [];
+  const used = new Set<string>();
+  const releaseBackbones = sortedUnique(mapped.map((capability) => capability.storyMap.backbone));
+  const releaseSteps = sortedUnique(mapped.map((capability) => `${capability.storyMap.backbone} > ${capability.storyMap.step}`));
+
+  const opening = releaseBackbones
+    .map((backbone) => mapped.find((capability) => capability.storyMap.backbone === backbone))
+    .filter((capability): capability is CapabilityStatusSummary & { storyMap: StoryMapGroup } => Boolean(capability));
+
+  if (opening.length > 0) {
+    for (const capability of opening) {
+      used.add(capability.capabilityId);
+    }
+    recommendations.push({
+      order: 1,
+      phase: "opening",
+      name: "Walking skeleton",
+      capabilityIds: opening.map((capability) => capability.capabilityId),
+      releaseStrategy: "Prove one coherent end-to-end slice before deepening individual steps.",
+      developmentStrategy: "Integrate the earliest capability from each backbone first, keeping scope thin until the narrative works.",
+      riskIntent: riskSignals(opening).join("; "),
+      learningIntent: "Validate whether users and stakeholders can recognize a meaningful outcome across the release backbone.",
+      backboneCoverage: releaseBackbones,
+      missingBackbones: releaseBackbones.filter(
+        (backbone) => !opening.some((capability) => capability.storyMap.backbone === backbone)
+      ),
+      stepCoverageGaps: releaseSteps.filter(
+        (step) => !opening.some((capability) => `${capability.storyMap.backbone} > ${capability.storyMap.step}` === step)
+      ),
+      rationale:
+        releaseBackbones.length > 1
+          ? `Starts with one step from each mapped backbone: ${releaseBackbones.join(", ")}.`
+          : `Starts with the earliest mapped step in ${releaseBackbones.join(", ")}.`
+    });
+  }
+
+  const remaining = mapped.filter((capability) => !used.has(capability.capabilityId));
+  const highRisk = remaining.filter((capability) => capability.health === "action" || capability.health === "review");
+  const progressive = remaining.filter((capability) => capability.health !== "action" && capability.health !== "review");
+
+  if (progressive.length > 0) {
+    recommendations.push({
+      order: recommendations.length + 1,
+      phase: "mid-game",
+      name: "Progressive capability layer",
+      capabilityIds: progressive.map((capability) => capability.capabilityId),
+      releaseStrategy: "Add the next coherent layer of user-visible capability after the walking skeleton is usable.",
+      developmentStrategy: "Build in story-map order while preserving the release narrative and avoiding isolated deep work.",
+      riskIntent: riskSignals(progressive).join("; "),
+      learningIntent: "Learn which adjacent steps increase outcome value before investing in optimization or hardening.",
+      backboneCoverage: sortedUnique(progressive.map((capability) => capability.storyMap.backbone)),
+      missingBackbones: releaseBackbones.filter(
+        (backbone) => !progressive.some((capability) => capability.storyMap.backbone === backbone)
+      ),
+      stepCoverageGaps: releaseSteps.filter(
+        (step) => !progressive.some((capability) => `${capability.storyMap.backbone} > ${capability.storyMap.step}` === step)
+      ),
+      rationale: `Follows story-map order across ${sortedUnique(progressive.map((capability) => capability.storyMap.step)).join(", ")}.`
+    });
+  }
+
+  if (highRisk.length > 0) {
+    recommendations.push({
+      order: recommendations.length + 1,
+      phase: "end-game",
+      name: "Risk burn-down and release hardening",
+      capabilityIds: highRisk.map((capability) => capability.capabilityId),
+      releaseStrategy: "Resolve delivery risks once the release story is visible enough to judge tradeoffs.",
+      developmentStrategy: "Target review, action, verification, and reference gaps with explicit finish-line criteria.",
+      riskIntent: riskSignals(highRisk).join("; "),
+      learningIntent: "Learn whether remaining risks change scope, release confidence, or stakeholder messaging.",
+      backboneCoverage: sortedUnique(highRisk.map((capability) => capability.storyMap.backbone)),
+      missingBackbones: releaseBackbones.filter(
+        (backbone) => !highRisk.some((capability) => capability.storyMap.backbone === backbone)
+      ),
+      stepCoverageGaps: releaseSteps.filter(
+        (step) => !highRisk.some((capability) => `${capability.storyMap.backbone} > ${capability.storyMap.step}` === step)
+      ),
+      rationale: `Prioritizes capabilities with delivery risk signals: ${highRisk.map((capability) => capability.capabilityId).join(", ")}.`
+    });
+  }
+
+  return { release, recommendations };
 }
 
 function healthLabel(health: CapabilityHealth): string {
