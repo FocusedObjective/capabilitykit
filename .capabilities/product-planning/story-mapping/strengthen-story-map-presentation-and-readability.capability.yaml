@@ -1,0 +1,31 @@
+title: Strengthen story-map presentation and readability
+status: planned
+summary: Improve story-map outputs so teams can present map intent, slice
+  coherence, and delivery tradeoffs to mixed technical and business audiences.
+intent: Make CapabilityKit story-map views easier to scan and discuss by
+  emphasizing narrative flow, release outcomes, and cross-slice coverage
+  signals.
+acceptance:
+  - Story-map outputs can show a narrative path per release slice from first to
+    last backbone activity.
+  - Viewer and report outputs can optionally highlight missing or weakly covered
+    backbone steps within a selected slice.
+  - Teams can toggle between implementation-health view and outcome-oriented
+    planning view without losing grouping context.
+  - Story-map views can display concise outcome statements for each release
+    slice to improve stakeholder communication.
+  - Presentation improvements preserve deterministic output for CI-friendly diff
+    review.
+guidance:
+  - Keep story-map presentation focused on conversation and shared understanding
+    rather than replacing detailed workflow modeling.
+  - Use visual hierarchy that keeps backbone activities stable while allowing
+    detail cards and filters to evolve.
+  - Ensure unassigned capabilities remain visible to support incremental
+    metadata adoption.
+planning:
+  story_map:
+    backbone: Story mapping
+    step: Improve map presentation
+    release: story-mapping
+    order: 40

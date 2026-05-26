@@ -1,0 +1,32 @@
+title: Recommend story-map slice ordering and delivery strategy
+status: planned
+summary: Add explicit guidance and machine-readable recommendations for ordering
+  story-map slices so teams deliver coherent end-to-end value earlier.
+intent: Help teams move from static map structure to actionable release strategy
+  by recommending walking-skeleton-first ordering, then progressive capability
+  layers tied to outcomes and risk.
+acceptance:
+  - CapabilityKit can derive a recommended slice order from story-map metadata
+    that starts with a coherent walking skeleton across major backbone
+    activities.
+  - Recommendations can distinguish release strategy from development strategy,
+    including opening, mid-game, and end-game delivery phases.
+  - Recommendations include risk and learning intent per slice so teams can
+    prioritize outcomes instead of isolated features.
+  - Teams can request ordering recommendations for a selected release and
+    receive rationale that references backbone and step coverage gaps.
+  - Ordering recommendations remain additive and do not mutate existing
+    capability identity or required status workflows.
+guidance:
+  - Prefer thin horizontal slices that span the narrative left-to-right flow
+    before deepening any single step.
+  - Validate slice coherence by checking whether a user can complete a
+    meaningful end-to-end outcome inside each slice.
+  - Encourage naming each slice by user and business outcome to support roadmap
+    communication.
+planning:
+  story_map:
+    backbone: Story mapping
+    step: Recommend slice ordering
+    release: story-mapping
+    order: 30
