@@ -23,10 +23,10 @@ guidance:
   - Avoid raw JSON in the default human output.
 planning:
   story_map:
-    backbone: CLI package
-    step: Diff capability changes
+    backbone: CLI workflow
+    step: Review capability changes
     release: mvp
-    order: 95
+    order: 60
 #
 #
 agent:

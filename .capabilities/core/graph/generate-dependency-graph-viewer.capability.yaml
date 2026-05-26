@@ -32,10 +32,10 @@ guidance:
   - Reuse the same graph data model for SVG and HTML output where practical.
 planning:
   story_map:
-    backbone: CLI package
-    step: Explore graph viewer
+    backbone: CLI workflow
+    step: Visualize capability relationships
     release: mvp
-    order: 110
+    order: 70
 #
 #
 agent:

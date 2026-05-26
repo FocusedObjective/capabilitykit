@@ -12,10 +12,10 @@ guidance:
   - Do not overwrite user capability files by default.
 planning:
   story_map:
-    backbone: CLI package
-    step: Initialize project
+    backbone: Capability authoring
+    step: Start a capability project
     release: mvp
-    order: 20
+    order: 10
 #
 #
 agent:

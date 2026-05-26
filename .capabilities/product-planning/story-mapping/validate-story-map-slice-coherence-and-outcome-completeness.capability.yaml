@@ -26,9 +26,9 @@ guidance:
 planning:
   story_map:
     backbone: Story mapping
-    step: Validate slice coherence
+    step: Review slice story
     release: story-mapping
-    order: 50
+    order: 30
 #
 #
 agent:

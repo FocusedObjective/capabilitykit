@@ -27,9 +27,9 @@ guidance:
 planning:
   story_map:
     backbone: Story mapping
-    step: Recommend slice ordering
+    step: Plan release slices
     release: story-mapping
-    order: 30
+    order: 20
 #
 #
 agent:

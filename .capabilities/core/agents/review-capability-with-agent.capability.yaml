@@ -21,10 +21,10 @@ guidance:
   - Reuse the deterministic implementation coverage report when available.
 planning:
   story_map:
-    backbone: Core package
-    step: Run semantic agent review
+    backbone: Agent workflow
+    step: Delegate implementation review
     release: mvp
-    order: 130
+    order: 80
 #
 #
 agent:

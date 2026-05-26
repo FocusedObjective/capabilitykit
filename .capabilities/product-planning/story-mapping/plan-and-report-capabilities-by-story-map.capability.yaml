@@ -23,7 +23,7 @@ guidance:
 planning:
   story_map:
     backbone: Story mapping
-    step: Report by story map
+    step: Plan release slices
     release: story-mapping
     order: 20
 #

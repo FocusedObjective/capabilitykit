@@ -34,10 +34,10 @@ guidance:
     matching words.
 planning:
   story_map:
-    backbone: Core package
-    step: Assess implementation coverage
+    backbone: Capability map
+    step: Understand delivery health
     release: mvp
-    order: 80
+    order: 50
 #
 #
 agent:

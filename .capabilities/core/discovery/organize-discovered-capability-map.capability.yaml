@@ -22,10 +22,10 @@ guidance:
     justify them.
 planning:
   story_map:
-    backbone: Reverse engineering
-    step: Organize discovered map
+    backbone: Existing project discovery
+    step: Draft capability map
     release: reverse-engineering
-    order: 30
+    order: 20
 #
 #
 agent:

@@ -41,6 +41,7 @@ export interface StoryMapReleaseReport {
   release: string;
   capabilities: CapabilityStatusSummary[];
   deliveryStrategy: StoryMapDeliveryStrategy;
+  presentation: StoryMapReleasePresentation;
 }
 
 export type StoryMapDeliveryPhase = "opening" | "mid-game" | "end-game";
@@ -63,6 +64,25 @@ export interface StoryMapSliceRecommendation {
 export interface StoryMapDeliveryStrategy {
   release: string;
   recommendations: StoryMapSliceRecommendation[];
+}
+
+export interface StoryMapNarrativeStep {
+  backbone: string;
+  step: string;
+  capabilityIds: string[];
+  health: CapabilityHealth;
+}
+
+export interface StoryMapCoverageSignal {
+  kind: "missing" | "weak";
+  label: string;
+  message: string;
+}
+
+export interface StoryMapReleasePresentation {
+  outcome: string;
+  narrativePath: StoryMapNarrativeStep[];
+  coverageSignals: StoryMapCoverageSignal[];
 }
 
 export interface CapabilityStatusReport {
@@ -246,11 +266,15 @@ export async function summarizeCapabilityStatus(rootDir: string, capabilityId?: 
       unassigned,
       releases: [...releasesMap.entries()]
         .sort((a,b)=>a[0].localeCompare(b[0]))
-        .map(([release, capabilities]) => ({
-          release,
-          capabilities,
-          deliveryStrategy: recommendDeliveryStrategy(release, capabilities)
-        }))
+        .map(([release, capabilities]) => {
+          const deliveryStrategy = recommendDeliveryStrategy(release, capabilities);
+          return {
+            release,
+            capabilities,
+            deliveryStrategy,
+            presentation: buildReleasePresentation(release, capabilities, deliveryStrategy)
+          };
+        })
     },
     summary
   };
@@ -374,6 +398,100 @@ function recommendDeliveryStrategy(
   }
 
   return { release, recommendations };
+}
+
+function worstHealth(capabilities: CapabilityStatusSummary[]): CapabilityHealth {
+  const priority: CapabilityHealth[] = ["action", "review", "planned", "ok"];
+  return capabilities
+    .map((capability) => capability.health)
+    .sort((a, b) => priority.indexOf(a) - priority.indexOf(b))[0] ?? "planned";
+}
+
+function buildOutcomeStatement(release: string, capabilities: CapabilityStatusSummary[]): string {
+  const mapped = capabilities
+    .filter((capability): capability is CapabilityStatusSummary & { storyMap: StoryMapGroup } => Boolean(capability.storyMap))
+    .sort(compareStoryMapCapabilities);
+  if (mapped.length === 0) {
+    return `${release} has no mapped outcome yet.`;
+  }
+
+  const first = mapped[0];
+  const last = mapped[mapped.length - 1];
+  const backboneCount = sortedUnique(mapped.map((capability) => capability.storyMap.backbone)).length;
+  return `${release} helps teams move from ${first.storyMap.step} to ${last.storyMap.step} across ${backboneCount} backbone ${
+    backboneCount === 1 ? "activity" : "activities"
+  }.`;
+}
+
+function buildNarrativePath(capabilities: CapabilityStatusSummary[]): StoryMapNarrativeStep[] {
+  const groups = new Map<string, CapabilityStatusSummary[]>();
+  const orderByGroup = new Map<string, number>();
+  for (const capability of capabilities.filter(
+    (item): item is CapabilityStatusSummary & { storyMap: StoryMapGroup } => Boolean(item.storyMap)
+  )) {
+    const key = `${capability.storyMap.backbone}|||${capability.storyMap.step}`;
+    groups.set(key, [...(groups.get(key) ?? []), capability]);
+    orderByGroup.set(key, Math.min(orderByGroup.get(key) ?? Number.MAX_SAFE_INTEGER, capability.storyMap.order ?? Number.MAX_SAFE_INTEGER));
+  }
+
+  return [...groups.entries()]
+    .map(([key, groupCapabilities]) => {
+      const [backbone, step] = key.split("|||");
+      return {
+        backbone,
+        step,
+        capabilityIds: groupCapabilities.map((capability) => capability.capabilityId).sort((a, b) => a.localeCompare(b)),
+        health: worstHealth(groupCapabilities)
+      };
+    })
+    .sort(
+      (a, b) =>
+        (orderByGroup.get(`${a.backbone}|||${a.step}`) ?? Number.MAX_SAFE_INTEGER) -
+          (orderByGroup.get(`${b.backbone}|||${b.step}`) ?? Number.MAX_SAFE_INTEGER) ||
+        a.backbone.localeCompare(b.backbone) ||
+        a.step.localeCompare(b.step)
+    );
+}
+
+function buildCoverageSignals(
+  capabilities: CapabilityStatusSummary[],
+  deliveryStrategy: StoryMapDeliveryStrategy
+): StoryMapCoverageSignal[] {
+  const signals: StoryMapCoverageSignal[] = [];
+
+  const missingLabels = sortedUnique(
+    deliveryStrategy.recommendations.flatMap((recommendation) => recommendation.missingBackbones)
+  );
+  for (const label of missingLabels) {
+    signals.push({
+      kind: "missing",
+      label,
+      message: `${label} is not covered in the recommended slice.`
+    });
+  }
+
+  const weakSteps = buildNarrativePath(capabilities).filter((step) => step.health === "action" || step.health === "review");
+  for (const step of weakSteps) {
+    signals.push({
+      kind: "weak",
+      label: `${step.backbone} > ${step.step}`,
+      message: `${step.backbone} > ${step.step} has ${healthLabel(step.health)} coverage.`
+    });
+  }
+
+  return signals.sort((a, b) => a.kind.localeCompare(b.kind) || a.label.localeCompare(b.label));
+}
+
+function buildReleasePresentation(
+  release: string,
+  capabilities: CapabilityStatusSummary[],
+  deliveryStrategy: StoryMapDeliveryStrategy
+): StoryMapReleasePresentation {
+  return {
+    outcome: buildOutcomeStatement(release, capabilities),
+    narrativePath: buildNarrativePath(capabilities),
+    coverageSignals: buildCoverageSignals(capabilities, deliveryStrategy)
+  };
 }
 
 function healthLabel(health: CapabilityHealth): string {

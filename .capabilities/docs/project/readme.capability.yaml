@@ -29,8 +29,8 @@ guidance:
   - Do not position the MVP as a cloud product.
 planning:
   story_map:
-    backbone: Website
-    step: Publish project website
+    backbone: Project communication
+    step: Explain CapabilityKit
     release: website
     order: 10
 #

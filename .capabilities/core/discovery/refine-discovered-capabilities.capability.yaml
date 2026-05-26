@@ -27,10 +27,10 @@ guidance:
     verified status from agent prose alone.
 planning:
   story_map:
-    backbone: Reverse engineering
-    step: Refine discovered capabilities
+    backbone: Existing project discovery
+    step: Refine generated map
     release: reverse-engineering
-    order: 40
+    order: 30
 #
 #
 agent:

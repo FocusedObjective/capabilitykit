@@ -23,10 +23,10 @@ guidance:
     review.
 planning:
   story_map:
-    backbone: Core package
-    step: Ingest agent review evidence
+    backbone: Agent workflow
+    step: Delegate implementation review
     release: mvp
-    order: 150
+    order: 80
 #
 #
 agent:

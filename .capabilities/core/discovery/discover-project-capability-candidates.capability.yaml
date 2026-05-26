@@ -32,10 +32,10 @@ guidance:
     component.
 planning:
   story_map:
-    backbone: Reverse engineering
-    step: Find capability candidates
+    backbone: Existing project discovery
+    step: Draft capability map
     release: reverse-engineering
-    order: 10
+    order: 20
 #
 #
 agent:

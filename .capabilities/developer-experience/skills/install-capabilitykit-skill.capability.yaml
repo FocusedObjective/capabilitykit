@@ -25,10 +25,10 @@ guidance:
     CapabilityKit block.
 planning:
   story_map:
-    backbone: CLI package
-    step: Install agent instructions
+    backbone: Agent workflow
+    step: Delegate implementation review
     release: mvp
-    order: 160
+    order: 80
 #
 #
 agent:

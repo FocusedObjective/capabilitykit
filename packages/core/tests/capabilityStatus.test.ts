@@ -280,6 +280,18 @@ agent:
       missingBackbones: ["Explore"],
       stepCoverageGaps: ["Checkout > Pay", "Explore > Search"]
     });
+    expect(mvp?.presentation.outcome).toBe("mvp helps teams move from Search to Receipt across 2 backbone activities.");
+    expect(mvp?.presentation.narrativePath.map((step) => `${step.backbone} > ${step.step}`)).toEqual([
+      "Explore > Search",
+      "Checkout > Pay",
+      "Checkout > Receipt"
+    ]);
+    expect(mvp?.presentation.coverageSignals.map((signal) => signal.message)).not.toContain(
+      "Checkout > Pay is not covered in the recommended slice."
+    );
+    expect(mvp?.presentation.coverageSignals.map((signal) => signal.message)).toContain(
+      "Checkout > Receipt has needs-action coverage."
+    );
   });
 
 });

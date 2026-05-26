@@ -27,7 +27,7 @@ export function filterStatusReportByRelease(report: CapabilityStatusReport, rele
 
 export function formatStoryMapStatusReport(
   report: CapabilityStatusReport,
-  options: { recommendOrder?: boolean } = {}
+  options: { recommendOrder?: boolean; showCoverage?: boolean } = {}
 ): string {
   const lines: string[] = [
     `CapabilityKit Story Map Status: ${report.project}`,
@@ -37,12 +37,26 @@ export function formatStoryMapStatusReport(
 
   for (const release of report.byStoryMap.releases) {
     lines.push("", `Release: ${release.release}`);
+    lines.push(`  Outcome: ${release.presentation.outcome}`);
+    if (release.presentation.narrativePath.length > 0) {
+      lines.push(
+        `  Narrative path: ${release.presentation.narrativePath
+          .map((step) => `${step.backbone} > ${step.step}`)
+          .join(" -> ")}`
+      );
+    }
+    if (options.showCoverage && release.presentation.coverageSignals.length > 0) {
+      lines.push("  Coverage signals:");
+      for (const signal of release.presentation.coverageSignals) {
+        lines.push(`    - ${signal.kind}: ${signal.message}`);
+      }
+    }
     const grouped = new Map<string, typeof release.capabilities>();
     for (const capability of release.capabilities) {
       const key = `${capability.storyMap?.backbone ?? "Unknown"}|||${capability.storyMap?.step ?? "Unknown"}`;
       grouped.set(key, [...(grouped.get(key) ?? []), capability]);
     }
-    for (const [key, capabilities] of [...grouped.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    for (const [key, capabilities] of [...grouped.entries()].sort((a, b) => compareStoryMapGroupEntries(a, b))) {
       const [backbone, step] = key.split("|||");
       lines.push(`  ${backbone} > ${step}`);
       for (const capability of capabilities.sort((a, b) => a.capabilityId.localeCompare(b.capabilityId))) {
@@ -211,6 +225,32 @@ export function formatStoryMapViewerHtml(report: CapabilityStatusReport): string
         flex-wrap: wrap;
         gap: 10px;
       }
+      .view-toggle {
+        display: inline-flex;
+        gap: 6px;
+        padding: 3px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.72);
+      }
+      .view-toggle button {
+        min-height: 28px;
+        border: 0;
+        background: transparent;
+      }
+      .highlight-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 34px;
+        padding: 0 11px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(255,255,255,0.82);
+        color: #334155;
+        font: 700 13px Inter, ui-sans-serif, system-ui, sans-serif;
+      }
+      .highlight-toggle input { width: auto; height: auto; }
       input, select {
         height: 34px;
         border: 1px solid var(--line);
@@ -238,8 +278,8 @@ export function formatStoryMapViewerHtml(report: CapabilityStatusReport): string
         box-shadow: 0 18px 45px rgba(15, 23, 42, 0.07);
       }
       .release-head {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
         gap: 16px;
         padding: 16px 18px;
         border-bottom: 1px solid var(--line);
@@ -278,6 +318,47 @@ export function formatStoryMapViewerHtml(report: CapabilityStatusReport): string
         font-size: 12px;
         font-weight: 760;
       }
+      .release-outcome {
+        grid-column: 1 / -1;
+        margin: -4px 0 0;
+        color: #334155;
+        font-size: 13px;
+        line-height: 1.45;
+        font-weight: 650;
+      }
+      .narrative {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .narrative-step,
+      .signal {
+        display: inline-flex;
+        align-items: center;
+        min-height: 25px;
+        max-width: 100%;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #334155;
+        font-size: 11px;
+        font-weight: 780;
+      }
+      .narrative-step.action,
+      .signal.missing { border-color: #fecdd3; background: #fff1f2; color: #be123c; }
+      .narrative-step.ok { border-color: #bbf7d0; background: #ecfdf5; color: #047857; }
+      .narrative-step.review,
+      .signal.weak { border-color: #bfdbfe; background: #dbeafe; color: #1d4ed8; }
+      .narrative-step.planned { border-color: #fde68a; background: #fffbeb; color: #b45309; }
+      .signals {
+        grid-column: 1 / -1;
+        display: none;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .show-coverage .signals { display: flex; }
       .steps {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(286px, 1fr));
@@ -290,6 +371,10 @@ export function formatStoryMapViewerHtml(report: CapabilityStatusReport): string
         border-radius: 8px;
         background: rgba(255,255,255,0.82);
         overflow: hidden;
+      }
+      .show-coverage .step.weak {
+        border-color: #93c5fd;
+        box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.12);
       }
       .step-head {
         min-height: 84px;
@@ -371,6 +456,15 @@ export function formatStoryMapViewerHtml(report: CapabilityStatusReport): string
         font-size: 11px;
         overflow-wrap: anywhere;
       }
+      .planning-note {
+        display: none;
+        color: #334155;
+        font-size: 12px;
+        line-height: 1.4;
+        font-weight: 650;
+      }
+      .planning-mode .planning-note { display: block; }
+      .planning-mode .card p { color: #1f2937; }
       .unassigned {
         margin-top: 18px;
       }
@@ -470,6 +564,11 @@ export function formatStoryMapViewerHtml(report: CapabilityStatusReport): string
           <div class="toolbar">
             <div class="tabs" id="release-tabs"></div>
             <div class="filters">
+              <div class="view-toggle" aria-label="Toggle between outcome-oriented planning view and implementation-health view">
+                <button id="planning-view" type="button" class="active">Planning</button>
+                <button id="health-view" type="button">Health</button>
+              </div>
+              <label class="highlight-toggle"><input id="coverage-toggle" type="checkbox" /> Coverage</label>
               <input id="search" type="search" placeholder="Search capabilities" aria-label="Search capabilities" />
               <select id="health-filter" aria-label="Filter by health">
                 <option value="">All health states</option>
@@ -492,11 +591,16 @@ const report = ${storyMapData};
 let selectedRelease = "";
 let selectedHealth = "";
 let searchText = "";
+let viewMode = "planning";
+let showCoverage = false;
 const board = document.getElementById("board");
 const tabs = document.getElementById("release-tabs");
 const summary = document.getElementById("summary");
 const search = document.getElementById("search");
 const healthFilter = document.getElementById("health-filter");
+const planningView = document.getElementById("planning-view");
+const healthView = document.getElementById("health-view");
+const coverageToggle = document.getElementById("coverage-toggle");
 const detailDialog = document.getElementById("detail-dialog");
 
 function healthLabel(value) {
@@ -574,16 +678,18 @@ function groupByStep(capabilities) {
   for (const capability of capabilities) {
     const story = capability.storyMap || { backbone: "Unassigned", step: "Needs planning" };
     const key = story.backbone + "|||" + story.step;
-    if (!grouped.has(key)) grouped.set(key, { backbone: story.backbone, step: story.step, capabilities: [] });
+    if (!grouped.has(key)) grouped.set(key, { backbone: story.backbone, step: story.step, order: story.order ?? Number.MAX_SAFE_INTEGER, capabilities: [] });
+    grouped.get(key).order = Math.min(grouped.get(key).order, story.order ?? Number.MAX_SAFE_INTEGER);
     grouped.get(key).capabilities.push(capability);
   }
-  return [...grouped.values()].sort((a, b) => a.backbone.localeCompare(b.backbone) || a.step.localeCompare(b.step));
+  return [...grouped.values()].sort((a, b) => a.order - b.order || a.backbone.localeCompare(b.backbone) || a.step.localeCompare(b.step));
 }
 function renderRelease(release) {
   const visible = filteredCapabilities(release.capabilities);
   if (visible.length === 0) return null;
   const releaseNode = document.createElement("section");
   releaseNode.className = "release";
+  if (showCoverage) releaseNode.classList.add("show-coverage");
   const releaseCounts = counts(visible);
   const head = document.createElement("div");
   head.className = "release-head";
@@ -599,15 +705,43 @@ function renderRelease(release) {
   stats.className = "release-stats";
   stats.textContent = releaseCounts.total + " capabilities | " + releaseCounts.ok + " ok | " + releaseCounts.action + " action | " + releaseCounts.planned + " planned";
   head.append(title, stats);
+  const outcome = document.createElement("p");
+  outcome.className = "release-outcome";
+  outcome.textContent = release.presentation?.outcome || release.release + " has no mapped outcome yet.";
+  head.append(outcome);
+  const narrative = document.createElement("div");
+  narrative.className = "narrative";
+  for (const item of release.presentation?.narrativePath || []) {
+    const step = document.createElement("span");
+    step.className = "narrative-step " + item.health;
+    step.textContent = item.backbone + " > " + item.step;
+    narrative.append(step);
+  }
+  if (narrative.children.length > 0) head.append(narrative);
+  const signals = document.createElement("div");
+  signals.className = "signals";
+  for (const signal of release.presentation?.coverageSignals || []) {
+    const item = document.createElement("span");
+    item.className = "signal " + signal.kind;
+    item.textContent = signal.message;
+    signals.append(item);
+  }
+  if (signals.children.length > 0) head.append(signals);
   const steps = document.createElement("div");
   steps.className = "steps";
-  for (const group of groupByStep(visible)) steps.append(renderStep(group));
+  for (const group of groupByStep(visible)) steps.append(renderStep(group, release));
   releaseNode.append(head, steps);
   return releaseNode;
 }
-function renderStep(group) {
+function releaseSignalsForStep(release, group) {
+  return (release.presentation?.coverageSignals || []).filter((signal) => signal.label === group.backbone || signal.label === group.backbone + " > " + group.step);
+}
+function renderStep(group, release) {
   const step = document.createElement("article");
   step.className = "step";
+  if (releaseSignalsForStep(release, group).length > 0 || group.capabilities.some((capability) => capability.health === "action" || capability.health === "review")) {
+    step.classList.add("weak");
+  }
   const head = document.createElement("div");
   head.className = "step-head";
   const backbone = document.createElement("div");
@@ -636,10 +770,13 @@ function renderCard(capability) {
   title.append(h4, pill);
   const summary = document.createElement("p");
   summary.textContent = capability.summary;
+  const planning = document.createElement("div");
+  planning.className = "planning-note";
+  planning.textContent = capability.storyMap ? capability.storyMap.release + " outcome step: " + capability.storyMap.backbone + " > " + capability.storyMap.step : "Needs story-map assignment.";
   const id = document.createElement("div");
   id.className = "card-id";
   id.textContent = capability.capabilityId;
-  card.append(title, summary, id);
+  card.append(title, summary, planning, id);
   card.addEventListener("click", () => showDetail(capability));
   card.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -650,6 +787,9 @@ function renderCard(capability) {
   return card;
 }
 function render() {
+  document.body.classList.toggle("planning-mode", viewMode === "planning");
+  planningView.classList.toggle("active", viewMode === "planning");
+  healthView.classList.toggle("active", viewMode === "health");
   renderTabs();
   renderSummary();
   board.replaceChildren();
@@ -743,6 +883,9 @@ function showDetail(capability) {
 }
 search.addEventListener("input", () => { searchText = search.value.trim().toLowerCase(); render(); });
 healthFilter.addEventListener("change", () => { selectedHealth = healthFilter.value; render(); });
+planningView.addEventListener("click", () => { viewMode = "planning"; render(); });
+healthView.addEventListener("click", () => { viewMode = "health"; render(); });
+coverageToggle.addEventListener("change", () => { showCoverage = coverageToggle.checked; render(); });
 detailDialog.addEventListener("click", (event) => {
   if (event.target === detailDialog) detailDialog.close();
 });
@@ -755,4 +898,15 @@ render();
 
 function escapeHtml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function compareStoryMapGroupEntries(
+  a: [string, CapabilityStatusReport["capabilities"]],
+  b: [string, CapabilityStatusReport["capabilities"]]
+): number {
+  const [aKey, aCapabilities] = a;
+  const [bKey, bCapabilities] = b;
+  const aOrder = Math.min(...aCapabilities.map((capability) => capability.storyMap?.order ?? Number.MAX_SAFE_INTEGER));
+  const bOrder = Math.min(...bCapabilities.map((capability) => capability.storyMap?.order ?? Number.MAX_SAFE_INTEGER));
+  return aOrder - bOrder || aKey.localeCompare(bKey);
 }

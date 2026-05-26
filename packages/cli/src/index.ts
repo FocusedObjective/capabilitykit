@@ -1621,10 +1621,11 @@ program
   .option("--story-map", "group status output by story-map release, backbone, and step")
   .option("--release <release>", "limit status output to one story-map release")
   .option("--recommend-order", "include story-map slice ordering and delivery strategy recommendations")
+  .option("--show-coverage", "include story-map coverage signals in story-map status output")
   .action(
     async (
       capabilityId: string | undefined,
-      options: { json?: boolean; storyMap?: boolean; release?: string; recommendOrder?: boolean }
+      options: { json?: boolean; storyMap?: boolean; release?: string; recommendOrder?: boolean; showCoverage?: boolean }
     ) => {
       let report = await summarizeCapabilityStatus(process.cwd(), capabilityId);
       if (options.release) {
@@ -1636,7 +1637,7 @@ program
       }
 
       if (options.storyMap) {
-        console.log(formatStoryMapStatusReport(report, { recommendOrder: options.recommendOrder }));
+        console.log(formatStoryMapStatusReport(report, { recommendOrder: options.recommendOrder, showCoverage: options.showCoverage }));
         return;
       }
 

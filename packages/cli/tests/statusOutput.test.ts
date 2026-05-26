@@ -81,9 +81,26 @@ function report(): CapabilityStatusReport {
                 rationale: "Starts with one step from each mapped backbone: Browse."
               }
             ]
+          },
+          presentation: {
+            outcome: "mvp helps teams move from Search to Search across 1 backbone activity.",
+            narrativePath: [{ backbone: "Browse", step: "Search", capabilityIds: ["core/a", "core/b"], health: "planned" }],
+            coverageSignals: [
+              { kind: "missing", label: "Checkout", message: "Checkout is not covered in the recommended slice." },
+              { kind: "missing", label: "Checkout > Pay", message: "Checkout > Pay is not covered in the recommended slice." }
+            ]
           }
         },
-        { release: "v2", capabilities: [mappedV2], deliveryStrategy: { release: "v2", recommendations: [] } }
+        {
+          release: "v2",
+          capabilities: [mappedV2],
+          deliveryStrategy: { release: "v2", recommendations: [] },
+          presentation: {
+            outcome: "v2 helps teams move from Pay to Pay across 1 backbone activity.",
+            narrativePath: [{ backbone: "Checkout", step: "Pay", capabilityIds: ["core/v2"], health: "planned" }],
+            coverageSignals: []
+          }
+        }
       ],
       unassigned: [unassigned]
     },
@@ -103,6 +120,9 @@ describe("story-map status output", () => {
 
     expect(output).toContain("CapabilityKit Story Map Status: status-test");
     expect(output).toContain("Release: mvp");
+    expect(output).toContain("Outcome: mvp helps teams move from Search to Search across 1 backbone activity.");
+    expect(output).toContain("Narrative path: Browse > Search");
+    expect(output).not.toContain("Coverage signals:");
     expect(output).toContain("  Browse > Search");
     expect(output.indexOf("    - core/a [planned] (planned)")).toBeLessThan(
       output.indexOf("    - core/b [implemented] (ok)")
@@ -135,11 +155,18 @@ describe("story-map status output", () => {
     expect(html).toContain('"release":"mvp"');
     expect(html).toContain('"capabilityId":"core/unassigned"');
     expect(html).toContain("Search capabilities");
+    expect(html).toContain("Planning");
+    expect(html).toContain("Coverage");
+    expect(html).toContain("outcome-oriented planning view and implementation-health view");
+    expect(html).toContain("release-outcome");
+    expect(html).toContain(".narrative-step.ok");
+    expect(html).toContain("a.order - b.order");
   });
 
   it("can include release and development strategy recommendations", () => {
-    const output = formatStoryMapStatusReport(report(), { recommendOrder: true });
+    const output = formatStoryMapStatusReport(report(), { recommendOrder: true, showCoverage: true });
 
+    expect(output).toContain("Coverage signals:");
     expect(output).toContain("Recommended delivery strategy:");
     expect(output).toContain("1. opening: Walking skeleton");
     expect(output).toContain("Release: Prove one coherent end-to-end slice");

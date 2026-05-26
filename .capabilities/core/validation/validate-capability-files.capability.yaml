@@ -16,8 +16,8 @@ guidance:
   - Do not silently ignore malformed capability files.
 planning:
   story_map:
-    backbone: Core package
-    step: Check capability files
+    backbone: Capability authoring
+    step: Check capability evidence
     release: mvp
     order: 30
 #

@@ -15,10 +15,10 @@ guidance:
   - Do not emit partial JSON without surfacing validation failures.
 planning:
   story_map:
-    backbone: Core package
-    step: Compile capability map
+    backbone: Capability map
+    step: Build capability map
     release: mvp
-    order: 60
+    order: 40
 #
 #
 agent:

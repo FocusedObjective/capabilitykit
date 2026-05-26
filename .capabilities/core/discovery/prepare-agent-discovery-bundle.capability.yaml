@@ -31,10 +31,10 @@ guidance:
     the project directly when its CLI supports workspace access.
 planning:
   story_map:
-    backbone: Reverse engineering
-    step: Prepare discovery bundle
+    backbone: Existing project discovery
+    step: Prepare discovery context
     release: reverse-engineering
-    order: 5
+    order: 10
 #
 #
 agent:

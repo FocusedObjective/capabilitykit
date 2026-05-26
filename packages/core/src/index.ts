@@ -38,6 +38,9 @@ export type {
   StoryMapDeliveryPhase,
   StoryMapDeliveryStrategy,
   StoryMapGroup,
+  StoryMapCoverageSignal,
+  StoryMapNarrativeStep,
+  StoryMapReleasePresentation,
   StoryMapReleaseReport,
   StoryMapSliceRecommendation
 } from "./capabilityStatus.js";

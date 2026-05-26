@@ -24,10 +24,10 @@ guidance:
     target CLI supports reading prompts from stdin.
 planning:
   story_map:
-    backbone: CLI package
-    step: Run external agent CLI
+    backbone: Agent workflow
+    step: Delegate implementation review
     release: mvp
-    order: 140
+    order: 80
 #
 #
 agent:

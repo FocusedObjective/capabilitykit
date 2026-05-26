@@ -26,10 +26,10 @@ guidance:
     validation fails.
 planning:
   story_map:
-    backbone: CLI package
-    step: Generate graph SVG
+    backbone: CLI workflow
+    step: Visualize capability relationships
     release: mvp
-    order: 100
+    order: 70
 #
 #
 agent:

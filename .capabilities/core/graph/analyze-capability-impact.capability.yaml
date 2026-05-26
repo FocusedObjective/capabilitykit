@@ -18,10 +18,10 @@ guidance:
     replacement for explicit depends_on relationships.
 planning:
   story_map:
-    backbone: Core package
-    step: Analyze downstream impact
+    backbone: Capability map
+    step: Understand delivery health
     release: mvp
-    order: 70
+    order: 50
 #
 #
 agent:

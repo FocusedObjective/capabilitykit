@@ -16,10 +16,10 @@ guidance:
   - Do not make cloud services required for schema validation.
 planning:
   story_map:
-    backbone: Core package
-    step: Define capability schema
+    backbone: Capability authoring
+    step: Define capability model
     release: mvp
-    order: 10
+    order: 20
 #
 #
 agent:

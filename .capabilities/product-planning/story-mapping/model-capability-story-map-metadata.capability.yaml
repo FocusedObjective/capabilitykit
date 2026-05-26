@@ -23,7 +23,7 @@ guidance:
 planning:
   story_map:
     backbone: Story mapping
-    step: Model story-map metadata
+    step: Model planning metadata
     release: story-mapping
     order: 10
 #

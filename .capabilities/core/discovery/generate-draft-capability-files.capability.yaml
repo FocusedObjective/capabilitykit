@@ -28,8 +28,8 @@ guidance:
     as draft capabilities.
 planning:
   story_map:
-    backbone: Reverse engineering
-    step: Generate draft files
+    backbone: Existing project discovery
+    step: Draft capability map
     release: reverse-engineering
     order: 20
 #

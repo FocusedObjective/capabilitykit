@@ -15,10 +15,10 @@ guidance:
   - Do not hide verification gaps behind verbose flags.
 planning:
   story_map:
-    backbone: CLI package
-    step: Use CLI workflow
+    backbone: CLI workflow
+    step: Review capability changes
     release: mvp
-    order: 90
+    order: 60
 #
 #
 agent:

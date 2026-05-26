@@ -17,10 +17,10 @@ guidance:
   - Do not require planned capabilities to have agent.implementation.references.
 planning:
   story_map:
-    backbone: Core package
-    step: Check implementation evidence
+    backbone: Capability authoring
+    step: Check capability evidence
     release: mvp
-    order: 50
+    order: 30
 #
 #
 agent:
