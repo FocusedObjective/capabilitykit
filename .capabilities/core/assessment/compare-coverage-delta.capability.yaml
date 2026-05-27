@@ -20,6 +20,10 @@ acceptance:
   - Supports policy options for failing when regressions or new gaps are
     introduced.
   - Keeps raw capability intent diffs separate from coverage-confidence diffs.
+  - Can consume code-change impact results so coverage regressions can be scoped
+    to files changed by a PR even when capability files did not change.
+  - Flags meaningful code changes with no mapped capability separately from
+    capability coverage regressions.
 guidance:
   - Model this as a capability equivalent of unit-test deltas, not as a raw YAML
     diff.
@@ -42,6 +46,7 @@ agent:
   # -----------------------------
   depends_on:
     - core/assessment/assess-implementation-coverage
+    - core/graph/analyze-code-change-impact
     - core/graph/diff-capabilities
     - core/validation/validate-capability-files
     - core/validation/verify-implementation-references
@@ -57,3 +62,126 @@ agent:
         more clearly than raw YAML diff.
     gaps:
       - Coverage delta comparison is planned and has no implementation yet.
+  review:
+    depth: partial
+    source: deterministic-assessment
+    gaps:
+      - Compares current capability coverage against a configurable Git base
+        ref. Add agent.implementation.references to
+        core/assessment/compare-coverage-delta, or lower the status if this
+        capability is only planned.
+      - Builds normalized coverage snapshots from validation gaps,
+        implementation reference health, verification checks, and agent.review
+        criterion statuses. Add agent.implementation.references to
+        core/assessment/compare-coverage-delta, or lower the status if this
+        capability is only planned.
+      - Reports resolved gaps, new gaps, unchanged known gaps, improvements, and
+        regressions by capability ID. Add agent.implementation.references to
+        core/assessment/compare-coverage-delta, or lower the status if this
+        capability is only planned.
+      - Treats review depth, review source, criterion status, missing
+        references, automated checks, manual checks, declared gaps, and ignored
+        gaps as comparable coverage signals. Add agent.implementation.references
+        to core/assessment/compare-coverage-delta, or lower the status if this
+        capability is only planned.
+      - Defaults to a concise review summary that highlights regressions and new
+        gaps before improvements. Add agent.implementation.references to
+        core/assessment/compare-coverage-delta, or lower the status if this
+        capability is only planned.
+      - Provides JSON output suitable for CI and automation. Add
+        agent.implementation.references to
+        core/assessment/compare-coverage-delta, or lower the status if this
+        capability is only planned.
+      - Supports policy options for failing when regressions or new gaps are
+        introduced. Add agent.implementation.references to
+        core/assessment/compare-coverage-delta, or lower the status if this
+        capability is only planned.
+      - Keeps raw capability intent diffs separate from coverage-confidence
+        diffs. Add agent.implementation.references to
+        core/assessment/compare-coverage-delta, or lower the status if this
+        capability is only planned.
+      - Can consume code-change impact results so coverage regressions can be
+        scoped to files changed by a PR even when capability files did not
+        change. Add agent.implementation.references to
+        core/assessment/compare-coverage-delta, or lower the status if this
+        capability is only planned.
+      - Flags meaningful code changes with no mapped capability separately from
+        capability coverage regressions. Add agent.implementation.references to
+        core/assessment/compare-coverage-delta, or lower the status if this
+        capability is only planned.
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/assessment/compare-coverage-delta.
+    criteria:
+      - criterion: Compares current capability coverage against a configurable Git base
+          ref.
+        status: uncovered
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/assessment/compare-coverage-delta, or lower the status if this
+          capability is only planned.
+      - criterion: Builds normalized coverage snapshots from validation gaps,
+          implementation reference health, verification checks, and agent.review
+          criterion statuses.
+        status: uncovered
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/assessment/compare-coverage-delta, or lower the status if this
+          capability is only planned.
+      - criterion: Reports resolved gaps, new gaps, unchanged known gaps, improvements,
+          and regressions by capability ID.
+        status: uncovered
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/assessment/compare-coverage-delta, or lower the status if this
+          capability is only planned.
+      - criterion: Treats review depth, review source, criterion status, missing
+          references, automated checks, manual checks, declared gaps, and
+          ignored gaps as comparable coverage signals.
+        status: uncovered
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/assessment/compare-coverage-delta, or lower the status if this
+          capability is only planned.
+      - criterion: Defaults to a concise review summary that highlights regressions and
+          new gaps before improvements.
+        status: uncovered
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/assessment/compare-coverage-delta, or lower the status if this
+          capability is only planned.
+      - criterion: Provides JSON output suitable for CI and automation.
+        status: uncovered
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/assessment/compare-coverage-delta, or lower the status if this
+          capability is only planned.
+      - criterion: Supports policy options for failing when regressions or new gaps are
+          introduced.
+        status: uncovered
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/assessment/compare-coverage-delta, or lower the status if this
+          capability is only planned.
+      - criterion: Keeps raw capability intent diffs separate from coverage-confidence
+          diffs.
+        status: uncovered
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/assessment/compare-coverage-delta, or lower the status if this
+          capability is only planned.
+      - criterion: Can consume code-change impact results so coverage regressions can be
+          scoped to files changed by a PR even when capability files did not
+          change.
+        status: uncovered
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/assessment/compare-coverage-delta, or lower the status if this
+          capability is only planned.
+      - criterion: Flags meaningful code changes with no mapped capability separately
+          from capability coverage regressions.
+        status: uncovered
+        notes: The capability has no agent.implementation.references, so the assessor
+          has no concrete files to inspect. Add agent.implementation.references
+          to core/assessment/compare-coverage-delta, or lower the status if this
+          capability is only planned.
+    done: false

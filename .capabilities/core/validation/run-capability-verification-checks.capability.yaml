@@ -1,0 +1,62 @@
+title: Run capability verification checks
+status: planned
+summary: Execute automated verification checks for selected or impacted
+  capabilities and report results by capability.
+intent: Make capability acceptance act like a testable contract by letting teams
+  run the checks that prove affected capabilities still hold.
+acceptance:
+  - Runs automated verification commands declared on selected capabilities.
+  - Can select capabilities by explicit ID, story-map release, status bucket,
+    capability diff, impact analysis, or code-change impact.
+  - De-duplicates repeated commands while preserving the capabilities that each
+    command supports.
+  - Reports pass, fail, skipped, and not-run results by capability and check ID.
+  - Keeps manual review guidance visible in the same report when behavior cannot
+    be fully automated.
+  - Provides a dry-run mode that lists the commands and capabilities without
+    executing them.
+  - Provides JSON output and a CI-friendly non-zero exit code when required
+    checks fail or required checks are missing.
+  - Does not mark a capability verified solely because commands pass; status
+    changes remain explicit capability edits or policy-controlled actions.
+guidance:
+  - Use declared `agent.verification.automated` checks as the source of truth.
+  - Avoid hiding manual checks just because automated checks exist.
+  - Keep command execution auditable so PR reviewers can see what was run and
+    why.
+  - Prefer deterministic local execution first; external CI integrations can
+    build on the same report model later.
+planning:
+  story_map:
+    backbone: PR review
+    step: Retest affected capabilities
+    release: pr-review
+    order: 20
+#
+#
+agent:
+  # -----------------------------
+  # machine managed agent metadata
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/validation/run-capability-verification-checks
+  # run deterministic review only: capabilitykit review core/validation/run-capability-verification-checks --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/validation/run-capability-verification-checks --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/validation/run-capability-verification-checks --input review.json
+  # -----------------------------
+  depends_on:
+    - core/graph/analyze-capability-impact
+    - core/graph/analyze-code-change-impact
+    - core/validation/validate-capability-files
+  verification:
+    automated:
+      - id: capability-verification-runner-tests
+        description: Unit tests should cover command selection, de-duplication, dry-run
+          output, pass/fail reporting, skipped checks, and CI exit policy.
+        command: npm test -- packages/core/tests/capabilityVerificationRunner.test.ts
+    manual:
+      - Run verification for an impacted capability set and confirm the report
+        explains which checks ran for which capabilities and which manual
+        reviews remain.
+    gaps:
+      - Capability verification execution is planned and has no implementation
+        yet.

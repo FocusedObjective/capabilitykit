@@ -21,5 +21,6 @@ planning:
     - website
     - story-mapping
     - reverse-engineering
+    - pr-review
 output:
   path: .capabilities/dist/capabilities.json

@@ -1,0 +1,64 @@
+title: Analyze code change impact
+status: planned
+summary: Map changed implementation files back to capabilities that may need
+  review or retesting.
+intent: Help reviewers understand which capabilities are affected by a code
+  change even when the capability YAML files were not edited.
+acceptance:
+  - Compares changed repository files against a configurable Git base ref.
+  - Matches changed files to capabilities through
+    `agent.implementation.references`.
+  - Reports directly touched capabilities separately from downstream
+    capabilities found through `agent.depends_on`.
+  - Includes each affected capability's acceptance criteria, automated checks,
+    manual review guidance, known verification gaps, and saved review status.
+  - Flags changed source, test, route, handler, configuration, or documentation
+    files that are not referenced by any capability.
+  - Recommends whether unmatched files need a new capability, an updated
+    implementation reference, or an explicit non-capability classification.
+  - Provides human-readable and JSON output for PR review and CI automation.
+  - Supports a CI policy that fails when meaningful code changes cannot be
+    mapped to any capability or when affected implemented capabilities lack
+    verification.
+guidance:
+  - Treat implementation references as the primary code-to-capability index.
+  - "Prefer conservative output: if a changed file cannot be mapped with
+    confidence, make that uncertainty visible instead of guessing."
+  - Keep this separate from raw capability diffs; this answers what code changes
+    may have affected, not what capability files changed.
+  - Include tests and documentation because they can change or remove evidence
+    for an existing capability.
+planning:
+  story_map:
+    backbone: PR review
+    step: Identify affected capabilities
+    release: pr-review
+    order: 10
+#
+#
+agent:
+  # -----------------------------
+  # machine managed agent metadata
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review core/graph/analyze-code-change-impact
+  # run deterministic review only: capabilitykit review core/graph/analyze-code-change-impact --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review core/graph/analyze-code-change-impact --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result core/graph/analyze-code-change-impact --input review.json
+  # -----------------------------
+  depends_on:
+    - core/graph/diff-capabilities
+    - core/graph/analyze-capability-impact
+    - core/validation/verify-implementation-references
+  verification:
+    automated:
+      - id: code-change-impact-tests
+        description: Unit tests should cover changed file matching, unmatched code
+          paths, direct capability hits, downstream dependents, and CI policy
+          outcomes.
+        command: npm test -- packages/core/tests/codeChangeImpact.test.ts
+    manual:
+      - Run the code-change impact command against a branch with code-only
+        source, test, and documentation changes and confirm the affected
+        capability list is useful for PR review.
+    gaps:
+      - Code-change impact analysis is planned and has no implementation yet.

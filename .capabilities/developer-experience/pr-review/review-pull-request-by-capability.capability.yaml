@@ -1,0 +1,70 @@
+title: Review pull request by capability
+status: planned
+summary: Produce a PR review view that combines capability intent changes,
+  affected code impact, coverage confidence, and verification guidance.
+intent: Let reviewers understand what a PR should do, which capabilities it
+  adds, changes, removes, or risks, and what should be retested before merge.
+acceptance:
+  - Combines capability diff, code-change impact, coverage delta, and capability
+    impact into one PR-oriented report.
+  - Separates capability-file changes from code-only changes so reviewers can
+    see when implementation changed without a matching capability update.
+  - Lists capabilities added, removed, changed, directly affected by code, and
+    transitively affected through dependencies.
+  - Shows relevant acceptance criteria beside changed or impacted capabilities
+    so reviewers can compare what the PR does with what the capability says it
+    should do.
+  - Recommends automated checks and manual review steps for the affected
+    capability set.
+  - Flags PRs where meaningful code changes have no matching capability,
+    impacted capabilities have no verification path, or acceptance changes have
+    no implementation evidence.
+  - Produces concise Markdown suitable for a PR comment and JSON suitable for CI
+    and other automation.
+  - Keeps agent or deterministic review evidence as evidence, not as an
+    automatic approval or capability status promotion.
+guidance:
+  - "Optimize the default output for code review: lead with capability risk,
+    changed intent, affected behavior, and required verification."
+  - Avoid making this a second issue tracker; the report should point back to
+    repo-native capability files and code evidence.
+  - Keep unmatched-code findings actionable instead of noisy by allowing
+    explicit ignored paths or accepted non-capability classifications.
+  - Preserve the distinction between "what changed in code" and "what changed in
+    declared capability intent."
+planning:
+  story_map:
+    backbone: PR review
+    step: Explain PR behavior and risk
+    release: pr-review
+    order: 30
+#
+#
+agent:
+  # -----------------------------
+  # machine managed agent metadata
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review developer-experience/pr-review/review-pull-request-by-capability
+  # run deterministic review only: capabilitykit review developer-experience/pr-review/review-pull-request-by-capability --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review developer-experience/pr-review/review-pull-request-by-capability --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result developer-experience/pr-review/review-pull-request-by-capability --input review.json
+  # -----------------------------
+  depends_on:
+    - core/graph/diff-capabilities
+    - core/graph/analyze-code-change-impact
+    - core/assessment/compare-coverage-delta
+    - core/graph/analyze-capability-impact
+    - core/validation/run-capability-verification-checks
+  verification:
+    automated:
+      - id: pr-capability-review-tests
+        description: Unit tests should cover combining capability diffs, code impact,
+          coverage delta, verification recommendations, markdown output, JSON
+          output, and CI policy findings.
+        command: npm test -- packages/cli/tests/prCapabilityReview.test.ts
+    manual:
+      - Run the PR capability review workflow against a branch with capability
+        changes and code-only changes and confirm the report explains intended
+        behavior, risk, and retesting needs better than a raw code diff.
+    gaps:
+      - Capability-centered PR review is planned and has no implementation yet.
