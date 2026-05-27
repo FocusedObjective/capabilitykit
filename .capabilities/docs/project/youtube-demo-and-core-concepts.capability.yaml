@@ -1,0 +1,124 @@
+title: YouTube demo and core concepts
+status: implemented
+summary: Provide a YouTube demo script and website explanation that connect
+  CapabilityKit's core concepts to repo-native requirements, verification,
+  impact, PR review, and story mapping.
+intent: Help new users quickly understand why CapabilityKit exists and how its
+  workflow replaces disconnected requirements tracking with capabilities that
+  live near code and can be reviewed against implementation evidence.
+acceptance:
+  - Demo script explains the problem with requirements living outside the repo.
+  - Demo script walks through capability files, status, diff, assessment,
+    impact, and story-map views.
+  - Demo script includes concrete terminal commands that can be run from this
+    repository.
+  - Website explains that a capability is a version-controlled behavior contract
+    close to the code.
+  - Website explains how acceptance, implementation references, verification,
+    impact, and PR review fit together.
+  - Website connects story mapping to progressive capability slices and
+    retesting instead of presenting it as a separate planning artifact.
+guidance:
+  - Keep the language practical and developer-facing.
+  - Avoid positioning CapabilityKit as a Jira clone or heavyweight process.
+  - Make the website explanation skimmable before the generated viewers.
+planning:
+  story_map:
+    backbone: Project communication
+    step: Explain core concepts
+    release: website
+    order: 30
+#
+#
+agent:
+  # -----------------------------
+  # machine managed agent metadata
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review docs/project/youtube-demo-and-core-concepts
+  # run deterministic review only: capabilitykit review docs/project/youtube-demo-and-core-concepts --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review docs/project/youtube-demo-and-core-concepts --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result docs/project/youtube-demo-and-core-concepts --input review.json
+  # -----------------------------
+  implementation:
+    references:
+      - docs/youtube-demo-script.md
+      - website/index.html
+      - website/styles.css
+  verification:
+    automated:
+      - id: docs-demo-validate
+        description: Validate the capability map after adding the demo script and core
+          concepts website content.
+        command: node packages/cli/dist/index.js validate
+    manual:
+      - Read the demo script and website core concepts section from a new user's
+        perspective and confirm they explain why capabilities should live near
+        code.
+  review:
+    depth: verified
+    source: coding-agent
+    intent_summary: The demo script and website core concepts section explain
+      CapabilityKit as repo-native capability contracts with implementation
+      evidence, verification, impact analysis, PR review, and story-map release
+      slices.
+    criteria:
+      - criterion: Demo script explains the problem with requirements living outside the
+          repo.
+        status: covered
+        evidence:
+          - docs/youtube-demo-script.md:58
+          - docs/youtube-demo-script.md:70
+        notes: The hook contrasts Jira, planning docs, and chat threads with
+          capabilities kept close to code.
+      - criterion: Demo script walks through capability files, status, diff, assessment,
+          impact, and story-map views.
+        status: covered
+        evidence:
+          - docs/youtube-demo-script.md:74
+          - docs/youtube-demo-script.md:103
+          - docs/youtube-demo-script.md:125
+          - docs/youtube-demo-script.md:152
+          - docs/youtube-demo-script.md:179
+          - docs/youtube-demo-script.md:208
+        notes: The script is structured as a step-by-step demo of each core CLI and
+          viewer concept.
+      - criterion: Demo script includes concrete terminal commands that can be run from
+          this repository.
+        status: covered
+        evidence:
+          - docs/youtube-demo-script.md:45
+          - docs/youtube-demo-script.md:46
+          - docs/youtube-demo-script.md:47
+          - docs/youtube-demo-script.md:48
+          - docs/youtube-demo-script.md:49
+        notes: The setup section lists repository-local commands using the built CLI.
+      - criterion: Website explains that a capability is a version-controlled behavior
+          contract close to the code.
+        status: covered
+        evidence:
+          - website/index.html:97
+          - website/index.html:99
+          - website/index.html:107
+        notes: The core concepts section defines capabilities as requirements close to
+          code and behavior contracts.
+      - criterion: Website explains how acceptance, implementation references,
+          verification, impact, and PR review fit together.
+        status: covered
+        evidence:
+          - website/index.html:115
+          - website/index.html:123
+          - website/index.html:131
+          - website/index.html:139
+        notes: Concept cards describe implementation evidence, verification depth, code
+          impact, and PR behavior review.
+      - criterion: Website connects story mapping to progressive capability slices and
+          retesting instead of presenting it as a separate planning artifact.
+        status: covered
+        evidence:
+          - website/index.html:147
+          - website/index.html:159
+          - docs/youtube-demo-script.md:220
+          - docs/youtube-demo-script.md:234
+        notes: Website and script tie story-map slices to delivery evidence, retesting,
+          and release progression.
+    done: true

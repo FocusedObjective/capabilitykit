@@ -24,6 +24,7 @@
           <span>CapabilityKit</span>
         </a>
         <nav class="nav-links" aria-label="Primary navigation">
+          <a href="#concepts">Concepts</a>
           <a href="#review">Review loop</a>
           <a href="#story-mapping">Story mapping</a>
           <a href="#verification">Verification</a>
@@ -87,6 +88,84 @@ acceptance:
             keeps the durable part of the plan: what the system is supposed to do,
             where it is implemented, how deeply it is verified, and what depends on it.
           </p>
+        </div>
+      </section>
+
+      <section id="concepts" class="section">
+        <div class="container section-heading">
+          <p class="eyebrow">Core concepts</p>
+          <h2>Capabilities are requirements that stay close to the code.</h2>
+          <p>
+            CapabilityKit is not a second issue tracker. It turns durable product
+            behavior into version-controlled files that reviewers, tests, and
+            coding agents can inspect together.
+          </p>
+        </div>
+        <div class="container concept-grid">
+          <article class="concept-card">
+            <span>01</span>
+            <h3>Capability as contract</h3>
+            <p>
+              A capability records what the system should do, why it matters,
+              and which acceptance criteria must stay true as the code changes.
+            </p>
+          </article>
+          <article class="concept-card">
+            <span>02</span>
+            <h3>Evidence beside intent</h3>
+            <p>
+              Implementation references point to source, tests, docs, routes,
+              handlers, and workflows so claims can be reviewed against code.
+            </p>
+          </article>
+          <article class="concept-card">
+            <span>03</span>
+            <h3>Verification depth</h3>
+            <p>
+              Automated checks, manual review, known gaps, and saved agent
+              review evidence make confidence visible instead of implied.
+            </p>
+          </article>
+          <article class="concept-card">
+            <span>04</span>
+            <h3>Code impact</h3>
+            <p>
+              Changed files can be mapped back to referenced capabilities and
+              downstream dependents, narrowing what needs retesting.
+            </p>
+          </article>
+          <article class="concept-card">
+            <span>05</span>
+            <h3>PR behavior review</h3>
+            <p>
+              Capability diffs show what should be added, removed, or changed,
+              while impact and verification show what might be at risk.
+            </p>
+          </article>
+          <article class="concept-card">
+            <span>06</span>
+            <h3>Story-map slices</h3>
+            <p>
+              Release, backbone, and step metadata organize progressive slices
+              without separating planning from delivery evidence.
+            </p>
+          </article>
+        </div>
+        <div class="container demo-strip">
+          <div>
+            <p class="eyebrow">Demo narrative</p>
+            <h3>What the YouTube walkthrough shows</h3>
+            <p>
+              Start with the problem of requirements drifting away from code,
+              open one capability file, then run status, diff, assess, impact,
+              and story-map commands to show how capability review works.
+            </p>
+          </div>
+          <pre class="code-card"><code>node packages/cli/dist/index.js status
+node packages/cli/dist/index.js diff --base HEAD
+node packages/cli/dist/index.js assess core/assessment/assess-implementation-coverage
+node packages/cli/dist/index.js impact core/model/define-capability-format
+node packages/cli/dist/index.js status --story-map --release pr-review</code></pre>
         </div>
       </section>
 

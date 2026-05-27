@@ -371,6 +371,7 @@ code {
 
 .steps,
 .three-panel,
+.concept-grid,
 .capability-structure-grid,
 .graph-grid,
 .example-grid,
@@ -384,6 +385,7 @@ code {
 }
 
 .steps article,
+.concept-card,
 .signal-panel,
 .risk-list {
   border: 1px solid var(--line);
@@ -405,8 +407,53 @@ code {
 }
 
 .steps p,
+.concept-card p,
 .signal-panel p {
   margin: 0;
+}
+
+.concept-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.concept-card {
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
+  min-height: 15rem;
+}
+
+.concept-card span {
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 8px;
+  background: #e6f3ec;
+  color: var(--brand-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.demo-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  align-items: start;
+  margin-top: 1rem;
+  padding: 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(20, 33, 28, 0.06);
+}
+
+.demo-strip h3 {
+  font-size: 1.35rem;
+}
+
+.demo-strip p {
+  margin-bottom: 0;
 }
 
 .split,
@@ -714,7 +761,8 @@ li {
   }
 
   .steps,
-  .three-panel {
+  .three-panel,
+  .concept-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -748,7 +796,9 @@ li {
   }
 
   .steps,
-  .three-panel {
+  .three-panel,
+  .concept-grid,
+  .demo-strip {
     grid-template-columns: 1fr;
   }
 
