@@ -25,6 +25,7 @@
         </a>
         <nav class="nav-links" aria-label="Primary navigation">
           <a href="#review">Review loop</a>
+          <a href="#story-mapping">Story mapping</a>
           <a href="#verification">Verification</a>
           <a href="#impact">Impact graph</a>
           <a class="nav-cta" href="https://github.com/FocusedObjective/capabilitykit">GitHub</a>
@@ -254,6 +255,76 @@ acceptance:
 guidance:
   - Compare normalized parsed capabilities, not raw YAML text.
   - Avoid raw JSON in the default human output.</code></pre>
+        </div>
+      </section>
+
+      <section id="story-mapping" class="section section-alt story-map-section">
+        <div class="container section-heading">
+          <p class="eyebrow">Story mapping</p>
+          <h2>Capabilities can grow across release slices.</h2>
+          <p>
+            A capability does not have to ship as one large unit. CapabilityKit lets teams attach story-map metadata to
+            each capability so a first release can prove a thin, coherent outcome, then later releases can deepen the
+            map without moving files or losing implementation evidence. Story-map metadata groups capabilities by
+            release, backbone, and step.
+          </p>
+        </div>
+        <div class="container story-map-grid">
+          <div class="story-map-copy">
+            <article>
+              <span>Release</span>
+              <h3>Plan by release slice</h3>
+              <p>
+                `planning.story_map.release` keeps MVP, website, story-mapping, and follow-on slices visible as roadmap
+                data instead of folder structure.
+              </p>
+            </article>
+            <article>
+              <span>Backbone + step</span>
+              <h3>Group by release, backbone, and step</h3>
+              <p>
+                Story-map metadata groups capabilities by release, backbone, and step, so reviewers can see which part
+                of the outcome each capability strengthens.
+              </p>
+            </article>
+            <article>
+              <span>Status + evidence</span>
+              <h3>Keep delivery attached</h3>
+              <p>
+                Each story-map card still carries capability status, verification gaps, and implementation references,
+                keeping release conversations connected to actual delivery.
+              </p>
+            </article>
+          </div>
+          <figure class="story-map-shot">
+            <a href="./story-map-viewer.html" target="_blank" rel="noopener" aria-label="Open the full story-map viewer">
+              <img src="./storymap.png" alt="CapabilityKit story map grouped by release, backbone, and step" />
+            </a>
+            <figcaption>
+              Link to the generated story-map viewer as a concrete example of progressive capability planning. A thin first
+              slice proves the end-to-end path, and later slices add depth while status, verification risk, and
+              implementation traceability stay visible.
+            </figcaption>
+          </figure>
+        </div>
+        <div class="container story-map-example">
+          <pre class="code-card"><code>planning:
+  story_map:
+    backbone: Project communication
+    step: Explain story mapping
+    release: website
+    order: 20</code></pre>
+          <div>
+            <h3>Release slicing is metadata.</h3>
+            <p>
+              The capability ID still comes from its file path. Story-map fields describe how the capability contributes
+              to a release narrative, which lets teams split work progressively without rewriting the capability map.
+            </p>
+            <div class="cta-row">
+              <a class="btn btn-primary" href="./story-map-viewer.html" target="_blank" rel="noopener">Open generated story-map viewer</a>
+              <a class="btn btn-secondary" href="#impact">See dependency impact</a>
+            </div>
+          </div>
         </div>
       </section>
 

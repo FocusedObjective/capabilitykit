@@ -1,0 +1,65 @@
+title: Website explains story mapping
+status: implemented
+summary: Add website content that explains how CapabilityKit capabilities can be
+  split across releases and sliced into a story map to progressively build
+  product capability.
+intent: Help website visitors understand story mapping as a practical planning
+  workflow for CapabilityKit, showing that capabilities can start as thin
+  release slices and grow over multiple releases without losing implementation
+  traceability.
+acceptance:
+  - Website explains that a capability can be delivered progressively across
+    multiple releases instead of treated as a single all-or-nothing unit.
+  - Website shows how story-map metadata groups capabilities by release,
+    backbone, and step.
+  - Website demonstrates a thin first release slice that proves a coherent
+    end-to-end outcome before deeper follow-on slices.
+  - Website connects story-map slices back to capability status, verification,
+    and implementation evidence so planning remains tied to delivery.
+  - Website links to or embeds the generated story-map viewer as a concrete
+    example of progressive capability planning.
+guidance:
+  - Keep the explanation concrete and visual, using the existing story-map
+    viewer where possible.
+  - Avoid presenting story mapping as a heavyweight process or separate planning
+    artifact.
+  - Emphasize that release slicing is metadata and does not require moving
+    capability files between folders.
+planning:
+  story_map:
+    backbone: Project communication
+    step: Explain story mapping
+    release: website
+    order: 20
+#
+#
+agent:
+  # -----------------------------
+  # machine managed agent metadata
+  # review all capabilities and save evidence: capabilitykit review
+  # review this capability and save evidence: capabilitykit review docs/project/website-explains-story-mapping
+  # run deterministic review only: capabilitykit review docs/project/website-explains-story-mapping --deterministic-only
+  # ask an agent and save review evidence: capabilitykit review docs/project/website-explains-story-mapping --agent codex --handoff stdin
+  # validate saved agent output without writing: capabilitykit review-result docs/project/website-explains-story-mapping --input review.json
+  # -----------------------------
+  implementation:
+    references:
+      - website/index.html
+      - website/styles.css
+      - website/storymap.png
+      - website/story-map-viewer.html
+  verification:
+    automated:
+      - id: website-story-mapping-validate
+        description: Validate the capability map after adding the website story-mapping
+          explanation.
+        command: npm run capabilitykit -- validate
+      - id: website-story-mapping-build
+        description: Build packages to confirm CLI-generated website artifacts remain
+          compatible with the project.
+        command: npm run build
+    manual:
+      - Open `website/index.html`, review the Story mapping section, and confirm
+        the screenshot loads, the story-map viewer link opens, and the content
+        explains progressive release slicing without treating story mapping as a
+        separate heavyweight artifact.
