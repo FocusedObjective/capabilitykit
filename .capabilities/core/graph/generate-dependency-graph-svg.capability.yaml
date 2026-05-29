@@ -13,6 +13,9 @@ acceptance:
     opts out.
   - Renders one node per capability with status, area, direct dependent count,
     and verification gap indicators.
+  - Treats unresolved saved `agent.review` evidence as non-healthy graph health,
+    so implemented capabilities with partial reviews, unfinished reviews, review
+    gaps, or non-covered criteria are not rendered as green.
   - Renders dependency links from `agent.depends_on` relationships.
   - Includes browser-side interaction for animated layout, dragging,
     highlighting, zoom, and spacing controls.
@@ -56,6 +59,8 @@ agent:
   implementation:
     references:
       - packages/cli/src/index.ts
+      - packages/core/src/capabilityReviewHealth.ts
+      - packages/core/tests/capabilityReviewHealth.test.ts
       - .github/workflows/deploy-website.yml
   verification:
     automated:

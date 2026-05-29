@@ -19,6 +19,7 @@ import {
   loadCapabilities,
   runExternalAgentCommand,
   saveAgentReviewResult,
+  summarizeSavedReviewHealth,
   summarizeCapabilityStatus,
   syncReviewEvidence,
   validateAgentReviewResult,
@@ -297,6 +298,9 @@ interface GraphNode {
   manualChecks: string[];
   verificationGaps: VerificationGap[];
   review?: NonNullable<NonNullable<Capability["agent"]>["review"]>;
+  reviewFindings: string[];
+  health: "implemented" | "review" | "gap" | "planned";
+  healthLabel: string;
   storyMap?: {
     release: string;
     backbone: string;
@@ -374,6 +378,25 @@ function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<strin
   );
   const graphNodes = sorted.map((node, i) => {
     const gaps = gapsById.get(node.id) ?? 0;
+    const reviewHealth = summarizeSavedReviewHealth(node);
+    const health: GraphNode["health"] =
+      gaps > 0 || reviewHealth.health === "action"
+        ? "gap"
+        : node.status === "planned"
+          ? "planned"
+          : node.status === "in-progress" || reviewHealth.health === "review"
+            ? "review"
+            : "implemented";
+    const healthLabel =
+      health === "gap"
+        ? gaps > 0
+          ? "Needs action"
+          : "Review findings"
+        : health === "review"
+          ? "Needs review"
+          : health === "planned"
+            ? "Planned"
+            : "Implemented";
     const impact = dependentsById.get(node.id)?.length ?? 0;
     const areaIndex = Math.max(areas.indexOf(node.area), 0);
     const columnCount = Math.max(areas.length, 1);
@@ -408,6 +431,9 @@ function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<strin
       manualChecks: node.agent?.verification?.manual ?? [],
       verificationGaps: node.verificationGaps,
       review: node.agent?.review,
+      reviewFindings: reviewHealth.findings,
+      health,
+      healthLabel,
       storyMap,
       impact,
       gaps,
@@ -515,8 +541,8 @@ function graphSvg(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>)
   </g>
   <g class="legend" transform="translate(1040 44)">
     <circle class="implemented legend-dot" cx="0" cy="0" r="9" /><text x="18" y="4">Implemented</text>
-    <circle class="review legend-dot" cx="0" cy="28" r="9" /><text x="18" y="32">In progress</text>
-    <circle class="gap legend-dot" cx="150" cy="0" r="9" /><text x="168" y="4">Verification gap</text>
+    <circle class="review legend-dot" cx="0" cy="28" r="9" /><text x="18" y="32">Needs review</text>
+    <circle class="gap legend-dot" cx="150" cy="0" r="9" /><text x="168" y="4">Needs action</text>
     <circle class="planned legend-dot" cx="150" cy="28" r="9" /><text x="168" y="32">Planned</text>
   </g>
   <g id="controls" transform="translate(1040 102)">
@@ -580,7 +606,7 @@ for (const link of links) {
   linked.add(link.source.id + "->" + link.target.id);
   linked.add(link.target.id + "->" + link.source.id);
 }
-const statusClass = (node) => node.gaps > 0 ? "gap" : node.status === "planned" ? "planned" : node.status === "in-progress" ? "review" : "implemented";
+const statusClass = (node) => node.health;
 function el(name, attrs = {}) {
   const node = document.createElementNS("http://www.w3.org/2000/svg", name);
   for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
@@ -858,8 +884,8 @@ function highlight(node) {
   details.setAttribute("transform", "translate(" + x.toFixed(1) + " " + y.toFixed(1) + ")");
   details.setAttribute("opacity", "1");
   detailTitle.textContent = node.title;
-  detailStatus.textContent = node.id + " | " + node.status + " | " + node.scope;
-  detailImpact.textContent = "Direct dependents: " + node.impact + " | verification gaps: " + node.gaps;
+  detailStatus.textContent = node.id + " | " + node.status + " | " + node.healthLabel + " | " + node.scope;
+  detailImpact.textContent = "Direct dependents: " + node.impact + " | verification gaps: " + node.gaps + " | review findings: " + node.reviewFindings.length;
   for (const item of nodeEls) {
     const connected = scopeVisible(item.node) && (item.node.id === node.id || linked.has(item.node.id + "->" + node.id));
     item.el.classList.toggle("dimmed", !connected);
@@ -1253,8 +1279,8 @@ function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, n
           </svg>
           <div class="legend">
             <span><i class="dot"></i>Implemented</span>
-            <span><i class="dot review"></i>In progress</span>
-            <span><i class="dot gap"></i>Verification gap</span>
+            <span><i class="dot review"></i>Needs review</span>
+            <span><i class="dot gap"></i>Needs action</span>
             <span><i class="dot planned"></i>Planned</span>
           </div>
         </div>
@@ -1308,7 +1334,7 @@ function storyMapMatches(node) {
 function emphasized(node) {
   return visible(node) && storyMapMatches(node);
 }
-function statusClass(node) { return node.gaps > 0 ? "gap" : node.status === "planned" ? "planned" : node.status === "in-progress" ? "review" : "implemented"; }
+function statusClass(node) { return node.health; }
 function el(name, attrs = {}) {
   const node = document.createElementNS("http://www.w3.org/2000/svg", name);
   for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
@@ -1418,7 +1444,7 @@ function renderPanel(node) {
   panel.replaceChildren();
   panel.append(htmlEl("h2", "", node.title), htmlEl("p", "id", node.id));
   const badges = htmlEl("div", "badges");
-  badges.append(htmlEl("span", "badge", node.status), htmlEl("span", "badge", node.scope), htmlEl("span", node.gaps > 0 ? "badge gap" : "badge", node.gaps + " gaps"), htmlEl("span", "badge", node.impact + " direct dependents"));
+  badges.append(htmlEl("span", "badge", node.status), htmlEl("span", node.health === "gap" ? "badge gap" : "badge", node.healthLabel), htmlEl("span", "badge", node.scope), htmlEl("span", node.gaps > 0 ? "badge gap" : "badge", node.gaps + " gaps"), htmlEl("span", node.reviewFindings.length > 0 ? "badge gap" : "badge", node.reviewFindings.length + " review findings"), htmlEl("span", "badge", node.impact + " direct dependents"));
   if (node.storyMap?.label) badges.append(htmlEl("span", "badge", node.storyMap.label));
   if (node.review?.depth) badges.append(htmlEl("span", "badge", "review: " + node.review.depth));
   panel.append(badges);
@@ -1435,6 +1461,7 @@ function renderPanel(node) {
     ...node.manualChecks.map((check) => "Manual: " + check)
   ])));
   panel.append(section("Verification Gaps", list(node.verificationGaps, (gap) => gap.message)));
+  panel.append(section("Review Findings", list(node.reviewFindings)));
   const evidence = reviewEvidence(node);
   if (evidence) panel.append(evidence);
   panel.append(section("Dependencies", list(node.dependencies)));

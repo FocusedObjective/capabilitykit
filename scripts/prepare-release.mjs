@@ -231,9 +231,10 @@ function printManualCommands(nextVersion) {
 }
 
 function run(command, args, options = {}) {
-  const executable = process.platform === "win32" && command === "npm" ? "npm.cmd" : command;
-  const result = spawnSync(executable, args, {
+  const useShell = process.platform === "win32" && command === "npm";
+  const result = spawnSync(command, args, {
     encoding: "utf8",
+    shell: useShell,
     stdio: options.capture ? "pipe" : "inherit",
   });
 

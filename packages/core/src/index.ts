@@ -5,6 +5,7 @@ export { saveAgentReviewResult, validateAgentReviewResult } from "./agentReviewR
 export { buildAgentTaskBundle } from "./agentTask.js";
 export { analyzeCapabilityImpact, buildCapabilityImpactGraph, formatCapabilityImpactReport } from "./capabilityImpact.js";
 export { diffCapabilities, formatCapabilityDiffReport } from "./capabilityDiff.js";
+export { summarizeSavedReviewHealth } from "./capabilityReviewHealth.js";
 export { formatCapabilityStatusReport, summarizeCapabilityStatus } from "./capabilityStatus.js";
 export { compileCapabilities, writeCompiledCapabilities } from "./compileCapabilities.js";
 export { detectExternalAgentCommand, runExternalAgentCommand } from "./externalAgent.js";
@@ -31,6 +32,7 @@ export type {
 } from "./assessmentAdvice.js";
 export type { AgentReviewPrompt, AgentReviewPromptOptions } from "./agentReview.js";
 export type { CapabilityDiffEntry, CapabilityDiffKind, CapabilityDiffReport, CapabilityFieldDiff } from "./capabilityDiff.js";
+export type { CapabilityReviewHealth, CapabilityReviewHealthSummary } from "./capabilityReviewHealth.js";
 export type {
   CapabilityHealth,
   CapabilityStatusReport,

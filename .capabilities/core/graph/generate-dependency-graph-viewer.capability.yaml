@@ -15,6 +15,9 @@ acceptance:
   - Shows title, ID, status, scope, summary, intent, acceptance criteria,
     implementation references, verification checks, verification gaps, and
     agent.review details for the selected capability.
+  - Renders unresolved saved `agent.review` evidence as review/action health in
+    both graph node color and side-panel badges instead of showing the
+    capability as healthy.
   - Highlights acceptance criteria in a shaded side-panel block with inline
     coverage icons.
   - Keeps detailed review evidence collapsed behind an expandable side-panel
@@ -54,6 +57,8 @@ agent:
   implementation:
     references:
       - packages/cli/src/index.ts
+      - packages/core/src/capabilityReviewHealth.ts
+      - packages/core/tests/capabilityReviewHealth.test.ts
   verification:
     automated:
       - id: cli-build
