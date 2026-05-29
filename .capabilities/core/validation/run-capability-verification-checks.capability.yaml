@@ -40,7 +40,7 @@ agent:
   # review all capabilities and save evidence: capabilitykit review
   # review this capability and save evidence: capabilitykit review core/validation/run-capability-verification-checks
   # run deterministic review only: capabilitykit review core/validation/run-capability-verification-checks --deterministic-only
-  # ask an agent and save review evidence: capabilitykit review core/validation/run-capability-verification-checks --agent codex --handoff stdin
+  # ask an agent and save review evidence: capabilitykit review core/validation/run-capability-verification-checks --agent codex --arg exec --handoff stdin
   # validate saved agent output without writing: capabilitykit review-result core/validation/run-capability-verification-checks --input review.json
   # -----------------------------
   depends_on:

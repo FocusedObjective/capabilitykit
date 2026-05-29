@@ -46,6 +46,30 @@ describe("external agent command runner", () => {
     expect(result.message).toContain("was not found on PATH");
   });
 
+  it("detects Codex from an explicit override when it is not on PATH", async () => {
+    const scriptName = process.platform === "win32" ? "codex.cmd" : "codex";
+    const { commandPath } = await createExecutable(
+      scriptName,
+      process.platform === "win32" ? "@echo off\r\necho codex\r\n" : "#!/bin/sh\necho codex\n"
+    );
+
+    const result = await detectExternalAgentCommand("codex", {
+      env: { PATH: "", CAPABILITYKIT_CODEX_COMMAND: commandPath }
+    });
+
+    expect(result.available).toBe(true);
+    expect(result.resolvedPath).toBe(commandPath);
+  });
+
+  it("explains the Codex override when Codex is missing", async () => {
+    const result = await detectExternalAgentCommand("codex", {
+      env: { PATH: "" }
+    });
+
+    expect(result.available).toBe(false);
+    expect(result.message).toContain("CAPABILITYKIT_CODEX_COMMAND");
+  });
+
   it("runs a configured command with the task bundle on stdin", async () => {
     const result = await runExternalAgentCommand({
       command: process.execPath,

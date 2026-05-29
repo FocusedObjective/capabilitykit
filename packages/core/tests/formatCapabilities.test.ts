@@ -71,7 +71,7 @@ describe("formatCapabilities", () => {
     expect(source).toContain("# review all capabilities and save evidence: capabilitykit review");
     expect(source).toContain("# review this capability and save evidence: capabilitykit review core/example");
     expect(source).toContain("# run deterministic review only: capabilitykit review core/example --deterministic-only");
-    expect(source).toContain("# ask an agent and save review evidence: capabilitykit review core/example --agent codex --handoff stdin");
+    expect(source).toContain("# ask an agent and save review evidence: capabilitykit review core/example --agent codex --arg exec --handoff stdin");
     expect(source).toContain("# validate saved agent output without writing: capabilitykit review-result core/example --input review.json");
     expect(source).not.toContain("<capability-id>");
     expect(source).toContain("planning:\n  story_map:\n    backbone: Model\n    step: Define\n    release: mvp\n    order: 1");

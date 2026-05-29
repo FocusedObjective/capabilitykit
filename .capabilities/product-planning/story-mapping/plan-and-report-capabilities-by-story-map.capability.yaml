@@ -34,7 +34,7 @@ agent:
   # review all capabilities and save evidence: capabilitykit review
   # review this capability and save evidence: capabilitykit review product-planning/story-mapping/plan-and-report-capabilities-by-story-map
   # run deterministic review only: capabilitykit review product-planning/story-mapping/plan-and-report-capabilities-by-story-map --deterministic-only
-  # ask an agent and save review evidence: capabilitykit review product-planning/story-mapping/plan-and-report-capabilities-by-story-map --agent codex --handoff stdin
+  # ask an agent and save review evidence: capabilitykit review product-planning/story-mapping/plan-and-report-capabilities-by-story-map --agent codex --arg exec --handoff stdin
   # validate saved agent output without writing: capabilitykit review-result product-planning/story-mapping/plan-and-report-capabilities-by-story-map --input review.json
   # -----------------------------
   depends_on:

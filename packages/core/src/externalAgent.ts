@@ -74,6 +74,63 @@ function hasPathSeparator(command: string): boolean {
   return command.includes("/") || command.includes("\\");
 }
 
+function commandName(command: string): string {
+  return path.basename(command).replace(/\.(cmd|bat|exe)$/i, "").toLowerCase();
+}
+
+async function detectConfiguredCommand(
+  command: string,
+  env: NodeJS.ProcessEnv,
+  cwd: string
+): Promise<ExternalAgentDetectionResult | undefined> {
+  if (commandName(command) !== "codex") {
+    return undefined;
+  }
+
+  const configuredCommand = env.CAPABILITYKIT_CODEX_COMMAND?.trim();
+  if (!configuredCommand) {
+    return undefined;
+  }
+
+  const resolvedPath = path.resolve(cwd, configuredCommand);
+  if (await isExecutable(resolvedPath)) {
+    return { available: true, command, resolvedPath };
+  }
+
+  return {
+    available: false,
+    command,
+    message: `CAPABILITYKIT_CODEX_COMMAND is set but was not found or is not executable: ${configuredCommand}`
+  };
+}
+
+function codexFallbackDirectories(env: NodeJS.ProcessEnv): string[] {
+  const directories: string[] = [];
+
+  if (process.platform === "win32") {
+    if (env.APPDATA) {
+      directories.push(path.join(env.APPDATA, "npm"));
+    }
+    if (env.LOCALAPPDATA) {
+      directories.push(path.join(env.LOCALAPPDATA, "npm"));
+    }
+    return directories;
+  }
+
+  directories.push("/opt/homebrew/bin", "/usr/local/bin");
+
+  const home = env.HOME;
+  if (home) {
+    directories.push(path.join(home, ".npm-global", "bin"), path.join(home, ".local", "bin"));
+  }
+
+  if (env.npm_config_prefix) {
+    directories.push(path.join(env.npm_config_prefix, "bin"));
+  }
+
+  return directories;
+}
+
 export async function detectExternalAgentCommand(
   command: string,
   options: { cwd?: string; env?: NodeJS.ProcessEnv } = {}
@@ -87,6 +144,11 @@ export async function detectExternalAgentCommand(
       command,
       message: "No external agent command was provided."
     };
+  }
+
+  const configuredCommand = await detectConfiguredCommand(command, env, cwd);
+  if (configuredCommand) {
+    return configuredCommand;
   }
 
   if (path.isAbsolute(command) || hasPathSeparator(command)) {
@@ -110,10 +172,24 @@ export async function detectExternalAgentCommand(
     }
   }
 
+  if (commandName(command) === "codex") {
+    for (const entry of codexFallbackDirectories(env)) {
+      for (const extension of candidateExtensions(env)) {
+        const candidate = path.join(entry, `${command}${extension}`);
+        if (await isExecutable(candidate)) {
+          return { available: true, command, resolvedPath: candidate };
+        }
+      }
+    }
+  }
+
   return {
     available: false,
     command,
-    message: `External agent command "${command}" was not found on PATH. Install it or pass --command with a configured executable.`
+    message:
+      commandName(command) === "codex"
+        ? `External agent command "codex" was not found on PATH. Install it, pass --agent/--command with a configured executable, or set CAPABILITYKIT_CODEX_COMMAND to the Codex executable path.`
+        : `External agent command "${command}" was not found on PATH. Install it or pass --command with a configured executable.`
   };
 }
 

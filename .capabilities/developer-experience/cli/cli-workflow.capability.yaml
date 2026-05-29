@@ -27,7 +27,7 @@ agent:
   # review all capabilities and save evidence: capabilitykit review
   # review this capability and save evidence: capabilitykit review developer-experience/cli/cli-workflow
   # run deterministic review only: capabilitykit review developer-experience/cli/cli-workflow --deterministic-only
-  # ask an agent and save review evidence: capabilitykit review developer-experience/cli/cli-workflow --agent codex --handoff stdin
+  # ask an agent and save review evidence: capabilitykit review developer-experience/cli/cli-workflow --agent codex --arg exec --handoff stdin
   # validate saved agent output without writing: capabilitykit review-result developer-experience/cli/cli-workflow --input review.json
   # -----------------------------
   depends_on:

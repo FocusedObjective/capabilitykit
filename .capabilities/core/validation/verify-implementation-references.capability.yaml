@@ -29,7 +29,7 @@ agent:
   # review all capabilities and save evidence: capabilitykit review
   # review this capability and save evidence: capabilitykit review core/validation/verify-implementation-references
   # run deterministic review only: capabilitykit review core/validation/verify-implementation-references --deterministic-only
-  # ask an agent and save review evidence: capabilitykit review core/validation/verify-implementation-references --agent codex --handoff stdin
+  # ask an agent and save review evidence: capabilitykit review core/validation/verify-implementation-references --agent codex --arg exec --handoff stdin
   # validate saved agent output without writing: capabilitykit review-result core/validation/verify-implementation-references --input review.json
   # -----------------------------
   inputs:

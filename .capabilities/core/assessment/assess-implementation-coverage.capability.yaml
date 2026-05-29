@@ -46,7 +46,7 @@ agent:
   # review all capabilities and save evidence: capabilitykit review
   # review this capability and save evidence: capabilitykit review core/assessment/assess-implementation-coverage
   # run deterministic review only: capabilitykit review core/assessment/assess-implementation-coverage --deterministic-only
-  # ask an agent and save review evidence: capabilitykit review core/assessment/assess-implementation-coverage --agent codex --handoff stdin
+  # ask an agent and save review evidence: capabilitykit review core/assessment/assess-implementation-coverage --agent codex --arg exec --handoff stdin
   # validate saved agent output without writing: capabilitykit review-result core/assessment/assess-implementation-coverage --input review.json
   # -----------------------------
   inputs:

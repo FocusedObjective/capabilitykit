@@ -18,7 +18,7 @@ agent:
   # review all capabilities and save evidence: capabilitykit review
   # review this capability and save evidence: capabilitykit review developer-experience/examples/example-project
   # run deterministic review only: capabilitykit review developer-experience/examples/example-project --deterministic-only
-  # ask an agent and save review evidence: capabilitykit review developer-experience/examples/example-project --agent codex --handoff stdin
+  # ask an agent and save review evidence: capabilitykit review developer-experience/examples/example-project --agent codex --arg exec --handoff stdin
   # validate saved agent output without writing: capabilitykit review-result developer-experience/examples/example-project --input review.json
   # -----------------------------
   inputs:

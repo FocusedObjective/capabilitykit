@@ -39,7 +39,7 @@ agent:
   # review all capabilities and save evidence: capabilitykit review
   # review this capability and save evidence: capabilitykit review docs/project/website-explains-story-mapping
   # run deterministic review only: capabilitykit review docs/project/website-explains-story-mapping --deterministic-only
-  # ask an agent and save review evidence: capabilitykit review docs/project/website-explains-story-mapping --agent codex --handoff stdin
+  # ask an agent and save review evidence: capabilitykit review docs/project/website-explains-story-mapping --agent codex --arg exec --handoff stdin
   # validate saved agent output without writing: capabilitykit review-result docs/project/website-explains-story-mapping --input review.json
   # -----------------------------
   implementation:

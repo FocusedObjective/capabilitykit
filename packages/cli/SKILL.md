@@ -150,7 +150,7 @@ After creating or editing capability files:
    useful follow-up actions.
 3. Use `capabilitykit verify <capability-id>` when deterministic
    implementation evidence should be generated and saved.
-4. Add `--agent codex` only for targeted semantic coding-agent review, such as
+4. Add `--agent codex --arg exec --handoff stdin` only for targeted semantic coding-agent review, such as
    release-critical capabilities, high-dependency capabilities, or capabilities
    moving to `verified`. Use `--no-save`/`--dry-run` when you only want to
    inspect the result.
@@ -230,6 +230,9 @@ Use the review commands according to the evidence needed:
   `--handoff prompt-file --prompt-file tmp/review-prompt.md` or
   `--output-prompt tmp/review-prompt.md` and then save the resulting JSON with
   `capabilitykit review-result <capability-id> --input <path>`.
+- If `codex` is installed but not visible on `PATH`, pass its executable path
+  with `--agent <path>`/`--command <path>` or set `CAPABILITYKIT_CODEX_COMMAND`
+  to the Codex executable path.
 - `capabilitykit agent-task <capability-id>` creates an inspectable implement or
   review prompt bundle for external agents.
 - `capabilitykit agent-run <capability-id> --command <command>` runs an external
@@ -263,10 +266,10 @@ capabilitykit diff --base HEAD --verbose --include-review
 capabilitykit graph
 capabilitykit graph-viewer
 capabilitykit verify account/user-login
-capabilitykit verify account/user-login --agent codex --handoff stdin
+capabilitykit verify account/user-login --agent codex --arg exec --handoff stdin
 capabilitykit verify --recommended --limit 5
 capabilitykit review account/user-login
-capabilitykit review account/user-login --agent codex --handoff stdin
+capabilitykit review account/user-login --agent codex --arg exec --handoff stdin
 capabilitykit assess account/user-login
 capabilitykit advise account/user-login
 capabilitykit review-noisy --limit 5
@@ -284,11 +287,11 @@ external coding agent:
 ```bash
 capabilitykit review core/example
 capabilitykit review core/example --no-save
-capabilitykit review core/example --agent codex --handoff stdin
-capabilitykit review core/example --agent codex --handoff stdin --no-save
+capabilitykit review core/example --agent codex --arg exec --handoff stdin
+capabilitykit review core/example --agent codex --arg exec --handoff stdin --no-save
 capabilitykit verify core/example
 capabilitykit verify core/example --no-save
-capabilitykit verify core/example --agent codex --handoff stdin
+capabilitykit verify core/example --agent codex --arg exec --handoff stdin
 capabilitykit verify --stale --limit 5
 capabilitykit assess core/example
 capabilitykit assess core/example --json

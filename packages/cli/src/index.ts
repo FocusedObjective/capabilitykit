@@ -142,6 +142,22 @@ function collectOption(value: string, previous: string[] = []): string[] {
   return [...previous, value];
 }
 
+function commandName(command: string): string {
+  return path.basename(command).replace(/\.(cmd|bat|exe)$/i, "").toLowerCase();
+}
+
+function defaultAgentArgs(command: string, args: string[]): string[] {
+  if (args.length === 0 && commandName(command) === "codex") {
+    return ["exec"];
+  }
+  return args;
+}
+
+function semanticAgentOptions(command: string): string {
+  const args = commandName(command) === "codex" ? " --arg exec" : "";
+  return `--agent ${command}${args} --handoff stdin`;
+}
+
 type AdviceReport = Awaited<ReturnType<typeof adviseImplementationCoverage>>;
 
 function noisyScore(capability: AdviceReport["capabilities"][number]): number {
@@ -182,7 +198,7 @@ function formatReviewNoisy(report: AdviceReport, limit: number, command: string)
       `  Weak evidence: ${weak}`,
       `  Assessor limitations: ${limitations}`,
       `  Implementation gaps: ${gaps}`,
-      `  Review command: capabilitykit review ${candidate.capabilityId} --agent ${command} --handoff stdin`
+      `  Review command: capabilitykit review ${candidate.capabilityId} ${semanticAgentOptions(command)}`
     );
   }
 
@@ -210,7 +226,7 @@ function formatReviewRecommendations(report: AdviceReport, limit: number, comman
       `  Assessor limitations: ${limitations}`,
       `  Implementation gaps: ${gaps}`,
       `  Deterministic: capabilitykit verify ${candidate.capabilityId}`,
-      `  Semantic: capabilitykit verify ${candidate.capabilityId} --agent ${command} --handoff stdin`
+      `  Semantic: capabilitykit verify ${candidate.capabilityId} ${semanticAgentOptions(command)}`
     );
   }
 
@@ -253,7 +269,7 @@ function formatNextActions(
   if (candidates.length > 0) {
     lines.push(`${lines.filter((line) => /^\d+\./.test(line)).length + 1}. Consider semantic verification`);
     for (const candidate of candidates) {
-      lines.push(`   - ${candidate.capabilityId}: capabilitykit verify ${candidate.capabilityId} --agent codex --handoff stdin`);
+      lines.push(`   - ${candidate.capabilityId}: capabilitykit verify ${candidate.capabilityId} ${semanticAgentOptions("codex")}`);
     }
     lines.push("");
   }
@@ -1628,7 +1644,7 @@ Common workflows:
   capabilitykit check --fix           Format capabilities and refresh compiled output
   capabilitykit next                  Show the next most useful maintenance actions
   capabilitykit verify <id>           Save deterministic implementation review evidence
-  capabilitykit verify <id> --agent codex
+  capabilitykit verify <id> --agent codex --arg exec --handoff stdin
                                       Run an opt-in semantic review with an external agent
 
 Command groups:
@@ -1913,7 +1929,7 @@ program
 
       const result = await runExternalAgentCommand({
         command: options.agent,
-        args: options.arg,
+        args: defaultAgentArgs(options.agent, options.arg),
         cwd: process.cwd(),
         input: review.prompt,
         handoff: parseAgentHandoff(options.handoff),
@@ -2332,7 +2348,7 @@ program
 
       const result = await runExternalAgentCommand({
         command: options.command,
-        args: options.arg,
+        args: defaultAgentArgs(options.command, options.arg),
         cwd: process.cwd(),
         input: bundle.prompt,
         handoff: parseAgentHandoff(options.handoff),
@@ -2433,7 +2449,7 @@ program
 
       const result = await runExternalAgentCommand({
         command: options.agent!,
-        args: options.arg,
+        args: defaultAgentArgs(options.agent!, options.arg),
         cwd: process.cwd(),
         input: review.prompt,
         handoff: parseAgentHandoff(options.handoff),
@@ -2551,7 +2567,7 @@ program
 
       const result = await runExternalAgentCommand({
         command: options.command,
-        args: options.arg,
+        args: defaultAgentArgs(options.command, options.arg),
         cwd: process.cwd(),
         input: review.prompt,
         handoff: parseAgentHandoff(options.handoff),

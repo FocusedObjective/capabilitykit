@@ -19,7 +19,7 @@ agent:
   # review all capabilities and save evidence: capabilitykit review
   # review this capability and save evidence: capabilitykit review docs/reference/capability-format-documentation
   # run deterministic review only: capabilitykit review docs/reference/capability-format-documentation --deterministic-only
-  # ask an agent and save review evidence: capabilitykit review docs/reference/capability-format-documentation --agent codex --handoff stdin
+  # ask an agent and save review evidence: capabilitykit review docs/reference/capability-format-documentation --agent codex --arg exec --handoff stdin
   # validate saved agent output without writing: capabilitykit review-result docs/reference/capability-format-documentation --input review.json
   # -----------------------------
   inputs:

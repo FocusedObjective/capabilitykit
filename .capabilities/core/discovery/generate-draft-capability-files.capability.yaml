@@ -40,7 +40,7 @@ agent:
   # review all capabilities and save evidence: capabilitykit review
   # review this capability and save evidence: capabilitykit review core/discovery/generate-draft-capability-files
   # run deterministic review only: capabilitykit review core/discovery/generate-draft-capability-files --deterministic-only
-  # ask an agent and save review evidence: capabilitykit review core/discovery/generate-draft-capability-files --agent codex --handoff stdin
+  # ask an agent and save review evidence: capabilitykit review core/discovery/generate-draft-capability-files --agent codex --arg exec --handoff stdin
   # validate saved agent output without writing: capabilitykit review-result core/discovery/generate-draft-capability-files --input review.json
   # -----------------------------
   inputs:
