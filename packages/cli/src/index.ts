@@ -7,6 +7,7 @@ import {
   analyzeCapabilityImpact,
   adviseImplementationCoverage,
   assessImplementationCoverage,
+  buildCapabilityDiscoveryPrompt,
   buildAgentReviewPrompt,
   buildAgentTaskBundle,
   compileCapabilities,
@@ -17,18 +18,20 @@ import {
   formatAssessmentAdviceReport,
   formatImplementationCoverageReport,
   loadCapabilities,
+  organizeDiscoveredCapabilityMap,
   runExternalAgentCommand,
   saveAgentReviewResult,
   summarizeSavedReviewHealth,
   summarizeCapabilityStatus,
   syncReviewEvidence,
   validateAgentReviewResult,
+  validateDiscoveryReport,
   validateLoadedCapabilities,
   writeCompiledCapabilities,
   formatSyncReviewEvidenceReport,
   formatCapabilities
 } from "@capabilitykit/core";
-import type { Capability, LoadCapabilitiesResult, VerificationGap } from "@capabilitykit/core";
+import type { Capability, CapabilityDiscoveryReport, LoadCapabilitiesResult, VerificationGap } from "@capabilitykit/core";
 import { installCapabilityKitSkill } from "./skillInstall.js";
 import { filterStatusReportByRelease, formatStoryMapStatusReport, formatStoryMapViewerHtml } from "./statusOutput.js";
 
@@ -140,6 +143,65 @@ function parseAgentHandoff(value: string): "stdin" | "argument" | "prompt-file" 
 
 function collectOption(value: string, previous: string[] = []): string[] {
   return [...previous, value];
+}
+
+function extractJsonObject(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.startsWith("{")) {
+    return trimmed;
+  }
+
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]?.trim().startsWith("{")) {
+    return fenced[1].trim();
+  }
+
+  const first = trimmed.indexOf("{");
+  const last = trimmed.lastIndexOf("}");
+  if (first >= 0 && last > first) {
+    return trimmed.slice(first, last + 1);
+  }
+
+  throw new Error("Could not find a JSON discovery report in agent output.");
+}
+
+function parseDiscoveryReport(value: string): CapabilityDiscoveryReport {
+  const parsed = JSON.parse(extractJsonObject(value)) as CapabilityDiscoveryReport;
+  return parsed;
+}
+
+function formatDiscoveryValidation(report: CapabilityDiscoveryReport): string {
+  const validation = validateDiscoveryReport(report);
+  const organized = organizeDiscoveredCapabilityMap(report);
+  const lines = [
+    "CapabilityKit discovery report",
+    "",
+    `Candidates: ${report.candidates?.length ?? 0}`,
+    `Inspected files: ${report.inspected_files?.length ?? 0}`,
+    `Inspected areas: ${report.inspected_areas?.length ?? 0}`,
+    `Validation: ${validation.valid ? "valid" : "invalid"}`,
+    organized.summary
+  ];
+
+  if (validation.issues.length > 0) {
+    lines.push("", "Issues:", ...validation.issues.map((issue) => `  - ${issue.message}`));
+  }
+
+  if (validation.gaps.length > 0) {
+    lines.push("", "Review gaps:", ...validation.gaps.map((gap) => `  - ${gap.message}`));
+  }
+
+  if (organized.areas.length > 0) {
+    lines.push("", "Suggested structure:");
+    for (const area of organized.areas) {
+      lines.push(`  ${area.area}`);
+      for (const capability of area.capabilities) {
+        lines.push(`    - ${capability.id} -> ${capability.filePath}`);
+      }
+    }
+  }
+
+  return `${lines.join("\n")}\n`;
 }
 
 type AdviceReport = Awaited<ReturnType<typeof adviseImplementationCoverage>>;
@@ -1627,6 +1689,7 @@ Common workflows:
   capabilitykit check                 Run the cheap daily health check
   capabilitykit check --fix           Format capabilities and refresh compiled output
   capabilitykit next                  Show the next most useful maintenance actions
+  capabilitykit discover              Prepare a coding-agent discovery prompt
   capabilitykit verify <id>           Save deterministic implementation review evidence
   capabilitykit verify <id> --agent codex
                                       Run an opt-in semantic review with an external agent
@@ -1634,6 +1697,7 @@ Common workflows:
 Command groups:
   Setup:        init, create, skill
   Daily:        check, next, format, validate, compile, status
+  Discovery:    discover
   Review:       verify, assess, advise, review, sync-review, review-noisy
   Agent:        agent-task, agent-run, agent-review, review-result
   Visualize:    graph, graph-viewer, story-map-viewer
@@ -1714,6 +1778,101 @@ program
     console.log("  /capabilitykit review .capabilities/core/validation/verify-implementation-references.capability.yaml");
     console.log("  Ask Codex: review this capability against its agent.implementation.references");
   });
+
+
+program
+  .command("discover")
+  .description("Ask or prepare a coding agent to discover capability candidates from this codebase")
+  .option("--command <command>", "external agent executable to run")
+  .option("--arg <value>", "argument to pass to the external agent command; repeat for multiple args", collectOption, [])
+  .option("--handoff <strategy>", "agent handoff strategy: stdin, argument, or prompt-file", "stdin")
+  .option("--prompt-file <path>", "prompt file path for prompt-file handoff")
+  .option("--output-prompt <path>", "write the discovery prompt to a file without running an agent")
+  .option("--report <path>", "write the parsed discovery report JSON to a file")
+  .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
+  .option("--dry-run", "detect the command and prepare handoff files without running the external agent")
+  .option("--json", "print the parsed report and organized suggestions as JSON")
+  .action(
+    async (options: {
+      command?: string;
+      arg: string[];
+      handoff: string;
+      promptFile?: string;
+      outputPrompt?: string;
+      report?: string;
+      transcript?: string;
+      dryRun?: boolean;
+      json?: boolean;
+    }) => {
+      const prompt = buildCapabilityDiscoveryPrompt(process.cwd());
+
+      if (options.outputPrompt) {
+        const outputPath = path.resolve(process.cwd(), options.outputPrompt);
+        await fs.mkdir(path.dirname(outputPath), { recursive: true });
+        await fs.writeFile(outputPath, prompt);
+        console.log(`Wrote ${path.relative(process.cwd(), outputPath)}`);
+        return;
+      }
+
+      if (!options.command) {
+        console.log(prompt);
+        return;
+      }
+
+      const result = await runExternalAgentCommand({
+        command: options.command,
+        args: options.arg,
+        cwd: process.cwd(),
+        input: prompt,
+        handoff: parseAgentHandoff(options.handoff),
+        promptFilePath: options.promptFile,
+        transcriptPath: options.transcript,
+        dryRun: options.dryRun
+      });
+
+      console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
+      console.log(`Handoff: ${result.handoff}`);
+      if (result.promptFilePath) {
+        console.log(`Prompt file: ${path.relative(process.cwd(), result.promptFilePath)}`);
+      }
+      if (result.transcriptPath) {
+        console.log(`Transcript: ${path.relative(process.cwd(), result.transcriptPath)}`);
+      }
+      if (result.dryRun) {
+        console.log("Result: dry run");
+        return;
+      }
+      console.log(`Exit code: ${result.exitCode ?? "unknown"}`);
+
+      if (result.exitCode !== 0) {
+        if (result.stdout.trim()) console.log(result.stdout.trimEnd());
+        if (result.stderr.trim()) console.error(result.stderr.trimEnd());
+        process.exitCode = result.exitCode ?? 1;
+        return;
+      }
+
+      const report = parseDiscoveryReport(result.stdout);
+      const validation = validateDiscoveryReport(report);
+      const organized = organizeDiscoveredCapabilityMap(report);
+
+      if (options.report) {
+        const reportPath = path.resolve(process.cwd(), options.report);
+        await fs.mkdir(path.dirname(reportPath), { recursive: true });
+        await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+      }
+
+      if (options.json) {
+        console.log(JSON.stringify({ report, validation, organized }, null, 2));
+      } else {
+        console.log("");
+        console.log(formatDiscoveryValidation(report).trimEnd());
+      }
+
+      if (!validation.valid) {
+        process.exitCode = 1;
+      }
+    }
+  );
 
 program
   .command("format")

@@ -1,5 +1,5 @@
 title: Organize discovered capability map
-status: planned
+status: implemented
 summary: Create a readable folder and dependency structure from agent-discovered
   capabilities so users can browse what the app currently does.
 intent: Make the generated `.capabilities/` tree feel like a product map rather
@@ -50,6 +50,10 @@ agent:
     - core/discovery/generate-draft-capability-files
     - core/graph/compile-capabilities
     - core/graph/analyze-capability-impact
+  implementation:
+    references:
+      - packages/core/src/discovery.ts
+      - packages/core/tests/discoveryOrganization.test.ts
   verification:
     automated:
       - id: capability-map-organization-tests
@@ -65,45 +69,3 @@ agent:
     gaps:
       - Dependency inference may need project-specific review for cross-cutting
         infrastructure and shared services.
-  review:
-    depth: partial
-    source: coding-agent
-    gaps:
-      - Groups agent-generated capabilities into meaningful area and subarea
-        folders.
-      - Suggests capability IDs and filenames that are stable, readable, and
-        aligned with the generated folder structure.
-      - Detects likely dependencies between discovered capabilities when code
-        evidence or workflow relationships support them.
-      - Provides a summary index of generated areas and top-level capabilities.
-      - Flags ambiguous grouping decisions for human review instead of hiding
-        them.
-    intent_summary: Organize discovered capability map is currently planned. I found
-      no implementation references to inspect, so the acceptance criteria are
-      not implemented yet.
-    criteria:
-      - criterion: Groups agent-generated capabilities into meaningful area and subarea
-          folders.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Suggests capability IDs and filenames that are stable, readable, and
-          aligned with the generated folder structure.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Detects likely dependencies between discovered capabilities when code
-          evidence or workflow relationships support them.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Provides a summary index of generated areas and top-level capabilities.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Flags ambiguous grouping decisions for human review instead of hiding
-          them.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-    done: false

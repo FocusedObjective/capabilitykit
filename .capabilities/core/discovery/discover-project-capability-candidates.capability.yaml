@@ -1,5 +1,5 @@
 title: Discover project capability candidates
-status: planned
+status: implemented
 summary: Add a CLI command that asks a coding agent to investigate an installed
   project's full codebase and propose the first draft of what the app currently
   does.
@@ -67,6 +67,11 @@ agent:
     - core/project/initialize-capability-project
     - core/model/define-capability-format
     - core/agents/run-external-agent-cli
+  implementation:
+    references:
+      - packages/core/src/discovery.ts
+      - packages/core/tests/discovery.test.ts
+      - packages/cli/src/index.ts
   verification:
     automated:
       - id: discovery-report-tests
@@ -84,62 +89,3 @@ agent:
       - Initial agent discovery may miss behavior that is only visible through
         runtime state, production configuration, external services, or code
         paths outside the inspected scope.
-  review:
-    depth: partial
-    source: coding-agent
-    gaps:
-      - Provides a CLI command that runs from the target project root.
-      - Invokes or prepares a handoff for the user's selected coding agent to
-        inspect source code, tests, routes, handlers, UI flows, data models,
-        scripts, configuration, and documentation.
-      - Makes README files, package metadata, and docs supporting context, not
-        the sole or primary basis for capability discovery.
-      - Requires the agent to propose candidate capability titles, likely areas,
-        source evidence, and confidence notes from concrete code discovery.
-      - Produces a structured discovery report that records what files and
-        project areas the agent inspected.
-      - Does not create or overwrite capability files unless the user explicitly
-        requests output generation.
-      - Labels low-confidence candidates, shallow inspection, and missing code
-        evidence as review gaps.
-    intent_summary: Discover project capability candidates is currently planned. I
-      found no implementation references to inspect, so the acceptance criteria
-      are not implemented yet.
-    criteria:
-      - criterion: Provides a CLI command that runs from the target project root.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Invokes or prepares a handoff for the user's selected coding agent to
-          inspect source code, tests, routes, handlers, UI flows, data models,
-          scripts, configuration, and documentation.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Makes README files, package metadata, and docs supporting context,
-          not the sole or primary basis for capability discovery.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Requires the agent to propose candidate capability titles, likely
-          areas, source evidence, and confidence notes from concrete code
-          discovery.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Produces a structured discovery report that records what files and
-          project areas the agent inspected.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Does not create or overwrite capability files unless the user
-          explicitly requests output generation.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Labels low-confidence candidates, shallow inspection, and missing
-          code evidence as review gaps.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-    done: false

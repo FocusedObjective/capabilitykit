@@ -14,6 +14,12 @@ export { loadCapabilities } from "./loadCapabilities.js";
 export { parseCapability } from "./parseCapability.js";
 export { capabilitySchema, projectConfigSchema } from "./schema.js";
 export { formatSyncReviewEvidenceReport, syncReviewEvidence } from "./syncReviewEvidence.js";
+export {
+  buildCapabilityDiscoveryPrompt,
+  organizeDiscoveredCapabilityMap,
+  slugifyDiscoverySegment,
+  validateDiscoveryReport
+} from "./discovery.js";
 export { validateLoadedCapabilities } from "./validateCapabilities.js";
 export type { AgentTaskBundle, AgentTaskMode, AgentTaskOptions } from "./agentTask.js";
 export type {
@@ -79,3 +85,15 @@ export type {
   VerificationGapIgnore,
   VerificationGap
 } from "./types.js";
+
+export type {
+  CapabilityDiscoveryReport,
+  DiscoveryCapabilityCandidate,
+  DiscoveryConfidence,
+  DiscoveryReportIssue,
+  DiscoveryReportValidationResult,
+  DiscoverySourceEvidence,
+  OrganizedCapabilityArea,
+  OrganizedCapabilityMap,
+  OrganizedCapabilitySuggestion
+} from "./discovery.js";
