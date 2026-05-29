@@ -5,7 +5,8 @@ summary: Validate structured agent review output and save it as capability
 intent: Turn external agent review prose into durable, policy-safe evidence
   without automatically changing capability status.
 acceptance:
-  - Parses the structured JSON output requested by agent-review prompts.
+  - Parses the structured JSON output requested by agent-review prompts,
+    including JSON embedded in agent stdout with surrounding command chatter.
   - Validates reviewed criteria against the capability acceptance criteria.
   - Requires file-path evidence for criteria marked covered or partial.
   - Reports malformed review output, missing criteria, and missing evidence
@@ -75,14 +76,18 @@ agent:
       JSON, validates criteria and evidence paths, saves source-tagged
       criterion-level review metadata, and does not mutate capability status.
     criteria:
-      - criterion: Parses the structured JSON output requested by agent-review prompts.
+      - criterion: Parses the structured JSON output requested by agent-review prompts,
+          including JSON embedded in agent stdout with surrounding command
+          chatter.
         status: covered
         evidence:
           - packages/core/src/agentReviewResult.ts:50
           - packages/core/src/agentReviewResult.ts:55
-          - packages/core/src/agentReviewResult.ts:100
-        notes: The parser accepts raw JSON or fenced JSON and validates it through the
-          review result schema.
+          - packages/core/src/agentReviewResult.ts:106
+          - packages/core/src/agentReviewResult.ts:153
+          - packages/core/tests/agentReviewResult.test.ts:94
+        notes: The parser accepts raw JSON, fenced JSON, or embedded JSON from agent
+          stdout and validates it through the review result schema.
       - criterion: Validates reviewed criteria against the capability acceptance criteria.
         status: covered
         evidence:

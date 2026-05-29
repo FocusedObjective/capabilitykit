@@ -9,6 +9,7 @@ import {
   assessImplementationCoverage,
   buildAgentReviewPrompt,
   buildAgentTaskBundle,
+  compileCapabilities,
   diffCapabilities,
   formatCapabilityImpactReport,
   formatCapabilityDiffReport,
@@ -23,8 +24,7 @@ import {
   validateAgentReviewResult,
   validateLoadedCapabilities,
   writeCompiledCapabilities,
-  formatSyncReviewEvidenceReport
-  ,
+  formatSyncReviewEvidenceReport,
   formatCapabilities
 } from "@capabilitykit/core";
 import type { Capability, LoadCapabilitiesResult, VerificationGap } from "@capabilitykit/core";
@@ -183,6 +183,84 @@ function formatReviewNoisy(report: AdviceReport, limit: number, command: string)
       `  Implementation gaps: ${gaps}`,
       `  Review command: capabilitykit review ${candidate.capabilityId} --agent ${command} --handoff stdin`
     );
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
+function formatReviewRecommendations(report: AdviceReport, limit: number, command: string): string {
+  const candidates = noisyCandidates(report, limit);
+  const lines = [
+    "CapabilityKit recommended verification targets",
+    "",
+    `Candidates: ${candidates.length}`,
+    "These are useful candidates for semantic review because deterministic evidence is weak, incomplete, or limited."
+  ];
+
+  for (const candidate of candidates) {
+    const weak = candidate.criteria.filter((criterion) => criterion.status === "weak-evidence").length;
+    const limitations = candidate.criteria.filter((criterion) => criterion.status === "assessor-limitation").length;
+    const gaps = candidate.criteria.filter((criterion) => criterion.status === "implementation-gap").length;
+    lines.push(
+      "",
+      `${candidate.capabilityId}`,
+      `  Score: ${candidate.score}`,
+      `  Weak evidence: ${weak}`,
+      `  Assessor limitations: ${limitations}`,
+      `  Implementation gaps: ${gaps}`,
+      `  Deterministic: capabilitykit verify ${candidate.capabilityId}`,
+      `  Semantic: capabilitykit verify ${candidate.capabilityId} --agent ${command} --handoff stdin`
+    );
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
+function formatNextActions(
+  validation: ReturnType<typeof validateLoadedCapabilities>,
+  status: Awaited<ReturnType<typeof summarizeCapabilityStatus>>,
+  advice: AdviceReport,
+  limit: number
+): string {
+  const lines = ["CapabilityKit next actions", ""];
+
+  if (!validation.valid) {
+    lines.push("1. Fix validation errors", "   Run: capabilitykit validate", "");
+  }
+
+  if (validation.verificationGaps.length > 0) {
+    lines.push(
+      `${lines.filter((line) => /^\d+\./.test(line)).length + 1}. Review verification gaps`,
+      `   ${validation.verificationGaps.length} gap(s) found.`,
+      "   Run: capabilitykit status",
+      ""
+    );
+  }
+
+  const actionable = status.capabilities
+    .filter((capability) => capability.health === "action" || capability.health === "review")
+    .slice(0, limit);
+  if (actionable.length > 0) {
+    lines.push(`${lines.filter((line) => /^\d+\./.test(line)).length + 1}. Address capability health issues`);
+    for (const capability of actionable) {
+      lines.push(`   - ${capability.capabilityId}: ${capability.nextAction}`);
+    }
+    lines.push("");
+  }
+
+  const candidates = noisyCandidates(advice, limit);
+  if (candidates.length > 0) {
+    lines.push(`${lines.filter((line) => /^\d+\./.test(line)).length + 1}. Consider semantic verification`);
+    for (const candidate of candidates) {
+      lines.push(`   - ${candidate.capabilityId}: capabilitykit verify ${candidate.capabilityId} --agent codex --handoff stdin`);
+    }
+    lines.push("");
+  }
+
+  if (lines.length === 2) {
+    lines.push("No immediate capability actions found.", "", "Run: capabilitykit check");
+  } else {
+    lines.push("Daily health command:", "  capabilitykit check", "Apply formatting and compiled output updates:", "  capabilitykit check --fix");
   }
 
   return `${lines.join("\n")}\n`;
@@ -1514,7 +1592,26 @@ applyFilter();
 program
   .name("capabilitykit")
   .description("Capabilities as code for AI-native software teams")
-  .version("0.1.0");
+  .version("0.1.0")
+  .addHelpText(
+    "after",
+    `
+Common workflows:
+  capabilitykit check                 Run the cheap daily health check
+  capabilitykit check --fix           Format capabilities and refresh compiled output
+  capabilitykit next                  Show the next most useful maintenance actions
+  capabilitykit verify <id>           Save deterministic implementation review evidence
+  capabilitykit verify <id> --agent codex
+                                      Run an opt-in semantic review with an external agent
+
+Command groups:
+  Setup:        init, create, skill
+  Daily:        check, next, format, validate, compile, status
+  Review:       verify, assess, advise, review, sync-review, review-noisy
+  Agent:        agent-task, agent-run, agent-review, review-result
+  Visualize:    graph, graph-viewer, story-map-viewer
+`
+  );
 
 program
   .command("init")
@@ -1612,6 +1709,261 @@ program
 
     console.log(`Formatted ${result.changed} of ${result.checked} capability files.`);
   });
+
+program
+  .command("check")
+  .description("Run the cheap daily capability health check")
+  .option("--fix", "format capabilities and refresh compiled output")
+  .option("--json", "print the check result as JSON")
+  .action(async (options: { fix?: boolean; json?: boolean }) => {
+    const formatResult = await formatCapabilities(process.cwd(), { write: options.fix });
+    const loaded = await loadCapabilities(process.cwd());
+    const validation = validateLoadedCapabilities(loaded);
+    const compiled = options.fix ? (await writeCompiledCapabilities(process.cwd())).compiled : await compileCapabilities(process.cwd());
+    const status = await summarizeCapabilityStatus(process.cwd());
+    const formatted = options.fix || formatResult.changed === 0;
+    const ok = formatted && validation.valid && compiled.validation.valid;
+
+    if (options.json) {
+      console.log(
+        JSON.stringify(
+          {
+            ok,
+            formatted,
+            format: formatResult,
+            validation,
+            compiled: {
+              capabilities: compiled.capabilities.length,
+              verification_summary: compiled.verification_summary
+            },
+            status: status.summary,
+            fixed: Boolean(options.fix)
+          },
+          null,
+          2
+        )
+      );
+      process.exitCode = ok ? 0 : 1;
+      return;
+    }
+
+    console.log("CapabilityKit check");
+    console.log("");
+    if (options.fix) {
+      console.log(`Formatted ${formatResult.changed} of ${formatResult.checked} capability files.`);
+      console.log(`Compiled ${compiled.capabilities.length} capabilities.`);
+    } else if (formatResult.changed === 0) {
+      console.log(`OK ${formatResult.checked} capability files are formatted.`);
+    } else {
+      console.log(`!! ${formatResult.changed} of ${formatResult.checked} capability files need formatting.`);
+      for (const filePath of formatResult.files) {
+        console.log(`  - ${path.relative(process.cwd(), filePath)}`);
+      }
+      console.log("Run: capabilitykit check --fix");
+    }
+    console.log(`${validation.valid ? "OK" : "!!"} validation ${validation.valid ? "passed" : "failed"}`);
+    console.log(`OK compiled ${compiled.capabilities.length} capabilities in memory`);
+    console.log(
+      `Status: ${status.summary.ok} ok, ${status.summary.review} needs review, ${status.summary.action} needs action, ${status.summary.planned} planned`
+    );
+    if (validation.verificationGaps.length > 0) {
+      console.log(`Verification gaps: ${validation.verificationGaps.length}`);
+    }
+    console.log("");
+    console.log(`Result: ${ok ? "ok" : "needs attention"}`);
+    if (!ok || status.summary.review > 0 || status.summary.action > 0) {
+      console.log("Next: capabilitykit next");
+    }
+    process.exitCode = ok ? 0 : 1;
+  });
+
+program
+  .command("next")
+  .description("Show the next most useful capability maintenance actions")
+  .option("--limit <count>", "maximum actions or candidates to list", "5")
+  .option("--json", "print the underlying status, advice, and validation reports as JSON")
+  .action(async (options: { limit: string; json?: boolean }) => {
+    const limit = Number.parseInt(options.limit, 10);
+    if (!Number.isInteger(limit) || limit < 1) {
+      throw new Error(`Invalid limit "${options.limit}". Expected a positive integer.`);
+    }
+
+    const loaded = await loadCapabilities(process.cwd());
+    const validation = validateLoadedCapabilities(loaded);
+    const status = await summarizeCapabilityStatus(process.cwd());
+    const advice = await adviseImplementationCoverage(process.cwd());
+
+    if (options.json) {
+      console.log(JSON.stringify({ validation, status, advice }, null, 2));
+      return;
+    }
+
+    console.log(formatNextActions(validation, status, advice, limit));
+  });
+
+program
+  .command("verify")
+  .description("Verify implementation evidence with deterministic review by default")
+  .argument("[capability-id]", "optional capability id; required when using --agent")
+  .option("--agent <command>", "external coding agent executable for opt-in semantic review")
+  .option("--arg <value>", "argument to pass to the external agent command; repeat for multiple args", collectOption, [])
+  .option("--handoff <strategy>", "agent handoff strategy: stdin, argument, or prompt-file", "stdin")
+  .option("--prompt-file <path>", "prompt file path for prompt-file handoff")
+  .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
+  .option("--output-prompt <path>", "write the generated agent review prompt to a file")
+  .option("--no-references", "omit implementation reference file contents from the agent prompt")
+  .option("--recommended", "list high-value semantic review candidates instead of reviewing one capability")
+  .option("--stale", "alias for --recommended; list capabilities most likely to need fresh semantic review")
+  .option("--limit <count>", "maximum recommended candidates to list", "5")
+  .option("--no-save", "print or validate review output without writing agent.review")
+  .option("--dry-run", "prepare review output without running an agent or writing files")
+  .option("--json", "print the verification result as JSON")
+  .action(
+    async (
+      capabilityId: string | undefined,
+      options: {
+        agent?: string;
+        arg: string[];
+        handoff: string;
+        promptFile?: string;
+        transcript?: string;
+        outputPrompt?: string;
+        references: boolean;
+        recommended?: boolean;
+        stale?: boolean;
+        limit: string;
+        save: boolean;
+        dryRun?: boolean;
+        json?: boolean;
+      }
+    ) => {
+      if (options.recommended || options.stale) {
+        const limit = Number.parseInt(options.limit, 10);
+        if (!Number.isInteger(limit) || limit < 1) {
+          throw new Error(`Invalid limit "${options.limit}". Expected a positive integer.`);
+        }
+        const report = await adviseImplementationCoverage(process.cwd());
+        const candidates = noisyCandidates(report, limit);
+        if (options.json) {
+          console.log(JSON.stringify(candidates, null, 2));
+          return;
+        }
+        console.log(formatReviewRecommendations(report, limit, options.agent ?? "codex"));
+        return;
+      }
+
+      const save = options.save !== false && !options.dryRun;
+      if (!options.agent) {
+        const result = await syncReviewEvidence(process.cwd(), capabilityId, { dryRun: !save });
+        if (options.json) {
+          console.log(JSON.stringify(result, null, 2));
+        } else {
+          console.log(formatSyncReviewEvidenceReport(result));
+        }
+        return;
+      }
+
+      if (!capabilityId) {
+        console.error("Capability id is required when using --agent.");
+        process.exitCode = 1;
+        return;
+      }
+
+      if (!options.json) {
+        console.log(`Semantic verification uses external agent "${options.agent}" and may take more time or tokens.`);
+      }
+
+      const review = await buildAgentReviewPrompt(process.cwd(), capabilityId, {
+        includeReferences: options.references
+      });
+
+      if (options.outputPrompt) {
+        const outputPath = path.resolve(process.cwd(), options.outputPrompt);
+        await fs.mkdir(path.dirname(outputPath), { recursive: true });
+        await fs.writeFile(outputPath, review.prompt);
+        console.log(`Review prompt: ${path.relative(process.cwd(), outputPath)}`);
+      }
+
+      const result = await runExternalAgentCommand({
+        command: options.agent,
+        args: options.arg,
+        cwd: process.cwd(),
+        input: review.prompt,
+        handoff: parseAgentHandoff(options.handoff),
+        promptFilePath: options.promptFile,
+        transcriptPath: options.transcript,
+        dryRun: options.dryRun
+      });
+
+      console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
+      console.log(`Handoff: ${result.handoff}`);
+      if (result.promptFilePath) {
+        console.log(`Prompt file: ${path.relative(process.cwd(), result.promptFilePath)}`);
+      }
+      if (result.dryRun) {
+        console.log("Result: dry run");
+      } else {
+        console.log(`Exit code: ${result.exitCode ?? "unknown"}`);
+      }
+      if (result.transcriptPath) {
+        console.log(`Transcript: ${path.relative(process.cwd(), result.transcriptPath)}`);
+      }
+      if (review.missingReferences.length > 0) {
+        console.log(`Missing references: ${review.missingReferences.join(", ")}`);
+      }
+      if (result.stderr.trim()) {
+        console.error("");
+        console.error(result.stderr.trimEnd());
+      }
+
+      if (result.dryRun) {
+        if (result.stdout.trim()) {
+          console.log("");
+          console.log(result.stdout.trimEnd());
+        }
+        return;
+      }
+
+      if (result.exitCode !== 0) {
+        if (result.stdout.trim()) {
+          console.log("");
+          console.log(result.stdout.trimEnd());
+        }
+        process.exitCode = result.exitCode ?? 1;
+        return;
+      }
+
+      if (save) {
+        const saved = await saveAgentReviewResult(process.cwd(), capabilityId, result.stdout);
+        if (options.json) {
+          console.log(JSON.stringify(saved, null, 2));
+        } else {
+          printReviewResult(saved.validation);
+          if (saved.validation.valid) {
+            console.log(`Saved review evidence to ${path.relative(process.cwd(), saved.filePath)}`);
+          }
+        }
+        process.exitCode = saved.validation.valid ? 0 : 1;
+        return;
+      }
+
+      const loaded = await loadCapabilities(process.cwd());
+      const match = loaded.capabilities.find((item) => item.capability.id === capabilityId);
+      if (!match) {
+        console.error(`Capability not found: ${capabilityId}`);
+        process.exitCode = 1;
+        return;
+      }
+
+      const validation = await validateAgentReviewResult(process.cwd(), match.capability, result.stdout);
+      if (options.json) {
+        console.log(JSON.stringify(validation, null, 2));
+      } else {
+        printReviewResult(validation);
+      }
+      process.exitCode = validation.valid ? 0 : 1;
+    }
+  );
 
 program
   .command("status")

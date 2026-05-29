@@ -1,0 +1,32 @@
+title: Document agent provider handoffs
+status: planned
+summary: Document how to use CapabilityKit task and review bundles with Codex,
+  OpenCode, Pi, GitHub Copilot, Claude Code, and custom agent commands.
+intent: Give teams practical recipes for trying multiple coding agents while
+  understanding which workflows are automated, semi-automated, or manual.
+acceptance:
+  - Shows example commands for running implementation and review handoffs with
+    each supported agent profile.
+  - Documents when a provider supports stdin, prompt argument, prompt-file, or
+    manual paste workflows.
+  - Explains how custom commands and argument overrides interact with named
+    profiles.
+  - Calls out prerequisites, installation expectations, and known limitations
+    for each provider.
+  - Demonstrates how to validate or save structured review output after an agent
+    run.
+  - Keeps examples agent-neutral where possible and provider-specific only where
+    the workflow genuinely differs.
+guidance:
+  - Avoid claiming support for a provider workflow until its command shape has
+    been verified.
+  - Clearly distinguish automated CLI execution from prompt generation that a
+    user must paste into an editor or hosted assistant.
+  - Keep recipes short enough to fit into the CapabilityKit skill and README
+    later without duplicating large reference material.
+planning:
+  story_map:
+    backbone: Multi-agent support
+    step: Document provider handoffs
+    release: agent-providers
+    order: 30

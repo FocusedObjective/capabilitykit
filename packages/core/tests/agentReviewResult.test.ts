@@ -90,6 +90,17 @@ describe("agent review results", () => {
     expect(result.issues).toEqual([]);
   });
 
+  it("extracts JSON from agent stdout that includes command chatter", async () => {
+    const rootDir = await createProject();
+    const loaded = await loadCapabilities(rootDir);
+    const capability = loaded.capabilities[0]!.capability;
+
+    const result = await validateAgentReviewResult(rootDir, capability, `codex\n${validReview()}\ntokens used\n1,234`);
+
+    expect(result.valid).toBe(true);
+    expect(result.depth).toBe("verified");
+  });
+
   it("reports missing criterion and missing evidence paths", async () => {
     const rootDir = await createProject();
     const loaded = await loadCapabilities(rootDir);

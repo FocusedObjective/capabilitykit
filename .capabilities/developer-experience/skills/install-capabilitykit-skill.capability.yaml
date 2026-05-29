@@ -14,6 +14,11 @@ acceptance:
     prompts.
   - Tells agents to draft new capability files from human-authored product
     intent first instead of inventing agent metadata.
+  - Explains how agents should author `planning.story_map` metadata for release
+    slices, backbones, steps, and delivery order.
+  - Summarizes implemented CapabilityKit workflows for initialization,
+    formatting, reporting, viewers, diffing, impact analysis, external agent
+    handoff, and review evidence.
   - Covers merge behavior with automated tests.
 guidance:
   - Keep managed blocks short and bounded by stable markers.
@@ -21,6 +26,11 @@ guidance:
     into project files.
   - Keep creation guidance explicit that generated review and implementation
     metadata comes from CapabilityKit commands, not from prompt-time guesses.
+  - Keep story-map guidance focused on product intent, progressive delivery, and
+    verification workflow instead of repository structure.
+  - Keep the package skill guide aligned with implemented CLI commands and
+    capability schema fields so coding agents do not rely on stale workflow
+    assumptions.
   - Do not overwrite user-authored agent instructions outside the managed
     CapabilityKit block.
 planning:
@@ -71,59 +81,91 @@ agent:
   review:
     depth: verified
     source: coding-agent
-    intent_summary: Coding-agent review confirmed the skill command installs agent
-      entrypoints, generated guidance links back to package SKILL.md, managed
-      blocks preserve and replace only CapabilityKit content, and merge behavior
-      has automated coverage.
+    intent_summary: The CapabilityKit skill guide and installer references cover
+      agent entrypoint installation, managed-block preservation, human-authored
+      capability drafting, story-map authoring, implemented CLI workflows, and
+      review evidence workflows.
     criteria:
       - criterion: Provides `capabilitykit skill` to install CapabilityKit skill files
           and agent entrypoints.
         status: covered
         evidence:
-          - packages/cli/src/index.ts:30
-          - packages/cli/src/index.ts:690
-          - packages/cli/src/index.ts:698
-          - packages/cli/src/skillInstall.ts:94
+          - packages/cli/src/index.ts:1575
+          - packages/cli/src/skillInstall.ts:98
+        notes: The CLI registers the skill command and delegates to the skill installer.
       - criterion: Points generated guidance back to the package SKILL.md file.
         status: covered
         evidence:
           - packages/cli/src/skillInstall.ts:21
-          - packages/cli/src/skillInstall.ts:26
-          - packages/cli/src/skillInstall.ts:67
-          - packages/cli/tests/skillInstall.test.ts:49
+          - packages/cli/SKILL.md:1
+        notes: Generated agent wrappers reference the package skill guide, which
+          contains the full workflow.
       - criterion: Preserves existing AGENTS.md and CLAUDE.md content while replacing
           any prior CapabilityKit managed block.
         status: covered
         evidence:
-          - packages/cli/src/skillInstall.ts:52
-          - packages/cli/src/skillInstall.ts:58
-          - packages/cli/src/skillInstall.ts:63
+          - packages/cli/src/skillInstall.ts:56
           - packages/cli/tests/skillInstall.test.ts:10
           - packages/cli/tests/skillInstall.test.ts:21
+        notes: Managed block replacement and preservation behavior are implemented and
+          covered by tests.
       - criterion: Creates Codex skill and Claude slash-command wrapper files for simple
           prompts.
         status: covered
         evidence:
           - packages/cli/src/skillInstall.ts:31
-          - packages/cli/src/skillInstall.ts:43
           - packages/cli/src/skillInstall.ts:82
-          - packages/cli/src/skillInstall.ts:87
           - packages/cli/tests/skillInstall.test.ts:41
+        notes: The installer writes Codex and Claude wrapper files.
       - criterion: Tells agents to draft new capability files from human-authored
           product intent first instead of inventing agent metadata.
         status: covered
         evidence:
-          - packages/cli/SKILL.md:19
-          - packages/cli/SKILL.md:30
-          - packages/cli/src/skillInstall.ts:28
-          - packages/cli/src/skillInstall.ts:29
-          - packages/cli/tests/skillInstall.test.ts:50
-          - packages/cli/tests/skillInstall.test.ts:51
+          - packages/cli/SKILL.md:21
+          - packages/cli/SKILL.md:33
+          - packages/cli/SKILL.md:59
+        notes: The guide lists human-authored fields, warns against invented agent
+          metadata, and explains when agent metadata is appropriate.
+      - criterion: Explains how agents should author `planning.story_map` metadata for
+          release slices, backbones, steps, and delivery order.
+        status: covered
+        evidence:
+          - packages/cli/SKILL.md:95
+          - packages/cli/SKILL.md:103
+          - packages/cli/SKILL.md:114
+          - packages/cli/SKILL.md:117
+          - packages/cli/SKILL.md:120
+          - packages/cli/SKILL.md:123
+          - packages/cli/SKILL.md:126
+        notes: The Story Map Planning section defines the YAML shape, explains each
+          field, and documents best practices for product intent, progressive
+          delivery, and verification workflow.
+      - criterion: Summarizes implemented CapabilityKit workflows for initialization,
+          formatting, reporting, viewers, diffing, impact analysis, external
+          agent handoff, and review evidence.
+        status: covered
+        evidence:
+          - packages/cli/SKILL.md:39
+          - packages/cli/SKILL.md:146
+          - packages/cli/SKILL.md:170
+          - packages/cli/SKILL.md:203
+          - packages/cli/SKILL.md:226
+          - packages/cli/src/index.ts:1520
+          - packages/cli/src/index.ts:1595
+          - packages/cli/src/index.ts:1617
+          - packages/cli/src/index.ts:1669
+          - packages/cli/src/index.ts:1795
+          - packages/cli/src/index.ts:1810
+          - packages/cli/src/index.ts:1924
+          - packages/cli/src/index.ts:1994
+        notes: The guide now describes the implemented setup, lifecycle, reporting,
+          viewer, diff, impact, external-agent, and review commands exposed by
+          the CLI.
       - criterion: Covers merge behavior with automated tests.
         status: covered
         evidence:
           - packages/cli/tests/skillInstall.test.ts:5
           - packages/cli/tests/skillInstall.test.ts:10
           - packages/cli/tests/skillInstall.test.ts:21
-          - packages/cli/tests/skillInstall.test.ts:30
+        notes: Existing tests cover managed block append and replacement behavior.
     done: true

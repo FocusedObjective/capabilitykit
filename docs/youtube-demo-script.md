@@ -31,22 +31,59 @@ CapabilityKit turns product capability into a repo-native contract:
 
 ## Demo Setup
 
-Open a terminal at the repository root and keep the website open in a browser.
+Open a terminal in a separate todo application repository. The demo should feel
+like a normal product repo, not the CapabilityKit source tree.
 
-Recommended browser tabs:
+Suggested starting state:
 
-- `website/index.html`
-- `website/story-map-viewer.html`
-- `website/dependency-viewer.html`
+- A small todo app already exists and runs locally.
+- The project already has a few capability files, for example:
+  - `todos/create-todo`
+  - `todos/list-todos`
+  - `todos/complete-todo`
+- The existing capabilities have implementation references and review evidence.
+- The app has at least one automated test command, such as `npm test`.
+- Codex can see the CapabilityKit skill instructions, either from the installed
+  CLI package at `node_modules/@capabilitykit/cli/SKILL.md` or from a copied
+  project skill under `.codex/skills/capabilitykit/SKILL.md`.
+
+Setup commands:
+
+```bash
+npm install -D @capabilitykit/cli
+npx capabilitykit init
+npx capabilitykit skill
+```
+
+Codex prompt:
+
+```text
+Read the CapabilityKit skill and create a new capability for filtering todos by
+status. Draft only the human-authored spec first. Do not invent implementation
+references or review evidence.
+```
 
 Recommended terminal commands:
 
 ```bash
-node packages/cli/dist/index.js status
-node packages/cli/dist/index.js diff --base HEAD
-node packages/cli/dist/index.js assess core/assessment/assess-implementation-coverage
-node packages/cli/dist/index.js impact core/model/define-capability-format
-node packages/cli/dist/index.js status --story-map --release pr-review
+npx capabilitykit status
+npx capabilitykit inspect todos/create-todo
+npx capabilitykit assess todos/create-todo
+npx capabilitykit review todos/create-todo --no-save
+npx capabilitykit create "Filter todos by status" --area todos
+npx capabilitykit format
+npx capabilitykit validate
+npx capabilitykit compile
+npx capabilitykit review todos/filter-todos-by-status --no-save
+npx capabilitykit agent-task todos/filter-todos-by-status --mode implement --output tmp/filter-todos-task.md
+npx capabilitykit review todos/filter-todos-by-status
+npx capabilitykit create "Toggle todo list into Kanban view" --area todos
+npx capabilitykit format
+npx capabilitykit validate
+npx capabilitykit compile
+npx capabilitykit review todos/toggle-todo-list-into-kanban-view --no-save
+npx capabilitykit diff --base HEAD
+npx capabilitykit impact todos/list-todos
 ```
 
 ## Script
@@ -75,13 +112,14 @@ Narration:
 
 On screen:
 
-- Open `.capabilities/core/graph/diff-capabilities.capability.yaml`.
+- Open `.capabilities/todos/create-todo.capability.yaml`.
 
 Narration:
 
-> A capability file is not a ticket. It is the durable contract for something
-> the system should do. The human section says the title, status, summary,
-> intent, and acceptance criteria.
+> This todo app already has CapabilityKit installed. A capability file is not a
+> ticket. It is the durable contract for something the system should do. The
+> human section says the title, status, summary, intent, and acceptance
+> criteria.
 
 Call out:
 
@@ -94,16 +132,16 @@ Call out:
 
 Narration:
 
-> Later, the agent-maintained section can record dependencies, implementation
-> references, verification checks, known gaps, and saved review evidence. That
-> keeps the plan and the code from drifting apart silently.
+> The agent-maintained section records implementation references, verification
+> checks, known gaps, and saved review evidence. That keeps the plan and the
+> code from drifting apart silently.
 
 ### 3. Show Project Health
 
 Command:
 
 ```bash
-node packages/cli/dist/index.js status
+npx capabilitykit status
 ```
 
 Narration:
@@ -115,84 +153,215 @@ Narration:
 On screen:
 
 - Show total capabilities.
-- Point to planned PR-review capabilities.
+- Point to `create-todo`, `list-todos`, and `complete-todo`.
+- Show that existing behavior is already reviewed or OK.
 
 Narration:
 
 > This is already more useful than a task board because it tells us not only
-> what exists, but how much confidence we have in it.
+> what exists, but how much confidence we have in each behavior.
 
-### 4. Show Capability Diff
+### 4. Add A New Capability
 
-Command:
+Codex prompt:
+
+```text
+Use the CapabilityKit skill. Create a new capability for filtering todos by
+status in this todo app. Draft the human-authored spec first, with acceptance
+criteria for all, active, and completed filters. Do not add implementation
+references or review evidence yet.
+```
+
+Commands:
 
 ```bash
-node packages/cli/dist/index.js diff --base HEAD
+npx capabilitykit create "Filter todos by status" --area todos
+npx capabilitykit format
+npx capabilitykit validate
+npx capabilitykit compile
 ```
 
 Narration:
 
-> In a pull request, CapabilityKit can compare capability intent against a Git
-> base. It reports added, removed, and changed capabilities. That means a
-> reviewer can understand what behavior changed before reading every line of
-> code.
+> Now we add a new product behavior: filtering todos by status. At this point I
+> ask Codex to use the CapabilityKit skill. The important instruction is that
+> Codex writes the human-authored spec first. It should not pretend
+> implementation exists yet, and it should not invent review evidence.
+
+On screen:
+
+- Open `.capabilities/todos/filter-todos-by-status.capability.yaml`.
+- Add or show acceptance criteria:
+  - The user can choose all, active, or completed todos.
+  - The list only shows todos matching the selected filter.
+  - Creating or completing a todo preserves the selected filter.
+  - The default filter is all todos.
+
+Narration:
+
+> Format keeps the file in canonical shape, validate checks that the capability
+> map is structurally sound, and compile refreshes the generated capability map
+> other tools can consume.
+
+### 5. Review Before Implementation
+
+Command:
+
+```bash
+npx capabilitykit review todos/filter-todos-by-status --no-save
+```
+
+Narration:
+
+> This review should fail, or at least come back uncertain. That is the point:
+> the capability says what we want, but the code does not deliver it yet.
 
 Call out:
 
-- Added capabilities.
-- Changed acceptance criteria.
-- Changed verification.
-- Changed implementation references.
+- Missing implementation references.
+- Acceptance criteria marked `not covered` or `uncertain`.
+- Recommended next actions.
 
 Narration:
 
-> The goal is not to replace code review. The goal is to give code review the
-> missing "what should this do?" layer.
+> This is a useful failure. It tells the reviewer the new behavior is planned
+> but not implemented, instead of letting a YAML file create false confidence.
 
-### 5. Show Implementation Assessment
+### 6. Implement The Capability
 
 Command:
 
 ```bash
-node packages/cli/dist/index.js assess core/assessment/assess-implementation-coverage
+npx capabilitykit agent-task todos/filter-todos-by-status --mode implement --output tmp/filter-todos-task.md
 ```
 
 Narration:
 
-> A capability is only useful if we can compare it to implementation. Assess
-> reads the referenced files and places each acceptance criterion beside
-> concrete source, test, or documentation evidence.
+> CapabilityKit can create an implementation task from the capability. The
+> task gives a coding agent or developer the acceptance criteria, current
+> references, and review expectations.
+
+On screen:
+
+- Open `tmp/filter-todos-task.md`.
+- Implement the filter UI and behavior in the todo app.
+- Add or update tests for all, active, and completed filters.
+- Update the capability with concrete implementation references and
+  verification checks.
+
+Commands after implementation:
+
+```bash
+npm test
+npx capabilitykit format
+npx capabilitykit validate
+npx capabilitykit compile
+npx capabilitykit review todos/filter-todos-by-status
+```
+
+Narration:
+
+> Now the review should be green because the capability, code, and tests agree.
+> The saved review evidence becomes part of the repo history.
+
+### 7. Add A Second Capability Example
+
+Codex prompt:
+
+```text
+Use the CapabilityKit skill. Create a second capability for toggling the todo
+list into a Kanban view with To do, Doing, and Done columns. Draft only the
+human-authored spec first. Do not add implementation references or review
+evidence yet.
+```
+
+Commands:
+
+```bash
+npx capabilitykit create "Toggle todo list into Kanban view" --area todos
+npx capabilitykit format
+npx capabilitykit validate
+npx capabilitykit compile
+npx capabilitykit review todos/toggle-todo-list-into-kanban-view --no-save
+```
+
+Narration:
+
+> The filtering feature showed the full loop. Now I can use the same workflow
+> again for a larger change: a Kanban view. The app still has the normal list
+> view, but the user can toggle into columns for To do, Doing, and Done.
+
+On screen:
+
+- Open `.capabilities/todos/toggle-todo-list-into-kanban-view.capability.yaml`.
+- Add or show acceptance criteria:
+  - The user can switch between list view and Kanban view.
+  - Kanban view shows To do, Doing, and Done columns.
+  - Todos appear in the column matching their current state.
+  - Moving a todo between columns updates its state.
+  - Switching views preserves the todos and their states.
+
+Narration:
+
+> I would expect this one to fail review too, because it has not been
+> implemented yet. That gives the team a clean, reviewable capability before
+> we ask Codex or a developer to write the code.
+
+### 8. Show A Change Breaking Existing Work
+
+On screen:
+
+- Make a small code change that accidentally breaks an existing behavior. For
+  example, change the todo list query so completed todos disappear from the
+  default `all` view, or change the complete action so it removes the item.
+
+Command:
+
+```bash
+npm test
+npx capabilitykit assess todos/list-todos
+npx capabilitykit review todos/list-todos --no-save
+```
+
+Narration:
+
+> Now I am going to make the kind of accidental regression that happens during
+> normal feature work. The new filter behavior might still look fine, but an
+> older capability, listing todos, has been damaged.
 
 Call out:
 
 - Covered criteria.
 - Uncovered or uncertain criteria.
 - Missing references.
+- Any failing test output.
 
 Narration:
 
-> This deterministic assessment is intentionally conservative. It can find
-> evidence and gaps, but it does not pretend a text match proves semantic
-> correctness. For that, CapabilityKit can hand the evidence to a coding agent
-> or human reviewer and save the review result.
+> This is where capabilities become more than documentation. They give us named
+> product behaviors to retest when code changes, and they make the regression
+> understandable in product terms.
 
-### 6. Show Impact
+### 9. Show Capability Diff And Impact
 
 Command:
 
 ```bash
-node packages/cli/dist/index.js impact core/model/define-capability-format
+npx capabilitykit diff --base HEAD
+npx capabilitykit impact todos/list-todos
 ```
 
 Narration:
 
-> The third review question is impact. If a foundational capability changes,
-> what else might be affected? CapabilityKit follows explicit dependencies and
-> collects suggested checks, manual review guidance, and known verification
-> gaps across the impacted set.
+> In a pull request, CapabilityKit can compare capability intent against a Git
+> base. It reports added, removed, and changed capabilities. Impact answers the
+> next question: if list behavior changed, what else should I retest?
 
 Call out:
 
+- Added `filter-todos-by-status` capability.
+- Added `toggle-todo-list-into-kanban-view` capability.
+- Changed implementation references or verification.
 - Direct dependents.
 - Transitive dependents.
 - Suggested checks.
@@ -203,30 +372,32 @@ Narration:
 > This is how we narrow retesting. Instead of rerunning everything or guessing,
 > we use the capability graph to decide what deserves attention.
 
-### 7. Show Story Mapping
+### 10. Optional: Show Story Mapping
 
 Command:
 
 ```bash
-node packages/cli/dist/index.js status --story-map --release pr-review
+npx capabilitykit status --story-map --release todo-views
 ```
 
 Browser:
 
-- Open `website/story-map-viewer.html`.
+- Open the generated story map viewer if the project uses one.
 
 Narration:
 
 > CapabilityKit also supports story-map metadata. A capability can belong to a
 > release slice, backbone, and step without moving the file. That lets a team
-> plan thin slices, like PR review, while keeping every slice connected to
-> implementation evidence and verification status.
+> plan a thin slice, like todo views, while keeping every slice connected
+> to implementation evidence and verification status.
 
-Call out the `pr-review` slice:
+Call out the `todo-views` slice:
 
-- Identify affected capabilities.
-- Retest affected capabilities.
-- Explain PR behavior and risk.
+- Create todos.
+- List todos.
+- Complete todos.
+- Filter todos by status.
+- Toggle todo list into Kanban view.
 
 Narration:
 
@@ -234,7 +405,7 @@ Narration:
 > the release narrative. The capability verification tells us whether the
 > delivered behavior still holds.
 
-### 8. Close: The Workflow
+### 11. Close: The Workflow
 
 Narration:
 
@@ -247,10 +418,10 @@ Narration:
 On screen:
 
 ```bash
-node packages/cli/dist/index.js validate
-node packages/cli/dist/index.js compile
-node packages/cli/dist/index.js graph-viewer
-node packages/cli/dist/index.js story-map-viewer
+npx capabilitykit validate
+npx capabilitykit compile
+npx capabilitykit graph-viewer
+npx capabilitykit story-map-viewer
 ```
 
 Final line:
@@ -271,4 +442,3 @@ Use this short structure on the website:
    retesting.
 6. Story maps organize capability slices without separating planning from
    delivery evidence.
-

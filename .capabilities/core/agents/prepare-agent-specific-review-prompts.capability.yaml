@@ -1,0 +1,33 @@
+title: Prepare agent-specific review prompts
+status: planned
+summary: Adapt CapabilityKit review and implementation task prompts for the
+  conventions and limitations of selected coding-agent profiles.
+intent: Improve cross-agent reliability by giving each supported agent clear
+  instructions for workspace inspection, structured output, and evidence
+  handling without changing the capability contract.
+acceptance:
+  - Adds profile-aware prompt guidance for Codex, OpenCode, Pi, GitHub Copilot,
+    and Claude Code.
+  - Preserves the same capability intent, acceptance criteria, verification
+    checks, and evidence requirements across all agent profiles.
+  - Instructs every profile to inspect repository files directly when workspace
+    access is available.
+  - Provides fallback instructions for agents that receive a prompt file or
+    pasted prompt without autonomous workspace access.
+  - Maintains the required structured review output so review-result ingestion
+    can validate agent responses consistently.
+  - Makes provider-specific prompt changes inspectable in dry-run output before
+    the external agent is invoked.
+guidance:
+  - Keep the canonical CapabilityKit task bundle agent-neutral, then layer
+    profile-specific instructions only where they improve execution.
+  - Do not weaken evidence requirements to accommodate a provider that cannot
+    inspect files; report that limitation instead.
+  - Prefer small prompt appendices over duplicating the whole review prompt per
+    provider.
+planning:
+  story_map:
+    backbone: Multi-agent support
+    step: Adapt prompts by provider
+    release: agent-providers
+    order: 20

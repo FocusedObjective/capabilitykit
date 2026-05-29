@@ -1,0 +1,32 @@
+title: Configure agent provider profiles
+status: planned
+summary: Provide named external-agent profiles for common coding agents such as
+  Codex, OpenCode, Pi, GitHub Copilot, and Claude Code.
+intent: Let users choose the agent they already use without memorizing command,
+  argument, and prompt-handoff details for each tool.
+acceptance:
+  - Offers named profiles for Codex, OpenCode, Pi, GitHub Copilot, and Claude
+    Code while preserving the existing custom command path.
+  - Maps each profile to documented default command, argument, and handoff
+    settings when that agent exposes a suitable CLI workflow.
+  - Allows users to override profile defaults with explicit command, argument,
+    handoff, prompt-file, and transcript settings.
+  - Performs a preflight check that reports whether the selected profile appears
+    runnable in the current environment.
+  - Explains unknown, unavailable, or partially supported profiles with an
+    actionable message instead of falling back silently.
+  - Keeps provider profiles as convenience defaults, not as a restriction on
+    which external agents can consume CapabilityKit bundles.
+guidance:
+  - Verify real CLI behavior for each named provider before marking this
+    implemented.
+  - Treat GitHub Copilot as a special case if the available workflow is
+    editor-driven or prompt-file-based rather than a general-purpose CLI.
+  - Avoid embedding provider secrets, account assumptions, or editor-specific
+    state in profile definitions.
+planning:
+  story_map:
+    backbone: Multi-agent support
+    step: Configure agent handoff
+    release: agent-providers
+    order: 10

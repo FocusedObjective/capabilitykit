@@ -52,9 +52,62 @@ function extractFencedJson(source: string): string | undefined {
   return match?.[1]?.trim();
 }
 
+function extractEmbeddedJson(source: string): string | undefined {
+  for (let start = 0; start < source.length; start += 1) {
+    const open = source[start];
+    if (open !== "{" && open !== "[") {
+      continue;
+    }
+
+    const close = open === "{" ? "}" : "]";
+    const stack = [close];
+    let inString = false;
+    let escaped = false;
+
+    for (let index = start + 1; index < source.length; index += 1) {
+      const character = source[index];
+
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (character === "\\") {
+          escaped = true;
+        } else if (character === "\"") {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (character === "\"") {
+        inString = true;
+        continue;
+      }
+
+      if (character === "{" || character === "[") {
+        stack.push(character === "{" ? "}" : "]");
+        continue;
+      }
+
+      if (character === "}" || character === "]") {
+        if (character !== stack.at(-1)) {
+          break;
+        }
+        stack.pop();
+        if (stack.length === 0) {
+          return source.slice(start, index + 1).trim();
+        }
+      }
+    }
+  }
+
+  return undefined;
+}
+
 function parseReviewJson(source: string): unknown {
   const trimmed = source.trim();
-  const candidates = [trimmed, extractFencedJson(trimmed)].filter((candidate): candidate is string => Boolean(candidate));
+  const candidates = [trimmed, extractFencedJson(trimmed), extractEmbeddedJson(trimmed)].filter(
+    (candidate): candidate is string => Boolean(candidate)
+  );
 
   for (const candidate of candidates) {
     try {

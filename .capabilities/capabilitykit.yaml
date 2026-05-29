@@ -22,5 +22,6 @@ planning:
     - story-mapping
     - reverse-engineering
     - pr-review
+    - agent-providers
 output:
   path: .capabilities/dist/capabilities.json
