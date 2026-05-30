@@ -28,6 +28,7 @@
           <a href="#concepts">Concepts</a>
           <a href="#videos">Videos</a>
           <a href="#review">Review loop</a>
+          <a href="#agents">Agents</a>
           <a href="#story-mapping">Story mapping</a>
           <a href="#verification">Verification</a>
           <a href="#impact">Impact graph</a>
@@ -41,11 +42,11 @@
         <div class="container hero-grid">
           <div class="hero-copy">
             <p class="eyebrow">Capabilities as code for AI-native review</p>
-            <h1>Review what changed in behavior, not only what changed in code.</h1>
+            <h1>CapabilityKit helps reviewers understand AI-generated changes by connecting code diffs back to intended behavior, verification evidence, and downstream impact.</h1>
             <p class="lead">
-              CapabilityKit gives developers a repo-native way to understand capability
-              diffs, verify whether implementation really covers intent, and see what
-              downstream behavior may be affected by a small change.
+              Keep product intent, acceptance criteria, implementation references, and
+              verification close to the code so reviewers can evaluate behavior instead
+              of reconstructing it from generated implementation.
             </p>
             <div class="cta-row">
               <a class="btn btn-primary" href="#get-started">Get started</a>
@@ -289,6 +290,56 @@ uncovered: no semantic review saved</code></pre>
             <pre><code>Direct dependents: 5
 Transitive dependents: 9
 Suggested checks: npm test, compile</code></pre>
+          </article>
+        </div>
+      </section>
+
+      <section id="agents" class="section section-alt">
+        <div class="container section-heading">
+          <p class="eyebrow">Supported coding agents</p>
+          <h2>Use the coding agent already in your workflow.</h2>
+          <p>
+            CapabilityKit can hand a capability assessment bundle to supported coding-agent CLIs.
+            Semantic review inspects implementation evidence and saves structured `agent.review`
+            metadata without editing implementation code.
+          </p>
+        </div>
+        <div class="container agent-grid">
+          <article class="agent-card">
+            <span>Local CLI</span>
+            <h3>Codex</h3>
+            <p>Runs `codex exec` with the assessment prompt on stdin.</p>
+            <code>capabilitykit verify core/example --agent codex</code>
+          </article>
+          <article class="agent-card">
+            <span>Local CLI</span>
+            <h3>GitHub Copilot</h3>
+            <p>Runs Copilot CLI in response-only prompt mode.</p>
+            <code>capabilitykit verify core/example --agent copilot</code>
+          </article>
+          <article class="agent-card">
+            <span>Local CLI</span>
+            <h3>Pi Coding Agent</h3>
+            <p>Runs Pi in ephemeral print mode without saving a session.</p>
+            <code>capabilitykit verify core/example --agent pi</code>
+          </article>
+          <article class="agent-card">
+            <span>Local CLI</span>
+            <h3>Claude Code</h3>
+            <p>Runs Claude Code in non-interactive print mode.</p>
+            <code>capabilitykit verify core/example --agent claude</code>
+          </article>
+          <article class="agent-card">
+            <span>Local CLI</span>
+            <h3>Cursor CLI</h3>
+            <p>Runs Cursor CLI in headless mode without enabling `--force`.</p>
+            <code>capabilitykit verify core/example --agent cursor-agent</code>
+          </article>
+          <article class="agent-card agent-card-custom">
+            <span>Extensible</span>
+            <h3>Custom command</h3>
+            <p>Use explicit arguments and stdin, prompt argument, or prompt-file handoff.</p>
+            <code>capabilitykit review core/example --agent your-agent</code>
           </article>
         </div>
       </section>

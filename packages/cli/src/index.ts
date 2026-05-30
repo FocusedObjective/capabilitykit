@@ -146,16 +146,55 @@ function commandName(command: string): string {
   return path.basename(command).replace(/\.(cmd|bat|exe)$/i, "").toLowerCase();
 }
 
-function defaultAgentArgs(command: string, args: string[]): string[] {
-  if (args.length === 0 && commandName(command) === "codex") {
+function defaultAgentArgs(command: string, args: string[], handoff?: string): string[] {
+  if (args.length > 0) {
+    return args;
+  }
+  if (commandName(command) === "codex") {
     return ["exec"];
+  }
+  if (commandName(command) === "copilot" && (handoff === undefined || handoff === "argument")) {
+    return ["-s", "-p", "{prompt}"];
+  }
+  if (commandName(command) === "pi" && (handoff === undefined || handoff === "argument")) {
+    return ["-p", "{prompt}", "--no-session"];
+  }
+  if (commandName(command) === "claude" && (handoff === undefined || handoff === "argument")) {
+    return ["-p", "{prompt}"];
+  }
+  if (commandName(command) === "cursor-agent" && (handoff === undefined || handoff === "argument")) {
+    return ["-p", "{prompt}"];
   }
   return args;
 }
 
+function defaultAgentHandoff(command: string, handoff?: string): "stdin" | "argument" | "prompt-file" {
+  return handoff === undefined &&
+    (commandName(command) === "copilot" ||
+      commandName(command) === "pi" ||
+      commandName(command) === "claude" ||
+      commandName(command) === "cursor-agent")
+    ? "argument"
+    : parseAgentHandoff(handoff ?? "stdin");
+}
+
 function semanticAgentOptions(command: string): string {
-  const args = commandName(command) === "codex" ? " --arg exec" : "";
-  return `--agent ${command}${args} --handoff stdin`;
+  if (commandName(command) === "codex") {
+    return `--agent ${command} --arg exec --handoff stdin`;
+  }
+  if (commandName(command) === "copilot") {
+    return `--agent ${command} --arg -s --arg -p --arg {prompt} --handoff argument`;
+  }
+  if (commandName(command) === "pi") {
+    return `--agent ${command} --arg -p --arg {prompt} --arg --no-session --handoff argument`;
+  }
+  if (commandName(command) === "claude") {
+    return `--agent ${command} --arg -p --arg {prompt} --handoff argument`;
+  }
+  if (commandName(command) === "cursor-agent") {
+    return `--agent ${command} --arg -p --arg {prompt} --handoff argument`;
+  }
+  return `--agent ${command} --handoff stdin`;
 }
 
 type AdviceReport = Awaited<ReturnType<typeof adviseImplementationCoverage>>;
@@ -1646,6 +1685,14 @@ Common workflows:
   capabilitykit verify <id>           Save deterministic implementation review evidence
   capabilitykit verify <id> --agent codex --arg exec --handoff stdin
                                       Run an opt-in semantic review with an external agent
+  capabilitykit verify <id> --agent copilot
+                                      Run semantic review with GitHub Copilot CLI defaults
+  capabilitykit verify <id> --agent pi
+                                      Run semantic review with Pi Coding Agent defaults
+  capabilitykit verify <id> --agent claude
+                                      Run semantic review with Claude Code defaults
+  capabilitykit verify <id> --agent cursor-agent
+                                      Run semantic review with Cursor CLI defaults
 
 Command groups:
   Setup:        init, create, skill
@@ -1850,7 +1897,7 @@ program
   .argument("[capability-id]", "optional capability id; required when using --agent")
   .option("--agent <command>", "external coding agent executable for opt-in semantic review")
   .option("--arg <value>", "argument to pass to the external agent command; repeat for multiple args", collectOption, [])
-  .option("--handoff <strategy>", "agent handoff strategy: stdin, argument, or prompt-file", "stdin")
+  .option("--handoff <strategy>", "agent handoff strategy: stdin, argument, or prompt-file; defaults by agent")
   .option("--prompt-file <path>", "prompt file path for prompt-file handoff")
   .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
   .option("--output-prompt <path>", "write the generated agent review prompt to a file")
@@ -1867,7 +1914,7 @@ program
       options: {
         agent?: string;
         arg: string[];
-        handoff: string;
+        handoff?: string;
         promptFile?: string;
         transcript?: string;
         outputPrompt?: string;
@@ -1929,10 +1976,10 @@ program
 
       const result = await runExternalAgentCommand({
         command: options.agent,
-        args: defaultAgentArgs(options.agent, options.arg),
+        args: defaultAgentArgs(options.agent, options.arg, options.handoff),
         cwd: process.cwd(),
         input: review.prompt,
-        handoff: parseAgentHandoff(options.handoff),
+        handoff: defaultAgentHandoff(options.agent, options.handoff),
         promptFilePath: options.promptFile,
         transcriptPath: options.transcript,
         dryRun: options.dryRun
@@ -2260,7 +2307,7 @@ program
 
 program
   .command("review-noisy")
-  .description("List high-value capabilities for Codex or human semantic review")
+  .description("List high-value capabilities for coding-agent or human semantic review")
   .option("--limit <count>", "maximum candidates to list", "5")
   .option("--command <command>", "agent executable to show in suggested review commands", "codex")
   .option("--json", "print candidates as JSON")
@@ -2322,7 +2369,7 @@ program
   .requiredOption("--command <command>", "external agent executable to run")
   .option("--arg <value>", "argument to pass to the external agent command; repeat for multiple args", collectOption, [])
   .option("--mode <mode>", "task mode: implement or review", "implement")
-  .option("--handoff <strategy>", "bundle handoff strategy: stdin, argument, or prompt-file", "stdin")
+  .option("--handoff <strategy>", "bundle handoff strategy: stdin, argument, or prompt-file; defaults by agent")
   .option("--prompt-file <path>", "prompt file path for prompt-file handoff")
   .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
   .option("--no-references", "omit implementation reference file contents")
@@ -2334,7 +2381,7 @@ program
         command: string;
         arg: string[];
         mode: string;
-        handoff: string;
+        handoff?: string;
         promptFile?: string;
         transcript?: string;
         references: boolean;
@@ -2348,10 +2395,10 @@ program
 
       const result = await runExternalAgentCommand({
         command: options.command,
-        args: defaultAgentArgs(options.command, options.arg),
+        args: defaultAgentArgs(options.command, options.arg, options.handoff),
         cwd: process.cwd(),
         input: bundle.prompt,
-        handoff: parseAgentHandoff(options.handoff),
+        handoff: defaultAgentHandoff(options.command, options.handoff),
         promptFilePath: options.promptFile,
         transcriptPath: options.transcript,
         dryRun: options.dryRun
@@ -2391,7 +2438,7 @@ program
   .argument("[capability-id]", "optional capability id; required when using --agent")
   .option("--agent <command>", "external coding agent executable to run instead of deterministic review")
   .option("--arg <value>", "argument to pass to the external agent command; repeat for multiple args", collectOption, [])
-  .option("--handoff <strategy>", "agent handoff strategy: stdin, argument, or prompt-file", "stdin")
+  .option("--handoff <strategy>", "agent handoff strategy: stdin, argument, or prompt-file; defaults by agent")
   .option("--prompt-file <path>", "prompt file path for prompt-file handoff")
   .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
   .option("--output-prompt <path>", "write the generated agent review prompt to a file")
@@ -2406,7 +2453,7 @@ program
       options: {
         agent?: string;
         arg: string[];
-        handoff: string;
+        handoff?: string;
         promptFile?: string;
         transcript?: string;
         outputPrompt?: string;
@@ -2449,10 +2496,10 @@ program
 
       const result = await runExternalAgentCommand({
         command: options.agent!,
-        args: defaultAgentArgs(options.agent!, options.arg),
+        args: defaultAgentArgs(options.agent!, options.arg, options.handoff),
         cwd: process.cwd(),
         input: review.prompt,
-        handoff: parseAgentHandoff(options.handoff),
+        handoff: defaultAgentHandoff(options.agent!, options.handoff),
         promptFilePath: options.promptFile,
         transcriptPath: options.transcript,
         dryRun: options.dryRun
@@ -2534,7 +2581,7 @@ program
   .argument("<capability-id>", "capability id")
   .requiredOption("--command <command>", "external agent executable to run")
   .option("--arg <value>", "argument to pass to the external agent command; repeat for multiple args", collectOption, [])
-  .option("--handoff <strategy>", "bundle handoff strategy: stdin, argument, or prompt-file", "stdin")
+  .option("--handoff <strategy>", "bundle handoff strategy: stdin, argument, or prompt-file; defaults by agent")
   .option("--prompt-file <path>", "prompt file path for prompt-file handoff")
   .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
   .option("--output-prompt <path>", "write the generated review prompt to a file")
@@ -2546,7 +2593,7 @@ program
       options: {
         command: string;
         arg: string[];
-        handoff: string;
+        handoff?: string;
         promptFile?: string;
         transcript?: string;
         outputPrompt?: string;
@@ -2567,10 +2614,10 @@ program
 
       const result = await runExternalAgentCommand({
         command: options.command,
-        args: defaultAgentArgs(options.command, options.arg),
+        args: defaultAgentArgs(options.command, options.arg, options.handoff),
         cwd: process.cwd(),
         input: review.prompt,
-        handoff: parseAgentHandoff(options.handoff),
+        handoff: defaultAgentHandoff(options.command, options.handoff),
         promptFilePath: options.promptFile,
         transcriptPath: options.transcript,
         dryRun: options.dryRun

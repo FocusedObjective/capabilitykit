@@ -179,11 +179,34 @@ capabilitykit compile
 - `capabilitykit validate` validates capability files and reports verification gaps.
 - `capabilitykit compile` writes normalized JSON to `.capabilities/dist/capabilities.json`.
 - `capabilitykit inspect <capability-id>` prints one capability and its relationships.
-- `capabilitykit review-noisy --limit 5` lists high-value capabilities for semantic Codex or human review.
+- `capabilitykit review-noisy --limit 5` lists high-value capabilities for semantic coding-agent or human review.
 - `capabilitykit agent-task <capability-id>` creates an inspectable implementation or review prompt bundle.
 - `capabilitykit agent-review <capability-id>` combines a review bundle with deterministic coverage evidence.
 - `capabilitykit review-result <capability-id>` validates or saves structured review JSON under `agent.review`.
 - `capabilitykit sync-review [capability-id]` updates `agent.review` from current implementation evidence without changing capability status.
+
+Semantic assessment supports Codex, GitHub Copilot CLI, Pi Coding Agent,
+Claude Code, and Cursor CLI defaults:
+
+```bash
+capabilitykit verify core/example --agent codex
+capabilitykit verify core/example --agent copilot
+capabilitykit verify core/example --agent pi
+capabilitykit verify core/example --agent claude
+capabilitykit verify core/example --agent cursor-agent
+```
+
+Codex defaults to `codex exec` with stdin handoff. GitHub Copilot defaults to
+`copilot -s -p "{prompt}"` with argument handoff. Explicit `--arg` and
+`--handoff` values override either default. Pi defaults to
+`pi -p "{prompt}" --no-session` with argument handoff. Set
+`CAPABILITYKIT_CODEX_COMMAND`, `CAPABILITYKIT_COPILOT_COMMAND`, or
+`CAPABILITYKIT_PI_COMMAND` when the executable is not visible on `PATH`.
+Claude Code defaults to `claude -p "{prompt}"` with argument handoff and can
+be configured with `CAPABILITYKIT_CLAUDE_COMMAND`. Cursor CLI defaults to
+`cursor-agent -p "{prompt}"` with argument handoff and can be configured with
+`CAPABILITYKIT_CURSOR_COMMAND`. CapabilityKit does not add Cursor's `--force`
+flag during assessment.
 
 ## Organizing Capabilities
 

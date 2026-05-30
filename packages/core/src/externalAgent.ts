@@ -83,11 +83,23 @@ async function detectConfiguredCommand(
   env: NodeJS.ProcessEnv,
   cwd: string
 ): Promise<ExternalAgentDetectionResult | undefined> {
-  if (commandName(command) !== "codex") {
+  const configuredCommandVariable =
+    commandName(command) === "codex"
+      ? "CAPABILITYKIT_CODEX_COMMAND"
+      : commandName(command) === "copilot"
+        ? "CAPABILITYKIT_COPILOT_COMMAND"
+        : commandName(command) === "pi"
+          ? "CAPABILITYKIT_PI_COMMAND"
+          : commandName(command) === "claude"
+            ? "CAPABILITYKIT_CLAUDE_COMMAND"
+            : commandName(command) === "cursor-agent"
+              ? "CAPABILITYKIT_CURSOR_COMMAND"
+        : undefined;
+  if (!configuredCommandVariable) {
     return undefined;
   }
 
-  const configuredCommand = env.CAPABILITYKIT_CODEX_COMMAND?.trim();
+  const configuredCommand = env[configuredCommandVariable]?.trim();
   if (!configuredCommand) {
     return undefined;
   }
@@ -100,11 +112,11 @@ async function detectConfiguredCommand(
   return {
     available: false,
     command,
-    message: `CAPABILITYKIT_CODEX_COMMAND is set but was not found or is not executable: ${configuredCommand}`
+    message: `${configuredCommandVariable} is set but was not found or is not executable: ${configuredCommand}`
   };
 }
 
-function codexFallbackDirectories(env: NodeJS.ProcessEnv): string[] {
+function npmFallbackDirectories(env: NodeJS.ProcessEnv): string[] {
   const directories: string[] = [];
 
   if (process.platform === "win32") {
@@ -172,8 +184,14 @@ export async function detectExternalAgentCommand(
     }
   }
 
-  if (commandName(command) === "codex") {
-    for (const entry of codexFallbackDirectories(env)) {
+  if (
+    commandName(command) === "codex" ||
+    commandName(command) === "copilot" ||
+    commandName(command) === "pi" ||
+    commandName(command) === "claude" ||
+    commandName(command) === "cursor-agent"
+  ) {
+    for (const entry of npmFallbackDirectories(env)) {
       for (const extension of candidateExtensions(env)) {
         const candidate = path.join(entry, `${command}${extension}`);
         if (await isExecutable(candidate)) {
@@ -189,6 +207,14 @@ export async function detectExternalAgentCommand(
     message:
       commandName(command) === "codex"
         ? `External agent command "codex" was not found on PATH. Install it, pass --agent/--command with a configured executable, or set CAPABILITYKIT_CODEX_COMMAND to the Codex executable path.`
+        : commandName(command) === "copilot"
+          ? `External agent command "copilot" was not found on PATH. Install @github/copilot, pass --agent/--command with a configured executable, or set CAPABILITYKIT_COPILOT_COMMAND to the GitHub Copilot CLI executable path.`
+          : commandName(command) === "pi"
+            ? `External agent command "pi" was not found on PATH. Install @earendil-works/pi-coding-agent, pass --agent/--command with a configured executable, or set CAPABILITYKIT_PI_COMMAND to the Pi Coding Agent executable path.`
+            : commandName(command) === "claude"
+              ? `External agent command "claude" was not found on PATH. Install @anthropic-ai/claude-code, pass --agent/--command with a configured executable, or set CAPABILITYKIT_CLAUDE_COMMAND to the Claude Code executable path.`
+              : commandName(command) === "cursor-agent"
+                ? `External agent command "cursor-agent" was not found on PATH. Install Cursor CLI from https://cursor.com/install, pass --agent/--command with a configured executable, or set CAPABILITYKIT_CURSOR_COMMAND to the Cursor CLI executable path.`
         : `External agent command "${command}" was not found on PATH. Install it or pass --command with a configured executable.`
   };
 }

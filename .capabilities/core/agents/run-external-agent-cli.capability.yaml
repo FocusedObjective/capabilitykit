@@ -8,6 +8,9 @@ acceptance:
   - Detects whether the requested agent command is available.
   - Lets users configure the executable and arguments instead of hard-coding a
     VS Code integration.
+  - Provides built-in Codex, GitHub Copilot CLI, Pi Coding Agent, Claude Code,
+    and Cursor CLI defaults for semantic assessment while preserving explicit
+    command, argument, and handoff overrides.
   - Passes the generated task bundle to the external agent through a documented
     stdin, argument, or prompt-file strategy.
   - Captures the external agent exit code and output path or transcript.
@@ -22,6 +25,13 @@ guidance:
     argument and "{promptFile}" for CLIs that accept a prompt file path.
   - Prefer stdin handoff for large prompts and Windows command shims when the
     target CLI supports reading prompts from stdin.
+  - Use GitHub Copilot CLI's programmatic `-p` prompt argument and `-s`
+    response-only output for semantic assessment.
+  - Use Pi Coding Agent's `-p` print mode and `--no-session` option for
+    ephemeral semantic assessment.
+  - Use Claude Code's `-p` print mode for semantic assessment.
+  - Use Cursor CLI's `-p` print mode without `--force` for read-only semantic
+    assessment.
 planning:
   story_map:
     backbone: Agent workflow
@@ -57,7 +67,9 @@ agent:
   verification:
     automated:
       - id: external-agent-detection-tests
-        description: Unit tests cover missing command and configured command handling.
+        description: Unit tests cover missing command and configured Codex, GitHub
+          Copilot CLI, Pi Coding Agent, Claude Code, and Cursor CLI command
+          handling.
         command: npm test -- packages/core/tests/externalAgent.test.ts
       - id: external-agent-build
         description: TypeScript build verifies the exported runner API and CLI integration.

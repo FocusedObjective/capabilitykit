@@ -144,10 +144,10 @@ p {
 }
 
 h1 {
-  max-width: 13ch;
+  max-width: 19ch;
   margin: 0;
-  font-size: 5.05rem;
-  line-height: 1;
+  font-size: 4.45rem;
+  line-height: 1.02;
   letter-spacing: 0;
 }
 
@@ -390,6 +390,7 @@ code {
 .steps,
 .three-panel,
 .concept-grid,
+.agent-grid,
 .capability-structure-grid,
 .graph-grid,
 .example-grid,
@@ -433,6 +434,50 @@ code {
 
 .concept-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.agent-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.agent-card {
+  display: grid;
+  gap: 0.72rem;
+  align-content: start;
+  min-height: 14rem;
+  padding: 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.agent-card span {
+  justify-self: start;
+  padding: 0.24rem 0.5rem;
+  border-radius: 8px;
+  background: #e6f3ec;
+  color: var(--brand-dark);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.agent-card p {
+  margin: 0;
+}
+
+.agent-card code {
+  align-self: end;
+  padding: 0.68rem;
+  border-radius: 8px;
+  background: var(--code-bg);
+  color: var(--code-text);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.agent-card-custom {
+  border-style: dashed;
 }
 
 .concept-card {
@@ -805,13 +850,14 @@ li {
 
   .steps,
   .three-panel,
-  .concept-grid {
+  .concept-grid,
+  .agent-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   h1 {
-    max-width: 14ch;
-    font-size: 4rem;
+    max-width: 19ch;
+    font-size: 3.55rem;
   }
 
   h2 {
@@ -841,6 +887,7 @@ li {
   .steps,
   .three-panel,
   .concept-grid,
+  .agent-grid,
   .demo-strip {
     grid-template-columns: 1fr;
   }
@@ -903,7 +950,7 @@ li {
   }
 
   h1 {
-    font-size: 3rem;
+    font-size: 2.65rem;
   }
 
   h2 {

@@ -70,6 +70,106 @@ describe("external agent command runner", () => {
     expect(result.message).toContain("CAPABILITYKIT_CODEX_COMMAND");
   });
 
+  it("detects GitHub Copilot CLI from an explicit override when it is not on PATH", async () => {
+    const scriptName = process.platform === "win32" ? "copilot.cmd" : "copilot";
+    const { commandPath } = await createExecutable(
+      scriptName,
+      process.platform === "win32" ? "@echo off\r\necho copilot\r\n" : "#!/bin/sh\necho copilot\n"
+    );
+
+    const result = await detectExternalAgentCommand("copilot", {
+      env: { PATH: "", CAPABILITYKIT_COPILOT_COMMAND: commandPath }
+    });
+
+    expect(result.available).toBe(true);
+    expect(result.resolvedPath).toBe(commandPath);
+  });
+
+  it("explains the GitHub Copilot CLI override when Copilot is missing", async () => {
+    const result = await detectExternalAgentCommand("copilot", {
+      env: { PATH: "" }
+    });
+
+    expect(result.available).toBe(false);
+    expect(result.message).toContain("CAPABILITYKIT_COPILOT_COMMAND");
+    expect(result.message).toContain("@github/copilot");
+  });
+
+  it("detects Pi Coding Agent from an explicit override when it is not on PATH", async () => {
+    const scriptName = process.platform === "win32" ? "pi.cmd" : "pi";
+    const { commandPath } = await createExecutable(
+      scriptName,
+      process.platform === "win32" ? "@echo off\r\necho pi\r\n" : "#!/bin/sh\necho pi\n"
+    );
+
+    const result = await detectExternalAgentCommand("pi", {
+      env: { PATH: "", CAPABILITYKIT_PI_COMMAND: commandPath }
+    });
+
+    expect(result.available).toBe(true);
+    expect(result.resolvedPath).toBe(commandPath);
+  });
+
+  it("explains the Pi Coding Agent override when Pi is missing", async () => {
+    const result = await detectExternalAgentCommand("pi", {
+      env: { PATH: "" }
+    });
+
+    expect(result.available).toBe(false);
+    expect(result.message).toContain("CAPABILITYKIT_PI_COMMAND");
+    expect(result.message).toContain("@earendil-works/pi-coding-agent");
+  });
+
+  it("detects Claude Code from an explicit override when it is not on PATH", async () => {
+    const scriptName = process.platform === "win32" ? "claude.cmd" : "claude";
+    const { commandPath } = await createExecutable(
+      scriptName,
+      process.platform === "win32" ? "@echo off\r\necho claude\r\n" : "#!/bin/sh\necho claude\n"
+    );
+
+    const result = await detectExternalAgentCommand("claude", {
+      env: { PATH: "", CAPABILITYKIT_CLAUDE_COMMAND: commandPath }
+    });
+
+    expect(result.available).toBe(true);
+    expect(result.resolvedPath).toBe(commandPath);
+  });
+
+  it("explains the Claude Code override when Claude is missing", async () => {
+    const result = await detectExternalAgentCommand("claude", {
+      env: { PATH: "" }
+    });
+
+    expect(result.available).toBe(false);
+    expect(result.message).toContain("CAPABILITYKIT_CLAUDE_COMMAND");
+    expect(result.message).toContain("@anthropic-ai/claude-code");
+  });
+
+  it("detects Cursor CLI from an explicit override when it is not on PATH", async () => {
+    const scriptName = process.platform === "win32" ? "cursor-agent.cmd" : "cursor-agent";
+    const { commandPath } = await createExecutable(
+      scriptName,
+      process.platform === "win32" ? "@echo off\r\necho cursor-agent\r\n" : "#!/bin/sh\necho cursor-agent\n"
+    );
+
+    const result = await detectExternalAgentCommand("cursor-agent", {
+      env: { PATH: "", CAPABILITYKIT_CURSOR_COMMAND: commandPath }
+    });
+
+    expect(result.available).toBe(true);
+    expect(result.resolvedPath).toBe(commandPath);
+  });
+
+  it("explains the Cursor CLI override when Cursor is missing", async () => {
+    const result = await detectExternalAgentCommand("cursor-agent", {
+      env: { PATH: "" }
+    });
+
+    expect(result.available).toBe(false);
+    expect(result.message).toContain("CAPABILITYKIT_CURSOR_COMMAND");
+    expect(result.message).toContain("https://cursor.com/install");
+  });
+
   it("runs a configured command with the task bundle on stdin", async () => {
     const result = await runExternalAgentCommand({
       command: process.execPath,

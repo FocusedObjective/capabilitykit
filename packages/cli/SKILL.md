@@ -233,6 +233,24 @@ Use the review commands according to the evidence needed:
 - If `codex` is installed but not visible on `PATH`, pass its executable path
   with `--agent <path>`/`--command <path>` or set `CAPABILITYKIT_CODEX_COMMAND`
   to the Codex executable path.
+- GitHub Copilot CLI semantic review is also supported with
+  `--agent copilot`. CapabilityKit defaults to `copilot -s -p "{prompt}"` with
+  argument handoff. Override with explicit `--arg` and `--handoff` values when
+  needed, or set `CAPABILITYKIT_COPILOT_COMMAND` when `copilot` is not visible
+  on `PATH`.
+- Pi Coding Agent semantic review is supported with `--agent pi`.
+  CapabilityKit defaults to `pi -p "{prompt}" --no-session` with argument
+  handoff. Override with explicit `--arg` and `--handoff` values when needed,
+  or set `CAPABILITYKIT_PI_COMMAND` when `pi` is not visible on `PATH`.
+- Claude Code semantic review is supported with `--agent claude`.
+  CapabilityKit defaults to `claude -p "{prompt}"` with argument handoff.
+  Override with explicit `--arg` and `--handoff` values when needed, or set
+  `CAPABILITYKIT_CLAUDE_COMMAND` when `claude` is not visible on `PATH`.
+- Cursor CLI semantic review is supported with `--agent cursor-agent`.
+  CapabilityKit defaults to `cursor-agent -p "{prompt}"` with argument handoff
+  and does not add Cursor's `--force` flag during assessment. Override with
+  explicit `--arg` and `--handoff` values when needed, or set
+  `CAPABILITYKIT_CURSOR_COMMAND` when `cursor-agent` is not visible on `PATH`.
 - `capabilitykit agent-task <capability-id>` creates an inspectable implement or
   review prompt bundle for external agents.
 - `capabilitykit agent-run <capability-id> --command <command>` runs an external
@@ -267,6 +285,10 @@ capabilitykit graph
 capabilitykit graph-viewer
 capabilitykit verify account/user-login
 capabilitykit verify account/user-login --agent codex --arg exec --handoff stdin
+capabilitykit verify account/user-login --agent copilot
+capabilitykit verify account/user-login --agent pi
+capabilitykit verify account/user-login --agent claude
+capabilitykit verify account/user-login --agent cursor-agent
 capabilitykit verify --recommended --limit 5
 capabilitykit review account/user-login
 capabilitykit review account/user-login --agent codex --arg exec --handoff stdin
@@ -292,6 +314,10 @@ capabilitykit review core/example --agent codex --arg exec --handoff stdin --no-
 capabilitykit verify core/example
 capabilitykit verify core/example --no-save
 capabilitykit verify core/example --agent codex --arg exec --handoff stdin
+capabilitykit verify core/example --agent copilot
+capabilitykit verify core/example --agent pi
+capabilitykit verify core/example --agent claude
+capabilitykit verify core/example --agent cursor-agent
 capabilitykit verify --stale --limit 5
 capabilitykit assess core/example
 capabilitykit assess core/example --json

@@ -24,6 +24,12 @@ acceptance:
   - Website shows the hierarchical nature of the .capabilities folder.
   - Website shows the main human-authored parts of a capability without the
     agent section.
+  - Website lists supported coding-agent assessment profiles and explains that
+    semantic review saves agent.review evidence without editing implementation
+    code.
+  - Website hero explains that CapabilityKit helps reviewers understand
+    AI-generated changes by connecting code diffs to intended behavior,
+    verification evidence, and downstream impact.
 guidance:
   - Keep the docs CLI-first and repo-native.
   - Do not position the MVP as a cloud product.
