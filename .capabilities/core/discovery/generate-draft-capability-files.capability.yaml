@@ -6,8 +6,9 @@ summary: Turn agent-discovered project capabilities into draft
 intent: Let a user ask their agent of choice to create a useful first
   `.capabilities/` map for the main functionality of an existing application.
 acceptance:
-  - Converts an explicitly selected organized generation plan into valid
-    capability files.
+  - Converts an organized generation plan into valid capability files, deriving
+    the plan from the durable discovery report when the user does not provide an
+    inspectable or edited plan explicitly.
   - Writes files under a neat area and subfolder structure that reflects the
     application's domains and workflows.
   - Populates title, status, summary, intent, acceptance criteria, and
@@ -30,6 +31,9 @@ acceptance:
 guidance:
   - Generated capability files should be useful to navigate even before they are
     perfect.
+  - Keep explicit plan generation available for users who want to inspect or
+    edit structure before generation, without requiring that step for the
+    default workflow.
   - Prefer capability IDs that describe product behavior rather than internal
     module names.
   - Preserve evidence paths so maintainers can quickly review why each
@@ -95,6 +99,8 @@ agent:
         evidence cannot fully establish product intent.
       - The declared manual readability check for a generated fixture map was
         not performed.
+      - The optional CLI --plan omission path is source-reviewed and
+        build-checked but does not have a dedicated CLI integration test.
     evidence:
       - "npm test -- packages/core/tests/discoveryGeneration.test.ts: passed, 7
         tests"
@@ -102,22 +108,22 @@ agent:
         packages/core/tests/discoveryOrganization.test.ts
         packages/core/tests/discoveryGeneration.test.ts: passed, 14 tests"
       - "npm run build: passed for @capabilitykit/core and @capabilitykit/cli"
-    intent_summary: Generate an inspectable first-pass .capabilities map from a
-      selected discovery plan. Drafts preserve code evidence and explicit gaps,
-      use domain-oriented paths, and are written only after explicit
-      application.
+    intent_summary: Generate a useful first-pass .capabilities map from durable
+      discovery evidence. Drafts use domain-oriented paths, preserve code
+      references and verification gaps, derive a plan automatically unless an
+      edited plan is supplied, and write only after explicit application.
     criteria:
-      - criterion: Converts an explicitly selected organized generation plan into valid
-          capability files.
+      - criterion: Converts an organized generation plan into valid capability files,
+          deriving the plan from the durable discovery report when the user does
+          not provide an inspectable or edited plan explicitly.
         status: covered
         evidence:
+          - packages/cli/src/index.ts:2594
           - packages/core/src/discoveryGeneration.ts:131
-          - packages/core/src/discoveryGeneration.ts:152
           - packages/core/src/discoveryGeneration.ts:153
-          - packages/cli/src/index.ts:2587
           - packages/core/tests/discoveryGeneration.test.ts:59
-        notes: The selected plan is parsed, each generated YAML source is schema-parsed
-          before writes, and the CLI requires report and plan paths.
+        notes: The CLI accepts an optional plan and derives one from the durable report
+          when omitted. Generated YAML is parsed before writing.
       - criterion: Writes files under a neat area and subfolder structure that reflects
           the application's domains and workflows.
         status: covered
@@ -126,8 +132,8 @@ agent:
           - packages/core/src/discoveryOrganization.ts:219
           - packages/core/src/discoveryOrganization.ts:258
           - packages/core/tests/discoveryOrganization.test.ts:42
-        notes: Area hints become stable folders with at most two segments. Structural or
-          ambiguous hints are flagged for review.
+        notes: Area hints become stable paths with up to two segments. Ambiguous
+          structural hints are flagged for review.
       - criterion: Populates title, status, summary, intent, acceptance criteria, and
           verification gaps while deriving capability IDs and areas from the
           selected folder paths, and includes implementation references for
@@ -135,26 +141,23 @@ agent:
         status: covered
         evidence:
           - packages/core/src/discoveryGeneration.ts:89
-          - packages/core/src/discoveryGeneration.ts:97
-          - packages/core/src/discoveryGeneration.ts:108
-          - packages/core/src/parseCapability.ts:5
+          - packages/core/src/discoveryGeneration.ts:146
           - packages/core/src/parseCapability.ts:44
           - packages/core/tests/discoveryGeneration.test.ts:70
-        notes: Draft source includes the required fields. IDs and areas are derived from
-          file paths. Discovered behavior receives implementation references.
+        notes: Draft fields and references are populated from the candidate. IDs and
+          areas are path-derived.
       - criterion: Requires every generated capability for discovered existing behavior
           to include concrete implementation references from code inspection,
           not only documentation or package metadata.
         status: covered
         evidence:
           - packages/core/src/discoveryReport.ts:241
-          - packages/core/src/discoveryReport.ts:244
           - packages/core/src/discoveryReport.ts:273
           - packages/core/src/discoveryGeneration.ts:126
           - packages/core/tests/discoveryGeneration.test.ts:96
           - packages/core/tests/discoveryGeneration.test.ts:129
-        notes: Generation revalidates durable reports. Documentation-only evidence and
-          missing code paths are rejected for discovered behavior.
+        notes: Generation revalidates durable reports. Documentation-only and missing
+          evidence paths are rejected.
       - criterion: Uses implemented status for discovered existing behavior with
           concrete implementation references, uses planned only for explicitly
           retained proposals for absent behavior, and never claims generated
@@ -162,12 +165,11 @@ agent:
         status: covered
         evidence:
           - packages/core/src/discoveryOrganization.ts:127
-          - packages/core/src/discoveryOrganization.ts:216
           - packages/core/src/discoveryOrganization.ts:266
           - packages/core/tests/discoveryGeneration.test.ts:73
           - packages/core/tests/discoveryGeneration.test.ts:156
-        notes: The plan schema enforces implemented for discovered candidates and
-          planned for retained proposals. Generated plans cannot use verified.
+        notes: The plan schema only allows implemented for discovered candidates and
+          planned for retained proposals.
       - criterion: Refuses to overwrite existing capability files unless force is
           requested.
         status: covered
@@ -175,8 +177,7 @@ agent:
           - packages/core/src/discoveryGeneration.ts:159
           - packages/core/src/discoveryGeneration.ts:177
           - packages/core/tests/discoveryGeneration.test.ts:82
-        notes: Existing files produce collisions and block application unless force is
-          explicitly set.
+        notes: Existing files become collisions and block writes unless force is set.
       - criterion: Writes files only after the user explicitly requests generation and
           reports path collisions before applying changes.
         status: covered
@@ -185,10 +186,10 @@ agent:
           - packages/core/src/discoveryGeneration.ts:180
           - packages/core/src/discoveryGeneration.ts:197
           - packages/cli/src/index.ts:2589
-          - packages/cli/src/index.ts:2609
+          - packages/cli/src/index.ts:2614
           - packages/core/tests/discoveryGeneration.test.ts:59
-        notes: Preview is the default. Collision collection occurs before writes. The
-          CLI exposes explicit --apply and reports collisions.
+        notes: Preview is the default. Collision detection runs before writes, and
+          non-forced collisions prevent application.
       - criterion: Preserves a durable discovery report with the report ID, evidence,
           confidence notes, inspected paths, grouping decisions, and rejected or
           quarantined candidates.
@@ -199,10 +200,9 @@ agent:
           - packages/core/src/discoveryReport.ts:338
           - packages/core/src/discoveryGeneration.ts:191
           - packages/core/src/discoveryGeneration.ts:193
-          - packages/core/src/discoveryOrganization.ts:234
+          - packages/core/src/discoveryOrganization.ts:313
           - packages/core/tests/discovery.test.ts:110
           - packages/core/tests/discoveryGeneration.test.ts:76
-        notes: The durable report preserves provenance and discovery evidence. The
-          generation audit preserves the selected plan, including grouping
-          decisions and quarantined candidates.
+        notes: The durable report preserves evidence and provenance. The generation
+          audit preserves the selected plan and grouping decisions.
     done: true

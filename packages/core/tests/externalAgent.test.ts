@@ -181,6 +181,24 @@ describe("external agent command runner", () => {
     expect(result.stdout).toContain("capability task");
   });
 
+  it("reports start, output activity, heartbeat, and completion progress", async () => {
+    const events: string[] = [];
+    const result = await runExternalAgentCommand({
+      command: process.execPath,
+      args: ["-e", "process.stdout.write('started'); setTimeout(() => process.stderr.write('done'), 30)"],
+      input: "",
+      progressIntervalMs: 5,
+      onProgress: (event) => events.push(event.type)
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(events[0]).toBe("started");
+    expect(events).toContain("stdout");
+    expect(events).toContain("stderr");
+    expect(events).toContain("heartbeat");
+    expect(events.at(-1)).toBe("completed");
+  });
+
   it("captures stdin write errors when the command exits before reading input", async () => {
     const result = await runExternalAgentCommand({
       command: process.execPath,

@@ -40,6 +40,7 @@ import {
 import type {
   Capability,
   DurableDiscoveryReport,
+  ExternalAgentProgressEvent,
   LoadCapabilitiesResult,
   OrganizedDiscoveryPlan,
   VerificationGap
@@ -155,6 +156,18 @@ function parseAgentHandoff(value: string): "stdin" | "argument" | "prompt-file" 
 
 function collectOption(value: string, previous: string[] = []): string[] {
   return [...previous, value];
+}
+
+function reportExternalAgentProgress(event: ExternalAgentProgressEvent): void {
+  if (event.type === "started") {
+    console.error("External agent started. Waiting for completion...");
+  } else if (event.type === "heartbeat") {
+    const elapsedSeconds = Math.max(1, Math.round(event.elapsedMs / 1000));
+    console.error(`External agent still running (${elapsedSeconds}s)...`);
+  } else if (event.type === "completed") {
+    const elapsedSeconds = Math.max(1, Math.round(event.elapsedMs / 1000));
+    console.error(`External agent finished (${elapsedSeconds}s).`);
+  }
 }
 
 function printDiscoveryResult(result: Awaited<ReturnType<typeof validateDiscoveryReport>>): void {
@@ -2053,7 +2066,8 @@ program
         handoff: defaultAgentHandoff(options.agent, options.handoff),
         promptFilePath: options.promptFile,
         transcriptPath: options.transcript,
-        dryRun: options.dryRun
+        dryRun: options.dryRun,
+        onProgress: reportExternalAgentProgress
       });
 
       console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
@@ -2452,7 +2466,8 @@ program
         handoff: defaultAgentHandoff(options.command, options.handoff),
         promptFilePath: options.promptFile,
         transcriptPath: options.transcript,
-        dryRun: options.dryRun
+        dryRun: options.dryRun,
+        onProgress: reportExternalAgentProgress
       });
 
       console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
@@ -2583,15 +2598,19 @@ program
 
 program
   .command("discovery-generate")
-  .description("Preview or explicitly apply a selected capability generation plan")
+  .description("Preview or explicitly apply capability generation from a discovery report")
   .requiredOption("--report <path>", "path to the durable discovery report used to create the plan")
-  .requiredOption("--plan <path>", "path to the selected organized generation plan")
+  .option("--plan <path>", "path to an optional selected organized generation plan; derived from the report when omitted")
   .option("--apply", "write generated capability files and the durable generation-plan audit")
   .option("--force", "overwrite existing capability files and generation-plan audit")
   .option("--json", "print the generation result as JSON")
-  .action(async (options: { report: string; plan: string; apply?: boolean; force?: boolean; json?: boolean }) => {
+  .action(async (options: { report: string; plan?: string; apply?: boolean; force?: boolean; json?: boolean }) => {
     const report = await readDiscoveryReport(path.resolve(process.cwd(), options.report));
-    const plan = await readDiscoveryPlan(path.resolve(process.cwd(), options.plan));
+    const plan = options.plan
+      ? await readDiscoveryPlan(path.resolve(process.cwd(), options.plan))
+      : organizeDiscoveredCapabilityMap(report, {
+          existingCapabilityIds: (await loadCapabilities(process.cwd())).capabilities.map(({ capability }) => capability.id)
+        });
     const result = await generateDraftCapabilities(process.cwd(), report, plan, {
       apply: options.apply,
       force: options.force
@@ -2604,6 +2623,7 @@ program
     console.log("");
     console.log(`${result.files.length} capability files`);
     console.log(`${result.collisions.length} collisions`);
+    console.log(`Plan: ${options.plan ? path.relative(process.cwd(), path.resolve(process.cwd(), options.plan)) : "derived from report"}`);
     console.log(`Report: ${path.relative(process.cwd(), result.reportPath)}`);
     console.log(`Audit: ${path.relative(process.cwd(), result.auditPath)}`);
     if (result.collisions.length > 0) {
@@ -2708,7 +2728,8 @@ program
         handoff: defaultAgentHandoff(options.command, options.handoff),
         promptFilePath: options.promptFile,
         transcriptPath: options.transcript,
-        dryRun: options.dryRun
+        dryRun: options.dryRun,
+        onProgress: reportExternalAgentProgress
       });
 
       console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
@@ -2809,7 +2830,8 @@ program
         handoff: defaultAgentHandoff(options.agent!, options.handoff),
         promptFilePath: options.promptFile,
         transcriptPath: options.transcript,
-        dryRun: options.dryRun
+        dryRun: options.dryRun,
+        onProgress: reportExternalAgentProgress
       });
 
       console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
@@ -2927,7 +2949,8 @@ program
         handoff: defaultAgentHandoff(options.command, options.handoff),
         promptFilePath: options.promptFile,
         transcriptPath: options.transcript,
-        dryRun: options.dryRun
+        dryRun: options.dryRun,
+        onProgress: reportExternalAgentProgress
       });
 
       console.log(`Command: ${[result.command, ...result.args].join(" ")}`);

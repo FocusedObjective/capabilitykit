@@ -18,6 +18,8 @@ export interface ExternalAgentRunOptions extends ExternalAgentCommand {
   promptFilePath?: string;
   transcriptPath?: string;
   dryRun?: boolean;
+  onProgress?: (event: ExternalAgentProgressEvent) => void;
+  progressIntervalMs?: number;
 }
 
 export interface ExternalAgentDetectionResult {
@@ -38,6 +40,15 @@ export interface ExternalAgentRunResult {
   stderr: string;
   transcriptPath?: string;
   promptFilePath?: string;
+}
+
+export interface ExternalAgentProgressEvent {
+  type: "started" | "stdout" | "stderr" | "heartbeat" | "completed";
+  elapsedMs: number;
+  stdoutBytes: number;
+  stderrBytes: number;
+  chunk?: string;
+  exitCode?: number | null;
 }
 
 function pathEntries(env: NodeJS.ProcessEnv): string[] {
@@ -310,6 +321,17 @@ export async function runExternalAgentCommand(options: ExternalAgentRunOptions):
   }
 
   const runResult = await new Promise<ExternalAgentRunResult>((resolve, reject) => {
+    const startedAt = Date.now();
+    let stdoutBytes = 0;
+    let stderrBytes = 0;
+    const emitProgress = (event: Omit<ExternalAgentProgressEvent, "elapsedMs" | "stdoutBytes" | "stderrBytes">) => {
+      options.onProgress?.({
+        ...event,
+        elapsedMs: Date.now() - startedAt,
+        stdoutBytes,
+        stderrBytes
+      });
+    };
     const child = spawn(baseResult.command, args, {
       cwd,
       env: options.env ?? process.env,
@@ -320,14 +342,35 @@ export async function runExternalAgentCommand(options: ExternalAgentRunOptions):
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
     let stdinError: string | undefined;
+    const progressInterval = options.onProgress
+      ? setInterval(() => emitProgress({ type: "heartbeat" }), options.progressIntervalMs ?? 10000)
+      : undefined;
 
-    child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk));
-    child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk));
+    emitProgress({ type: "started" });
+    child.stdout.on("data", (chunk: Buffer) => {
+      stdout.push(chunk);
+      stdoutBytes += chunk.length;
+      emitProgress({ type: "stdout", chunk: chunk.toString("utf8") });
+    });
+    child.stderr.on("data", (chunk: Buffer) => {
+      stderr.push(chunk);
+      stderrBytes += chunk.length;
+      emitProgress({ type: "stderr", chunk: chunk.toString("utf8") });
+    });
     child.stdin.on("error", (error) => {
       stdinError = error instanceof Error ? error.message : String(error);
     });
-    child.on("error", (error) => reject(error));
+    child.on("error", (error) => {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+      reject(error);
+    });
     child.on("close", (exitCode) => {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+      emitProgress({ type: "completed", exitCode });
       const stderrText = Buffer.concat(stderr).toString("utf8");
       resolve({
         ...baseResult,

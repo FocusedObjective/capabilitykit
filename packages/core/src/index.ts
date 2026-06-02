@@ -96,6 +96,7 @@ export type {
   AgentHandoffStrategy,
   ExternalAgentCommand,
   ExternalAgentDetectionResult,
+  ExternalAgentProgressEvent,
   ExternalAgentRunOptions,
   ExternalAgentRunResult
 } from "./externalAgent.js";
