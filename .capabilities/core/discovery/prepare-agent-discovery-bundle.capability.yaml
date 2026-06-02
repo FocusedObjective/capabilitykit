@@ -1,5 +1,5 @@
 title: Prepare agent discovery bundle
-status: planned
+status: implemented
 summary: Build a project-level prompt bundle that directs Codex, Claude Code,
   GitHub Copilot, or another coding agent to perform full code discovery before
   drafting capability files.
@@ -11,14 +11,16 @@ acceptance:
   - Directs the external agent to inspect implementation code across the
     project's main entrypoints, user workflows, APIs, data models, tests,
     scripts, and configuration.
-  - Instructs the external agent to create capability files for the main project
-    functionality, not every implementation detail.
+  - Instructs the external agent to propose structured capability candidates for
+    the main project functionality, not every implementation detail.
   - Instructs the external agent not to rely on README, package metadata, or
     filenames without confirming behavior in code.
   - Requires the agent to cite source evidence through
     `agent.implementation.references`.
-  - Requires generated files to include verification gaps where behavior is
+  - Requires candidate proposals to include verification gaps where behavior is
     inferred or not covered by tests.
+  - Instructs the external agent not to create, overwrite, or move capability
+    files while performing discovery.
   - Supports inspectable dry-run output before invoking an external agent.
 guidance:
   - Reuse existing external-agent handoff conventions instead of creating a
@@ -48,19 +50,21 @@ agent:
   # -----------------------------
   inputs:
     - project inventory
-    - discovery report
     - existing capability map
+    - discovery goals
     - agent command configuration
     - source tree access instructions
   outputs:
     - discovery prompt bundle
     - optional external agent transcript
-    - proposed capability file changes
-    - inspected code path summary
   depends_on:
-    - core/discovery/discover-project-capability-candidates
-    - core/discovery/generate-draft-capability-files
     - core/agents/run-external-agent-cli
+  implementation:
+    references:
+      - packages/core/src/discoveryAgentTask.ts
+      - packages/core/src/index.ts
+      - packages/cli/src/index.ts
+      - packages/core/tests/discoveryAgentTask.test.ts
   verification:
     automated:
       - id: discovery-agent-bundle-tests
@@ -79,60 +83,103 @@ agent:
       - Provider-specific command defaults can be added later after the generic
         handoff is proven.
   review:
-    depth: partial
+    depth: tested
     source: coding-agent
     gaps:
-      - Generates a discovery-mode task bundle from the project inventory,
-        existing capability map, and discovery goals.
-      - Directs the external agent to inspect implementation code across the
-        project's main entrypoints, user workflows, APIs, data models, tests,
-        scripts, and configuration.
-      - Instructs the external agent to create capability files for the main
-        project functionality, not every implementation detail.
-      - Instructs the external agent not to rely on README, package metadata, or
-        filenames without confirming behavior in code.
-      - Requires the agent to cite source evidence through
-        `agent.implementation.references`.
-      - Requires generated files to include verification gaps where behavior is
-        inferred or not covered by tests.
-      - Supports inspectable dry-run output before invoking an external agent.
-    intent_summary: Prepare agent discovery bundle is currently planned. I found no
-      implementation references to inspect, so the acceptance criteria are not
-      implemented yet.
+      - Claude Code was not installed locally, so its dry-run used an executable
+        override.
+      - "`discovery-run --dry-run` still requires a detectable executable;
+        command-independent inspection is available through `discovery-task`."
+      - There is no CLI-specific automated test for `discovery-task` or
+        `discovery-run`; the built CLI paths were checked manually.
+    evidence:
+      - "Passed: npm test -- packages/core/tests/discoveryAgentTask.test.ts"
+      - "Passed: npm test -- packages/core/tests/externalAgent.test.ts"
+      - "Passed: npm run build"
+      - 'Manual check passed: node packages/cli/dist/index.js discovery-task
+        --goal "Inspect source behavior before proposing capabilities."'
+      - "Manual check passed: node packages/cli/dist/index.js discovery-run
+        --command codex --dry-run"
+      - "Manual check passed: Claude default argument handoff dry-run using
+        CAPABILITYKIT_CLAUDE_COMMAND override"
+    intent_summary: Provide an agent-neutral, read-only discovery bundle that gives
+      coding agents project context and requires code-backed capability
+      proposals before capability files are drafted.
     criteria:
       - criterion: Generates a discovery-mode task bundle from the project inventory,
           existing capability map, and discovery goals.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:38
+          - packages/core/src/discoveryAgentTask.ts:46
+          - packages/core/src/discoveryAgentTask.ts:67
+          - packages/core/src/discoveryAgentTask.ts:97
+          - packages/core/tests/discoveryAgentTask.test.ts:47
+        notes: The bundle includes discovery mode, configurable goals, top-level
+          inventory, project context, and existing capability summaries.
       - criterion: Directs the external agent to inspect implementation code across the
           project's main entrypoints, user workflows, APIs, data models, tests,
           scripts, and configuration.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Instructs the external agent to create capability files for the main
-          project functionality, not every implementation detail.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:77
+          - packages/core/tests/discoveryAgentTask.test.ts:58
+        notes: The prompt explicitly lists the required implementation areas.
+      - criterion: Instructs the external agent to propose structured capability
+          candidates for the main project functionality, not every
+          implementation detail.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:79
+          - packages/core/src/discoveryAgentTask.ts:82
+          - packages/core/src/discoveryAgentTask.ts:86
+        notes: The prompt limits proposals to main functionality and defines a JSON
+          candidate contract.
       - criterion: Instructs the external agent not to rely on README, package metadata,
           or filenames without confirming behavior in code.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:78
+          - packages/core/src/discoveryAgentTask.ts:94
+          - packages/core/tests/discoveryAgentTask.test.ts:59
+        notes: Documentation and metadata are supporting context only.
       - criterion: Requires the agent to cite source evidence through
           `agent.implementation.references`.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Requires generated files to include verification gaps where behavior
-          is inferred or not covered by tests.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:86
+          - packages/core/src/discoveryAgentTask.ts:88
+          - packages/core/tests/discoveryAgentTask.test.ts:61
+        notes: Every candidate must include concrete implementation references.
+      - criterion: Requires candidate proposals to include verification gaps where
+          behavior is inferred or not covered by tests.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:86
+          - packages/core/src/discoveryAgentTask.ts:89
+          - packages/core/src/discoveryAgentTask.ts:93
+          - packages/core/tests/discoveryAgentTask.test.ts:62
+        notes: The contract includes candidate-level verification gaps and overall
+          discovery gaps.
+      - criterion: Instructs the external agent not to create, overwrite, or move
+          capability files while performing discovery.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:76
+          - packages/core/src/discoveryAgentTask.ts:80
+          - packages/core/src/discoveryAgentTask.ts:81
+          - packages/core/tests/discoveryAgentTask.test.ts:60
+        notes: Discovery is explicitly read-only for capability and source files.
       - criterion: Supports inspectable dry-run output before invoking an external agent.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-    done: false
+        status: covered
+        evidence:
+          - packages/cli/src/index.ts:2402
+          - packages/cli/src/index.ts:2417
+          - packages/cli/src/index.ts:2431
+          - packages/cli/src/index.ts:2463
+          - packages/core/src/externalAgent.ts:305
+          - packages/core/tests/externalAgent.test.ts:195
+        notes: "`discovery-task` prints the bundle without an agent. `discovery-run
+          --dry-run` prints the bundle and returns before spawning the detected
+          command."
+    done: true

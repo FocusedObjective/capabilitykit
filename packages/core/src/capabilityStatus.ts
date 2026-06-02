@@ -4,6 +4,7 @@ import { validateLoadedCapabilities } from "./validateCapabilities.js";
 import type { Capability, VerificationGap } from "./types.js";
 
 export type CapabilityHealth = "ok" | "review" | "action" | "planned";
+export type CapabilityCoverage = "full" | "partial" | "uncovered";
 
 export interface StoryMapGroup {
   release: string;
@@ -19,6 +20,7 @@ export interface CapabilityStatusSummary {
   area: string;
   path: string;
   health: CapabilityHealth;
+  coverage: CapabilityCoverage;
   summary: string;
   intent: string;
   references: {
@@ -140,6 +142,23 @@ function healthFor(
   return "ok";
 }
 
+function coverageFor(counts: Record<AssessmentAdviceStatus, number>): CapabilityCoverage {
+  const fullyCovered = counts.covered + counts.ignored;
+  const partiallyCovered = counts["weak-evidence"] + counts["assessor-limitation"];
+  const uncovered =
+    counts["implementation-gap"] + counts["missing-reference"] + counts["no-implementation-reference"];
+
+  if (uncovered === 0 && partiallyCovered === 0 && fullyCovered > 0) {
+    return "full";
+  }
+
+  if (fullyCovered > 0 || partiallyCovered > 0) {
+    return "partial";
+  }
+
+  return "uncovered";
+}
+
 function nextActionFor(summary: {
   health: CapabilityHealth;
   counts: Record<AssessmentAdviceStatus, number>;
@@ -216,6 +235,7 @@ export async function summarizeCapabilityStatus(rootDir: string, capabilityId?: 
       area: loadedCapability.capability.area,
       path: capabilityAdvice.path,
       health,
+      coverage: coverageFor(counts),
       summary: loadedCapability.capability.summary,
       intent: loadedCapability.capability.intent,
       references: capabilityAdvice.references,

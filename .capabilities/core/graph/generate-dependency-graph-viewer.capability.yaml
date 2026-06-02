@@ -15,11 +15,11 @@ acceptance:
   - Shows title, ID, status, scope, summary, intent, acceptance criteria,
     implementation references, verification checks, verification gaps, and
     agent.review details for the selected capability.
-  - Renders unresolved saved `agent.review` evidence as review/action health in
-    both graph node color and side-panel badges instead of showing the
-    capability as healthy.
+  - "Colors graph nodes and side-panel coverage badges by saved `agent.review`
+    criterion coverage: green for fully covered verification, orange for partial
+    coverage, and red for uncovered verification."
   - Highlights acceptance criteria in a shaded side-panel block with inline
-    coverage icons.
+    green covered, orange partially covered, and red not-covered icons.
   - Keeps detailed review evidence collapsed behind an expandable side-panel
     disclosure instead of duplicating review criteria as an always-visible
     section.
@@ -71,12 +71,20 @@ agent:
       - Open `.capabilities/dependency-viewer.html` in a browser, select scopes,
         click nodes, and confirm the side panel shows capability details.
   review:
-    depth: verified
-    source: coding-agent
-    intent_summary: Generate a richer local HTML dependency graph viewer for
-      inspecting capability structure, evidence, verification gaps, review
-      status, and relationships, while still producing the portable standalone
-      SVG graph.
+    depth: partial
+    source: deterministic-assessment
+    gaps:
+      - "Colors graph nodes and side-panel coverage badges by saved
+        `agent.review` criterion coverage: green for fully covered verification,
+        orange for partial coverage, and red for uncovered verification. Review
+        the cited evidence. If it is correct, save agent.review evidence or make
+        the criterion/reference wording more explicit."
+      - Highlights acceptance criteria in a shaded side-panel block with inline
+        green covered, orange partially covered, and red not-covered icons.
+        Review the cited evidence. If it is correct, save agent.review evidence
+        or make the criterion/reference wording more explicit.
+    intent_summary: Implementation evidence synchronized from deterministic
+      assessment for core/graph/generate-dependency-graph-viewer.
     criteria:
       - criterion: Provides a graph-viewer CLI command that writes an HTML dependency
           graph viewer.
@@ -86,8 +94,9 @@ agent:
           - packages/cli/src/index.ts:1687
           - packages/cli/src/index.ts:1689
           - packages/cli/src/index.ts:1712
-        notes: "`graph-viewer` is registered, renders with `graphViewerHtml`, and writes
-          the HTML output path."
+        notes: "Saved coding-agent review marks this criterion covered. Notes:
+          `graph-viewer` is registered, renders with `graphViewerHtml`, and
+          writes the HTML output path. No action needed."
       - criterion: Keeps generating the standalone SVG graph alongside the HTML viewer.
         status: covered
         evidence:
@@ -95,8 +104,9 @@ agent:
           - packages/cli/src/index.ts:1690
           - packages/cli/src/index.ts:1706
           - packages/cli/src/index.ts:1708
-        notes: The viewer command still calls `graphSvg` and writes the SVG output
-          before writing the HTML viewer.
+        notes: "Saved coding-agent review marks this criterion covered. Notes: The
+          viewer command still calls `graphSvg` and writes the SVG output before
+          writing the HTML viewer. No action needed."
       - criterion: Shows graph nodes and dependency links from the current capability map.
         status: covered
         evidence:
@@ -105,8 +115,9 @@ agent:
           - packages/cli/src/index.ts:341
           - packages/cli/src/index.ts:808
           - packages/cli/src/index.ts:1294
-        notes: The model is built from `loaded.capabilities`; links are derived from
-          `agent.depends_on` and rendered as SVG paths.
+        notes: "Saved coding-agent review marks this criterion covered. Notes: The model
+          is built from `loaded.capabilities`; links are derived from
+          `agent.depends_on` and rendered as SVG paths. No action needed."
       - criterion: Lets users filter the graph by any capability folder scope.
         status: covered
         evidence:
@@ -116,16 +127,18 @@ agent:
           - packages/cli/src/index.ts:1217
           - packages/cli/src/index.ts:1221
           - packages/cli/src/index.ts:1443
-        notes: Folder scopes are derived from capability paths, placed in the Scope
-          dropdown, and used to hide/show graph items.
+        notes: "Saved coding-agent review marks this criterion covered. Notes: Folder
+          scopes are derived from capability paths, placed in the Scope
+          dropdown, and used to hide/show graph items. No action needed."
       - criterion: Lets users click a node to pin capability details in a side panel.
         status: covered
         evidence:
           - packages/cli/src/index.ts:1319
           - packages/cli/src/index.ts:1326
           - packages/cli/src/index.ts:1339
-        notes: Node click calls `selectNode`, marks the node selected, and renders the
-          persistent side panel.
+        notes: "Saved coding-agent review marks this criterion covered. Notes: Node
+          click calls `selectNode`, marks the node selected, and renders the
+          persistent side panel. No action needed."
       - criterion: Shows title, ID, status, scope, summary, intent, acceptance criteria,
           implementation references, verification checks, verification gaps, and
           agent.review details for the selected capability.
@@ -141,19 +154,51 @@ agent:
           - packages/cli/src/index.ts:1339
           - packages/cli/src/index.ts:1347
           - packages/cli/src/index.ts:1360
-        notes: "`renderPanel` displays the required selected-capability fields, with
-          review depth and expandable criterion/evidence details."
-      - criterion: Highlights acceptance criteria in a shaded side-panel block with
-          inline coverage icons.
-        status: covered
+        notes: "Saved coding-agent review marks this criterion covered. Notes:
+          `renderPanel` displays the required selected-capability fields, with
+          review depth and expandable criterion/evidence details. No action
+          needed."
+      - criterion: "Colors graph nodes and side-panel coverage badges by saved
+          `agent.review` criterion coverage: green for fully covered
+          verification, orange for partial coverage, and red for uncovered
+          verification."
+        status: partial
         evidence:
-          - packages/cli/src/index.ts:1058
-          - packages/cli/src/index.ts:1073
-          - packages/cli/src/index.ts:1269
-          - packages/cli/src/index.ts:1276
-          - packages/cli/src/index.ts:1349
-        notes: Acceptance criteria render in a shaded panel section with per-item
-          check/cross coverage icons.
+          - packages/cli/src/index.ts:410
+          - packages/cli/src/index.ts:436
+          - packages/cli/src/index.ts:444
+          - packages/cli/src/index.ts:446
+          - packages/cli/src/index.ts:449
+          - packages/core/src/capabilityReviewHealth.ts:33
+          - packages/core/src/capabilityReviewHealth.ts:43
+          - packages/core/tests/capabilityReviewHealth.test.ts:19
+          - packages/core/tests/capabilityReviewHealth.test.ts:24
+          - packages/core/tests/capabilityReviewHealth.test.ts:36
+          - packages/core/tests/capabilityReviewHealth.test.ts:52
+          - packages/core/tests/capabilityReviewHealth.test.ts:53
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
+      - criterion: Highlights acceptance criteria in a shaded side-panel block with
+          inline green covered, orange partially covered, and red not-covered
+          icons.
+        status: partial
+        evidence:
+          - packages/cli/src/index.ts:446
+          - packages/cli/src/index.ts:449
+          - packages/cli/src/index.ts:647
+          - packages/cli/src/index.ts:648
+          - packages/cli/src/index.ts:662
+          - packages/core/src/capabilityReviewHealth.ts:43
+          - packages/core/tests/capabilityReviewHealth.test.ts:13
+          - packages/core/tests/capabilityReviewHealth.test.ts:24
+          - packages/core/tests/capabilityReviewHealth.test.ts:36
+          - packages/core/tests/capabilityReviewHealth.test.ts:53
+        notes: Related implementation text was found, but deterministic matching cannot
+          prove the behavior. Review the cited evidence. If it is correct, save
+          agent.review evidence or make the criterion/reference wording more
+          explicit.
       - criterion: Keeps detailed review evidence collapsed behind an expandable
           side-panel disclosure instead of duplicating review criteria as an
           always-visible section.
@@ -164,9 +209,10 @@ agent:
           - packages/cli/src/index.ts:1283
           - packages/cli/src/index.ts:1285
           - packages/cli/src/index.ts:1360
-        notes: Review criteria and evidence are rendered inside a `<details>`
-          disclosure; the always-visible panel shows acceptance coverage, not
-          duplicated review evidence.
+        notes: "Saved coding-agent review marks this criterion covered. Notes: Review
+          criteria and evidence are rendered inside a `<details>` disclosure;
+          the always-visible panel shows acceptance coverage, not duplicated
+          review evidence. No action needed."
       - criterion: Shows dependencies and direct dependents for the selected capability.
         status: covered
         evidence:
@@ -177,8 +223,9 @@ agent:
           - packages/cli/src/index.ts:327
           - packages/cli/src/index.ts:1362
           - packages/cli/src/index.ts:1363
-        notes: Dependencies come from `agent.depends_on`; direct dependents are
-          reverse-mapped and shown in the panel.
+        notes: "Saved coding-agent review marks this criterion covered. Notes:
+          Dependencies come from `agent.depends_on`; direct dependents are
+          reverse-mapped and shown in the panel. No action needed."
       - criterion: Provides a story-map dropdown that emphasizes matching graph nodes by
           story-map name while keeping nonmatching nodes visible but muted.
         status: covered
@@ -191,10 +238,11 @@ agent:
           - packages/cli/src/index.ts:1446
           - packages/cli/src/index.ts:1451
           - packages/cli/src/index.ts:1503
-        notes: The dropdown is populated from story-map values, applies muted styling to
+        notes: "Saved coding-agent review marks this criterion covered. Notes: The
+          dropdown is populated from story-map values, applies muted styling to
           nonmatching visible nodes and links, and keeps them displayed. The
           current schema has release/backbone/step, so the implementation uses
-          release as the story-map name.
+          release as the story-map name. No action needed."
       - criterion: Keeps the viewer self-contained so it can be opened directly from the
           local filesystem.
         status: covered
@@ -206,6 +254,8 @@ agent:
           - .capabilities/dependency-viewer.html:7
           - .capabilities/dependency-viewer.html:353
           - .capabilities/dependency-viewer.html:371
-        notes: Generated HTML embeds CSS, graph data, SVG markup, and JavaScript inline.
-          No external script or stylesheet references are required.
-    done: true
+        notes: "Saved coding-agent review marks this criterion covered. Notes: Generated
+          HTML embeds CSS, graph data, SVG markup, and JavaScript inline. No
+          external script or stylesheet references are required. No action
+          needed."
+    done: false

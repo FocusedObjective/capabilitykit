@@ -1,5 +1,5 @@
 title: Discover project capability candidates
-status: planned
+status: implemented
 summary: Add a CLI command that asks a coding agent to investigate an installed
   project's full codebase and propose the first draft of what the app currently
   does.
@@ -15,8 +15,16 @@ acceptance:
     sole or primary basis for capability discovery.
   - Requires the agent to propose candidate capability titles, likely areas,
     source evidence, and confidence notes from concrete code discovery.
+  - Requires each candidate proposal to include a summary, inferred intent,
+    acceptance criteria, implementation references, verification gaps, likely
+    relationships, and inspected code paths.
   - Produces a structured discovery report that records what files and project
     areas the agent inspected.
+  - Records durable discovery provenance, including the report ID, agent
+    transcript when available, confidence notes, and rejected or quarantined
+    candidates.
+  - Separates explicitly retained absent-behavior proposals from code-backed
+    discovered candidates so later generation can keep them planned.
   - Does not create or overwrite capability files unless the user explicitly
     requests output generation.
   - Labels low-confidence candidates, shallow inspection, and missing code
@@ -63,10 +71,21 @@ agent:
     - candidate capability metadata
     - source evidence references
     - inspected file and area summary
+    - discovery provenance and quarantined candidates
+    - explicitly retained absent-behavior proposals
   depends_on:
+    - core/discovery/prepare-agent-discovery-bundle
     - core/project/initialize-capability-project
     - core/model/define-capability-format
     - core/agents/run-external-agent-cli
+  implementation:
+    references:
+      - packages/core/src/discoveryReport.ts
+      - packages/core/src/discoveryAgentTask.ts
+      - packages/core/src/index.ts
+      - packages/cli/src/index.ts
+      - packages/core/tests/discovery.test.ts
+      - packages/core/tests/discoveryAgentTask.test.ts
   verification:
     automated:
       - id: discovery-report-tests
@@ -85,61 +104,136 @@ agent:
         runtime state, production configuration, external services, or code
         paths outside the inspected scope.
   review:
-    depth: partial
+    depth: tested
     source: coding-agent
     gaps:
-      - Provides a CLI command that runs from the target project root.
-      - Invokes or prepares a handoff for the user's selected coding agent to
-        inspect source code, tests, routes, handlers, UI flows, data models,
-        scripts, configuration, and documentation.
-      - Makes README files, package metadata, and docs supporting context, not
-        the sole or primary basis for capability discovery.
-      - Requires the agent to propose candidate capability titles, likely areas,
-        source evidence, and confidence notes from concrete code discovery.
-      - Produces a structured discovery report that records what files and
-        project areas the agent inspected.
-      - Does not create or overwrite capability files unless the user explicitly
-        requests output generation.
-      - Labels low-confidence candidates, shallow inspection, and missing code
-        evidence as review gaps.
-    intent_summary: Discover project capability candidates is currently planned. I
-      found no implementation references to inspect, so the acceptance criteria
-      are not implemented yet.
+      - Manual end-to-end verification with Codex or Claude Code against a
+        fixture project was not run.
+      - Discovery may still miss behavior visible only through runtime state,
+        production configuration, external services, or uninspected paths.
+    evidence:
+      - npm test -- packages/core/tests/discovery.test.ts
+        packages/core/tests/discoveryAgentTask.test.ts
+        packages/core/tests/discoveryOrganization.test.ts
+        packages/core/tests/discoveryGeneration.test.ts
+        packages/core/tests/discoveryRefinement.test.ts (16 tests passed)
+      - npm run build (core and CLI TypeScript builds passed)
+    intent_summary: Provide a project-root CLI workflow that hands an existing
+      codebase to a selected coding agent for read-only discovery, validates a
+      structured evidence-backed capability draft report, preserves provenance
+      and uncertainty, and writes capability files only through a separate
+      explicit generation step.
     criteria:
       - criterion: Provides a CLI command that runs from the target project root.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/cli/src/index.ts:2421
+          - packages/cli/src/index.ts:2446
+          - packages/cli/src/index.ts:2450
+        notes: "`discovery-run` builds and executes discovery using `process.cwd()`."
       - criterion: Invokes or prepares a handoff for the user's selected coding agent to
           inspect source code, tests, routes, handlers, UI flows, data models,
           scripts, configuration, and documentation.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:76
+          - packages/core/src/discoveryAgentTask.ts:77
+          - packages/core/src/discoveryAgentTask.ts:78
+          - packages/cli/src/index.ts:2447
+          - packages/core/src/externalAgent.ts:264
+        notes: The prompt defines the inspection scope and external-agent execution
+          supports stdin, argument, and prompt-file handoffs.
       - criterion: Makes README files, package metadata, and docs supporting context,
           not the sole or primary basis for capability discovery.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:78
+          - packages/core/src/discoveryReport.ts:185
+          - packages/core/src/discoveryReport.ts:241
+          - packages/core/tests/discovery.test.ts:70
+          - packages/core/tests/discovery.test.ts:86
+        notes: The validator rejects documentation-only evidence and rejects supporting
+          context when it is primary evidence.
       - criterion: Requires the agent to propose candidate capability titles, likely
           areas, source evidence, and confidence notes from concrete code
           discovery.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryReport.ts:8
+          - packages/core/src/discoveryReport.ts:19
+          - packages/core/src/discoveryAgentTask.ts:86
+          - packages/core/src/discoveryAgentTask.ts:88
+        notes: Required schema fields and concrete implementation-reference validation
+          enforce this contract.
+      - criterion: Requires each candidate proposal to include a summary, inferred
+          intent, acceptance criteria, implementation references, verification
+          gaps, likely relationships, and inspected code paths.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryReport.ts:11
+          - packages/core/src/discoveryReport.ts:17
+          - packages/core/src/discoveryAgentTask.ts:86
+        notes: All listed fields are required by the candidate Zod schema.
       - criterion: Produces a structured discovery report that records what files and
           project areas the agent inspected.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryReport.ts:43
+          - packages/core/src/discoveryReport.ts:47
+          - packages/core/src/discoveryReport.ts:224
+          - packages/core/tests/discovery.test.ts:21
+        notes: Inspection areas and paths are required, and inspected paths are checked
+          against the project root.
+      - criterion: Records durable discovery provenance, including the report ID, agent
+          transcript when available, confidence notes, and rejected or
+          quarantined candidates.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryReport.ts:35
+          - packages/core/src/discoveryReport.ts:58
+          - packages/core/src/discoveryReport.ts:338
+          - packages/cli/src/index.ts:2486
+          - packages/core/tests/discovery.test.ts:110
+        notes: Saved reports include a durable ID, timestamp, optional transcript data
+          or path, confidence notes, and quarantined candidates. Existing report
+          IDs are not overwritten.
+      - criterion: Separates explicitly retained absent-behavior proposals from
+          code-backed discovered candidates so later generation can keep them
+          planned.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryReport.ts:22
+          - packages/core/src/discoveryReport.ts:49
+          - packages/core/src/discoveryOrganization.ts:215
+          - packages/core/src/discoveryOrganization.ts:266
+          - packages/core/src/discoveryGeneration.ts:71
+          - packages/core/tests/discoveryGeneration.test.ts:156
+        notes: Organization assigns retained proposals `planned` status and generation
+          omits implementation references for them.
       - criterion: Does not create or overwrite capability files unless the user
           explicitly requests output generation.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:80
+          - packages/cli/src/index.ts:2585
+          - packages/cli/src/index.ts:2589
+          - packages/core/src/discoveryGeneration.ts:177
+          - packages/core/src/discoveryGeneration.ts:180
+          - packages/core/tests/discoveryGeneration.test.ts:59
+        notes: Generation previews by default. Writing requires `--apply`; overwriting
+          additionally requires `--force`.
       - criterion: Labels low-confidence candidates, shallow inspection, and missing
           code evidence as review gaps.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-    done: false
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:90
+          - packages/core/src/discoveryAgentTask.ts:93
+          - packages/core/src/discoveryReport.ts:258
+          - packages/core/src/discoveryReport.ts:265
+          - packages/core/src/discoveryReport.ts:273
+          - packages/core/src/discoveryRefinement.ts:127
+          - packages/core/src/discoveryRefinement.ts:135
+          - packages/core/tests/discoveryRefinement.test.ts:71
+        notes: Invalid unlabeled reports are rejected, and refinement emits human-review
+          recommendations for weak evidence and shallow inspection.
+    done: true

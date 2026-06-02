@@ -99,6 +99,8 @@ agent:
     expect(report.summary.action).toBe(1);
     expect(report.summary.planned).toBe(1);
     expect(report.capabilities.find((capability) => capability.capabilityId === "core/review")?.health).toBe("review");
+    expect(report.capabilities.find((capability) => capability.capabilityId === "core/review")?.coverage).toBe("partial");
+    expect(report.capabilities.find((capability) => capability.capabilityId === "core/action")?.coverage).toBe("uncovered");
     expect(report.capabilities.find((capability) => capability.capabilityId === "core/action")?.nextAction).toContain(
       "Add implementation references"
     );
@@ -133,6 +135,7 @@ agent:
     const report = await summarizeCapabilityStatus(rootDir, "core/example");
     const output = formatCapabilityStatusReport(report);
 
+    expect(report.capabilities[0]?.coverage).toBe("full");
     expect(output).toContain("Purpose");
     expect(output).toContain("Why It Exists");
     expect(output).toContain("Implementation");

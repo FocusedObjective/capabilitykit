@@ -21,6 +21,7 @@ const reviewResultSchema = z.object({
       notes: z.string().trim().optional().default("")
     })
   ),
+  verification_evidence: z.array(z.string().trim().min(1)).default([]),
   remaining_gaps: z.array(z.string().trim().min(1)).default([]),
   done: z.boolean()
 });
@@ -38,7 +39,7 @@ export interface ValidatedAgentReviewResult {
   review: ParsedAgentReviewResult;
   valid: boolean;
   issues: AgentReviewValidationIssue[];
-  depth: "partial" | "verified";
+  depth: "partial" | "behavioral" | "tested" | "verified";
 }
 
 export interface SaveAgentReviewResult {
@@ -140,9 +141,28 @@ async function pathExists(rootDir: string, evidence: string): Promise<boolean> {
   }
 }
 
-function computeDepth(review: ParsedAgentReviewResult, issues: AgentReviewValidationIssue[]): "partial" | "verified" {
+function computeDepth(
+  review: ParsedAgentReviewResult,
+  issues: AgentReviewValidationIssue[]
+): "partial" | "behavioral" | "tested" | "verified" {
   const allCovered = review.criteria.every((criterion) => criterion.status === "covered");
-  return review.done && allCovered && review.remaining_gaps.length === 0 && issues.length === 0 ? "verified" : "partial";
+  if (!review.done || !allCovered || issues.length > 0) {
+    return "partial";
+  }
+
+  if (review.remaining_gaps.length === 0) {
+    return "verified";
+  }
+
+  return review.verification_evidence.length > 0 ? "tested" : "behavioral";
+}
+
+function normalizeCriterion(criterion: string, expected: string[]): string {
+  if (expected.includes(criterion)) {
+    return criterion;
+  }
+  const withoutListPrefix = criterion.replace(/^\s*(?:\d+[.)]|[-*])\s+/, "");
+  return expected.includes(withoutListPrefix) ? withoutListPrefix : criterion;
 }
 
 export async function validateAgentReviewResult(
@@ -156,9 +176,15 @@ export async function validateAgentReviewResult(
     throw new Error(`Invalid agent review result: ${message}`);
   }
 
-  const review = parsed.data;
   const issues: AgentReviewValidationIssue[] = [];
   const expected = capability.acceptance;
+  const review = {
+    ...parsed.data,
+    criteria: parsed.data.criteria.map((criterion) => ({
+      ...criterion,
+      criterion: normalizeCriterion(criterion.criterion, expected)
+    }))
+  };
 
   if (review.criteria.length !== expected.length) {
     issues.push({
@@ -208,10 +234,10 @@ export async function validateAgentReviewResult(
     }
   }
 
-  if (review.done && (review.remaining_gaps.length > 0 || review.criteria.some((criterion) => criterion.status !== "covered"))) {
+  if (review.done && review.criteria.some((criterion) => criterion.status !== "covered")) {
     issues.push({
       code: "invalid-done",
-      message: "`done` can be true only when every criterion is covered and no remaining gaps are reported."
+      message: "`done` can be true only when every criterion is covered."
     });
   }
 
@@ -258,6 +284,7 @@ export async function saveAgentReviewResult(
     source: validation.review.source,
     intent_summary: validation.review.intent_summary,
     done: validation.review.done,
+    ...(validation.review.verification_evidence.length > 0 ? { evidence: validation.review.verification_evidence } : {}),
     criteria: validation.review.criteria.map(pruneEmptyReviewCriterion),
     ...(validation.review.remaining_gaps.length > 0 ? { gaps: validation.review.remaining_gaps } : {})
   });

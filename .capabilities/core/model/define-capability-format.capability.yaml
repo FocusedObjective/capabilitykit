@@ -4,9 +4,10 @@ summary: Define the YAML schema and TypeScript types for repo-native capability 
 intent: Give humans and AI coding agents a shared source of intent, scope,
   acceptance criteria, and verification expectations.
 acceptance:
-  - Capability files require title, status, area, summary, intent, and
-    acceptance criteria.
-  - Capability IDs can be omitted and derived from area and title.
+  - Capability files require title, status, summary, intent, and acceptance
+    criteria; area is derived from folder placement unless a custom override is
+    explicitly retained.
+  - Capability IDs can be omitted and derived from the capability file path.
   - Agent-maintained fields capture optional prompt context, dependencies,
     implementation references, verification, and criterion-level review
     evidence.
@@ -52,32 +53,32 @@ agent:
     depth: verified
     source: coding-agent
     intent_summary: The capability format is implemented in the Zod schema,
-      TypeScript types, and parsing transform. Required fields, derived IDs, and
-      agent metadata sections are represented.
+      TypeScript types, and parsing transform. Required human-authored fields,
+      path-derived IDs and areas, explicit overrides, and agent metadata
+      sections are represented.
     criteria:
-      - criterion: Capability files require title, status, area, summary, intent, and
-          acceptance criteria.
+      - criterion: Capability files require title, status, summary, intent, and
+          acceptance criteria; area is derived from folder placement unless a
+          custom override is explicitly retained.
         status: covered
         evidence:
-          - packages/core/src/schema.ts:120
-          - packages/core/src/schema.ts:122
-          - packages/core/src/schema.ts:123
-          - packages/core/src/schema.ts:124
-          - packages/core/src/schema.ts:125
-          - packages/core/src/schema.ts:126
+          - packages/core/src/schema.ts:127
           - packages/core/src/schema.ts:130
-        notes: The raw capability schema requires these fields, with acceptance
-          requiring at least one item.
-      - criterion: Capability IDs can be omitted and derived from area and title.
+          - packages/core/src/parseCapability.ts:5
+          - packages/core/src/parseCapability.ts:43
+          - packages/core/src/parseCapability.ts:48
+        notes: The parser derives area from the top-level folder before schema
+          validation when YAML omits area, while preserving an explicit custom
+          override. The raw schema then validates required fields.
+      - criterion: Capability IDs can be omitted and derived from the capability file
+          path.
         status: covered
         evidence:
-          - packages/core/src/schema.ts:5
-          - packages/core/src/schema.ts:121
-          - packages/core/src/schema.ts:155
-          - packages/core/src/schema.ts:207
-          - packages/core/src/parseCapability.ts:44
-        notes: The schema allows id to be omitted and derives it from area/title in the
-          transform; parsing records derived metadata.
+          - packages/core/src/parseCapability.ts:5
+          - packages/core/src/parseCapability.ts:42
+          - packages/core/src/parseCapability.ts:45
+        notes: The parser derives the capability ID from the relative capability file
+          path when YAML omits an explicit ID.
       - criterion: Agent-maintained fields capture optional prompt context,
           dependencies, implementation references, verification, and
           criterion-level review evidence.
@@ -91,7 +92,8 @@ agent:
           - packages/core/src/schema.ts:160
           - packages/core/src/schema.ts:168
           - packages/core/src/types.ts:41
-        notes: AgentSection and Capability types include optional inputs/outputs,
+        notes: "Saved coding-agent review marks this criterion covered. Notes:
+          AgentSection and Capability types include optional inputs/outputs,
           dependencies, implementation references, verification, and review
-          criteria/evidence.
+          criteria/evidence. No action needed."
     done: true

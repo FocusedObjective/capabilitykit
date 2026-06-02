@@ -15,6 +15,7 @@ function capability(
     area: "core",
     path: `.capabilities/${capabilityId}.capability.yaml`,
     health,
+    coverage: health === "ok" ? "full" : "uncovered",
     summary: `${capabilityId} summary.`,
     intent: `${capabilityId} intent.`,
     references: { total: 0, readable: 0, missing: [] },
@@ -160,6 +161,9 @@ describe("story-map status output", () => {
     expect(html).toContain("outcome-oriented planning view and implementation-health view");
     expect(html).toContain("release-outcome");
     expect(html).toContain(".narrative-step.ok");
+    expect(html).toContain(".card.coverage-partial");
+    expect(html).toContain(".pill.coverage-uncovered");
+    expect(html).toContain('if (value === "partial") return "partial coverage"');
     expect(html).toContain("a.order - b.order");
   });
 

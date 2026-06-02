@@ -1,31 +1,34 @@
 title: Organize discovered capability map
-status: planned
-summary: Create a readable folder and dependency structure from agent-discovered
-  capabilities so users can browse what the app currently does.
+status: implemented
+summary: Create a readable proposed folder and dependency structure from
+  agent-discovered candidates before capability files are written.
 intent: Make the generated `.capabilities/` tree feel like a product map rather
   than a dump of source-code observations.
 acceptance:
-  - Groups agent-generated capabilities into meaningful area and subarea folders.
+  - Groups agent-discovered candidates into meaningful area and subarea folders
+    before capability files are written.
   - Suggests capability IDs and filenames that are stable, readable, and aligned
     with the generated folder structure.
   - Detects likely dependencies between discovered capabilities when code
     evidence or workflow relationships support them.
   - Provides a summary index of generated areas and top-level capabilities.
   - Flags ambiguous grouping decisions for human review instead of hiding them.
+  - Produces an inspectable generation plan that records grouping decisions,
+    proposed paths, collisions, and dependency suggestions without moving or
+    overwriting files.
 guidance:
   - Prefer product domains, workflows, and user-visible features over framework
     folders when naming areas.
-  - Preserve the agent's inspected code evidence when moving or regrouping
-    generated capabilities.
+  - Preserve the agent's inspected code evidence when grouping candidates.
   - Keep dependency inference conservative.
   - Avoid creating deep folder trees unless the project has enough behavior to
     justify them.
 planning:
   story_map:
     backbone: Existing project discovery
-    step: Draft capability map
+    step: Organize capability map
     release: reverse-engineering
-    order: 20
+    order: 30
 #
 #
 agent:
@@ -39,17 +42,20 @@ agent:
   # -----------------------------
   inputs:
     - discovery candidates
-    - generated capability files
     - inspected code path summary
     - existing capability IDs
   outputs:
-    - organized .capabilities folder structure
+    - organized capability generation plan
     - dependency suggestions
     - generated capability index summary
   depends_on:
-    - core/discovery/generate-draft-capability-files
-    - core/graph/compile-capabilities
+    - core/discovery/discover-project-capability-candidates
     - core/graph/analyze-capability-impact
+  implementation:
+    references:
+      - packages/core/src/discoveryOrganization.ts
+      - packages/core/src/index.ts
+      - packages/core/tests/discoveryOrganization.test.ts
   verification:
     automated:
       - id: capability-map-organization-tests
@@ -69,41 +75,90 @@ agent:
     depth: partial
     source: coding-agent
     gaps:
-      - Groups agent-generated capabilities into meaningful area and subarea
-        folders.
-      - Suggests capability IDs and filenames that are stable, readable, and
-        aligned with the generated folder structure.
-      - Detects likely dependencies between discovered capabilities when code
-        evidence or workflow relationships support them.
-      - Provides a summary index of generated areas and top-level capabilities.
-      - Flags ambiguous grouping decisions for human review instead of hiding
-        them.
-    intent_summary: Organize discovered capability map is currently planned. I found
-      no implementation references to inspect, so the acceptance criteria are
-      not implemented yet.
+      - Grouping quality depends on upstream likely_area hints; inspected code
+        path summaries are not used to derive or improve product-domain
+        grouping.
+      - Dependency inference uses likely_relationships text matching only and
+        does not infer relationships from code evidence.
+      - The requested manual sample-app readability review was not performed.
+    evidence:
+      - "npm test -- packages/core/tests/discoveryOrganization.test.ts: passed,
+        2 tests"
+      - "npm test -- packages/core/tests/discoveryGeneration.test.ts: passed, 7
+        tests"
+      - "npm run build: passed for @capabilitykit/core and @capabilitykit/cli"
+    intent_summary: Create an inspectable, non-destructive plan that turns
+      discovered candidates into a readable capability tree, proposes stable IDs
+      and paths, summarizes areas, surfaces ambiguity, and conservatively
+      suggests dependencies before files are generated.
     criteria:
-      - criterion: Groups agent-generated capabilities into meaningful area and subarea
-          folders.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+      - criterion: Groups agent-discovered candidates into meaningful area and subarea
+          folders before capability files are written.
+        status: partial
+        evidence:
+          - packages/core/src/discoveryOrganization.ts:159
+          - packages/core/src/discoveryOrganization.ts:219
+          - packages/core/src/discoveryOrganization.ts:258
+          - packages/cli/src/index.ts:2562
+          - packages/core/tests/discoveryOrganization.test.ts:51
+        notes: The plan derives at most two folder segments from likely_area before
+          generation. Product-domain quality depends on the upstream hint;
+          inspected code paths are not used to improve grouping.
       - criterion: Suggests capability IDs and filenames that are stable, readable, and
           aligned with the generated folder structure.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryOrganization.ts:149
+          - packages/core/src/discoveryOrganization.ts:220
+          - packages/core/src/discoveryOrganization.ts:253
+          - packages/core/src/discoveryOrganization.ts:258
+          - packages/core/tests/discoveryOrganization.test.ts:51
+        notes: Deterministic slugging is applied consistently to IDs, filenames, and
+          proposed paths.
       - criterion: Detects likely dependencies between discovered capabilities when code
           evidence or workflow relationships support them.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: partial
+        evidence:
+          - packages/core/src/discoveryOrganization.ts:177
+          - packages/core/src/discoveryOrganization.ts:182
+          - packages/core/src/discoveryOrganization.ts:247
+          - packages/core/tests/discoveryOrganization.test.ts:46
+          - packages/core/tests/discoveryOrganization.test.ts:56
+        notes: Conservative suggestions are generated from likely_relationships text and
+          ambiguous matches are flagged. The organizer does not infer
+          dependencies from inspected code evidence.
       - criterion: Provides a summary index of generated areas and top-level capabilities.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryOrganization.ts:52
+          - packages/core/src/discoveryOrganization.ts:295
+          - packages/core/src/discoveryOrganization.ts:301
+          - packages/core/tests/discoveryOrganization.test.ts:57
+        notes: The returned plan contains sorted area indexes, all capability IDs, and
+          top-level capability IDs.
       - criterion: Flags ambiguous grouping decisions for human review instead of hiding
           them.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryOrganization.ts:167
+          - packages/core/src/discoveryOrganization.ts:170
+          - packages/core/src/discoveryOrganization.ts:221
+          - packages/core/src/discoveryOrganization.ts:224
+          - packages/core/tests/discoveryOrganization.test.ts:66
+        notes: Deep area hints, source-like area names, and non-high-confidence
+          candidates produce review flags.
+      - criterion: Produces an inspectable generation plan that records grouping
+          decisions, proposed paths, collisions, and dependency suggestions
+          without moving or overwriting files.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryOrganization.ts:37
+          - packages/core/src/discoveryOrganization.ts:58
+          - packages/core/src/discoveryOrganization.ts:269
+          - packages/cli/src/index.ts:2562
+          - packages/core/src/discoveryGeneration.ts:180
+          - packages/core/tests/discoveryGeneration.test.ts:59
+        notes: The organizer returns a plan object without filesystem operations. The
+          CLI exposes it separately, and generation previews without writing
+          unless apply is explicit.
     done: false

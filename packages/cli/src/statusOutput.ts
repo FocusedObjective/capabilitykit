@@ -417,6 +417,9 @@ export function formatStoryMapViewerHtml(report: CapabilityStatusReport): string
       .card.action { border-left-color: var(--risk); }
       .card.review { border-left-color: var(--core); }
       .card.planned { border-left-color: var(--warn); }
+      .card.coverage-full { border-left-color: var(--site); }
+      .card.coverage-partial { border-left-color: var(--warn); }
+      .card.coverage-uncovered { border-left-color: var(--risk); }
       .card-title {
         display: flex;
         justify-content: space-between;
@@ -444,6 +447,9 @@ export function formatStoryMapViewerHtml(report: CapabilityStatusReport): string
       .pill.action { background: #fff1f2; color: #be123c; }
       .pill.review { background: #dbeafe; color: #1d4ed8; }
       .pill.planned { background: #fffbeb; color: #b45309; }
+      .pill.coverage-full { background: #ecfdf5; color: #047857; }
+      .pill.coverage-partial { background: #fffbeb; color: #b45309; }
+      .pill.coverage-uncovered { background: #fff1f2; color: #be123c; }
       .card p {
         margin: 0;
         color: #475569;
@@ -608,6 +614,11 @@ function healthLabel(value) {
   if (value === "review") return "needs review";
   return value;
 }
+function coverageLabel(value) {
+  if (value === "full") return "full coverage";
+  if (value === "partial") return "partial coverage";
+  return "not covered";
+}
 function matches(capability) {
   if (selectedHealth && capability.health !== selectedHealth) return false;
   if (!searchText) return true;
@@ -758,15 +769,15 @@ function renderStep(group, release) {
 }
 function renderCard(capability) {
   const card = document.createElement("article");
-  card.className = "card " + capability.health;
+  card.className = "card " + capability.health + " coverage-" + capability.coverage;
   card.tabIndex = 0;
   const title = document.createElement("div");
   title.className = "card-title";
   const h4 = document.createElement("h4");
   h4.textContent = capability.title;
   const pill = document.createElement("span");
-  pill.className = "pill " + capability.health;
-  pill.textContent = healthLabel(capability.health);
+  pill.className = "pill coverage-" + capability.coverage;
+  pill.textContent = coverageLabel(capability.coverage);
   title.append(h4, pill);
   const summary = document.createElement("p");
   summary.textContent = capability.summary;
@@ -868,7 +879,7 @@ function showDetail(capability) {
   top.append(title, close);
   const grid = document.createElement("div");
   grid.className = "detail-grid";
-  grid.append(section("Status", paragraph(capability.status + " / " + healthLabel(capability.health))));
+  grid.append(section("Status", paragraph(capability.status + " / " + healthLabel(capability.health) + " / " + coverageLabel(capability.coverage))));
   grid.append(section("Story Map", paragraph(capability.storyMap ? capability.storyMap.release + " / " + capability.storyMap.backbone + " / " + capability.storyMap.step : "Unassigned")));
   const summarySection = section("Summary", paragraph(capability.summary));
   summarySection.classList.add("full");

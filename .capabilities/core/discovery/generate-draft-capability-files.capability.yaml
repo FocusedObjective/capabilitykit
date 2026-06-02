@@ -1,22 +1,32 @@
 title: Generate draft capability files
-status: planned
+status: implemented
 summary: Turn agent-discovered project capabilities into draft
   `.capability.yaml` files with implementation references and explicit
   verification gaps.
 intent: Let a user ask their agent of choice to create a useful first
   `.capabilities/` map for the main functionality of an existing application.
 acceptance:
-  - Converts selected agent-discovered capability candidates into valid
+  - Converts an explicitly selected organized generation plan into valid
     capability files.
   - Writes files under a neat area and subfolder structure that reflects the
     application's domains and workflows.
-  - Populates title, status, area, summary, intent, acceptance criteria,
-    implementation references, and verification placeholders.
-  - Requires every generated capability to include concrete implementation
-    references from code inspection, not only documentation or package metadata.
-  - Uses planned or needs-review status for generated files instead of claiming
-    implementation is verified.
+  - Populates title, status, summary, intent, acceptance criteria, and
+    verification gaps while deriving capability IDs and areas from the selected
+    folder paths, and includes implementation references for discovered existing
+    behavior.
+  - Requires every generated capability for discovered existing behavior to
+    include concrete implementation references from code inspection, not only
+    documentation or package metadata.
+  - Uses implemented status for discovered existing behavior with concrete
+    implementation references, uses planned only for explicitly retained
+    proposals for absent behavior, and never claims generated files are
+    verified.
   - Refuses to overwrite existing capability files unless force is requested.
+  - Writes files only after the user explicitly requests generation and reports
+    path collisions before applying changes.
+  - Preserves a durable discovery report with the report ID, evidence,
+    confidence notes, inspected paths, grouping decisions, and rejected or
+    quarantined candidates.
 guidance:
   - Generated capability files should be useful to navigate even before they are
     perfect.
@@ -29,9 +39,9 @@ guidance:
 planning:
   story_map:
     backbone: Existing project discovery
-    step: Draft capability map
+    step: Generate capability files
     release: reverse-engineering
-    order: 20
+    order: 40
 #
 #
 agent:
@@ -45,16 +55,24 @@ agent:
   # -----------------------------
   inputs:
     - capability discovery report
-    - selected candidates
-    - inspected code path summary
+    - selected organized generation plan
     - existing .capabilities folder
   outputs:
     - .capabilities/**/*.capability.yaml
     - generation summary
+    - durable discovery report
   depends_on:
-    - core/discovery/discover-project-capability-candidates
+    - core/discovery/organize-discovered-capability-map
     - core/validation/validate-capability-files
     - core/validation/verify-implementation-references
+  implementation:
+    references:
+      - packages/core/src/discoveryGeneration.ts
+      - packages/core/src/discoveryOrganization.ts
+      - packages/core/src/discoveryReport.ts
+      - packages/core/src/index.ts
+      - packages/cli/src/index.ts
+      - packages/core/tests/discoveryGeneration.test.ts
   verification:
     automated:
       - id: generated-capability-validation-tests
@@ -70,54 +88,121 @@ agent:
       - Generated acceptance criteria still need review because source evidence
         cannot fully explain product intent.
   review:
-    depth: partial
+    depth: tested
     source: coding-agent
     gaps:
-      - Converts selected agent-discovered capability candidates into valid
-        capability files.
-      - Writes files under a neat area and subfolder structure that reflects the
-        application's domains and workflows.
-      - Populates title, status, area, summary, intent, acceptance criteria,
-        implementation references, and verification placeholders.
-      - Requires every generated capability to include concrete implementation
-        references from code inspection, not only documentation or package
-        metadata.
-      - Uses planned or needs-review status for generated files instead of
-        claiming implementation is verified.
-      - Refuses to overwrite existing capability files unless force is requested.
-    intent_summary: Generate draft capability files is currently planned. I found no
-      implementation references to inspect, so the acceptance criteria are not
-      implemented yet.
+      - Generated acceptance criteria still require human review because source
+        evidence cannot fully establish product intent.
+      - The declared manual readability check for a generated fixture map was
+        not performed.
+    evidence:
+      - "npm test -- packages/core/tests/discoveryGeneration.test.ts: passed, 7
+        tests"
+      - "npm test -- packages/core/tests/discovery.test.ts
+        packages/core/tests/discoveryOrganization.test.ts
+        packages/core/tests/discoveryGeneration.test.ts: passed, 14 tests"
+      - "npm run build: passed for @capabilitykit/core and @capabilitykit/cli"
+    intent_summary: Generate an inspectable first-pass .capabilities map from a
+      selected discovery plan. Drafts preserve code evidence and explicit gaps,
+      use domain-oriented paths, and are written only after explicit
+      application.
     criteria:
-      - criterion: Converts selected agent-discovered capability candidates into valid
+      - criterion: Converts an explicitly selected organized generation plan into valid
           capability files.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryGeneration.ts:131
+          - packages/core/src/discoveryGeneration.ts:152
+          - packages/core/src/discoveryGeneration.ts:153
+          - packages/cli/src/index.ts:2587
+          - packages/core/tests/discoveryGeneration.test.ts:59
+        notes: The selected plan is parsed, each generated YAML source is schema-parsed
+          before writes, and the CLI requires report and plan paths.
       - criterion: Writes files under a neat area and subfolder structure that reflects
           the application's domains and workflows.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Populates title, status, area, summary, intent, acceptance criteria,
-          implementation references, and verification placeholders.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Requires every generated capability to include concrete
-          implementation references from code inspection, not only documentation
-          or package metadata.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Uses planned or needs-review status for generated files instead of
-          claiming implementation is verified.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryOrganization.ts:159
+          - packages/core/src/discoveryOrganization.ts:219
+          - packages/core/src/discoveryOrganization.ts:258
+          - packages/core/tests/discoveryOrganization.test.ts:42
+        notes: Area hints become stable folders with at most two segments. Structural or
+          ambiguous hints are flagged for review.
+      - criterion: Populates title, status, summary, intent, acceptance criteria, and
+          verification gaps while deriving capability IDs and areas from the
+          selected folder paths, and includes implementation references for
+          discovered existing behavior.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryGeneration.ts:89
+          - packages/core/src/discoveryGeneration.ts:97
+          - packages/core/src/discoveryGeneration.ts:108
+          - packages/core/src/parseCapability.ts:5
+          - packages/core/src/parseCapability.ts:44
+          - packages/core/tests/discoveryGeneration.test.ts:70
+        notes: Draft source includes the required fields. IDs and areas are derived from
+          file paths. Discovered behavior receives implementation references.
+      - criterion: Requires every generated capability for discovered existing behavior
+          to include concrete implementation references from code inspection,
+          not only documentation or package metadata.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryReport.ts:241
+          - packages/core/src/discoveryReport.ts:244
+          - packages/core/src/discoveryReport.ts:273
+          - packages/core/src/discoveryGeneration.ts:126
+          - packages/core/tests/discoveryGeneration.test.ts:96
+          - packages/core/tests/discoveryGeneration.test.ts:129
+        notes: Generation revalidates durable reports. Documentation-only evidence and
+          missing code paths are rejected for discovered behavior.
+      - criterion: Uses implemented status for discovered existing behavior with
+          concrete implementation references, uses planned only for explicitly
+          retained proposals for absent behavior, and never claims generated
+          files are verified.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryOrganization.ts:127
+          - packages/core/src/discoveryOrganization.ts:216
+          - packages/core/src/discoveryOrganization.ts:266
+          - packages/core/tests/discoveryGeneration.test.ts:73
+          - packages/core/tests/discoveryGeneration.test.ts:156
+        notes: The plan schema enforces implemented for discovered candidates and
+          planned for retained proposals. Generated plans cannot use verified.
       - criterion: Refuses to overwrite existing capability files unless force is
           requested.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-    done: false
+        status: covered
+        evidence:
+          - packages/core/src/discoveryGeneration.ts:159
+          - packages/core/src/discoveryGeneration.ts:177
+          - packages/core/tests/discoveryGeneration.test.ts:82
+        notes: Existing files produce collisions and block application unless force is
+          explicitly set.
+      - criterion: Writes files only after the user explicitly requests generation and
+          reports path collisions before applying changes.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryGeneration.ts:159
+          - packages/core/src/discoveryGeneration.ts:180
+          - packages/core/src/discoveryGeneration.ts:197
+          - packages/cli/src/index.ts:2589
+          - packages/cli/src/index.ts:2609
+          - packages/core/tests/discoveryGeneration.test.ts:59
+        notes: Preview is the default. Collision collection occurs before writes. The
+          CLI exposes explicit --apply and reports collisions.
+      - criterion: Preserves a durable discovery report with the report ID, evidence,
+          confidence notes, inspected paths, grouping decisions, and rejected or
+          quarantined candidates.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryReport.ts:8
+          - packages/core/src/discoveryReport.ts:35
+          - packages/core/src/discoveryReport.ts:338
+          - packages/core/src/discoveryGeneration.ts:191
+          - packages/core/src/discoveryGeneration.ts:193
+          - packages/core/src/discoveryOrganization.ts:234
+          - packages/core/tests/discovery.test.ts:110
+          - packages/core/tests/discoveryGeneration.test.ts:76
+        notes: The durable report preserves provenance and discovery evidence. The
+          generation audit preserves the selected plan, including grouping
+          decisions and quarantined candidates.
+    done: true

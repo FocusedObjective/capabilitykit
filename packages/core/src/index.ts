@@ -8,6 +8,11 @@ export { diffCapabilities, formatCapabilityDiffReport } from "./capabilityDiff.j
 export { summarizeSavedReviewHealth } from "./capabilityReviewHealth.js";
 export { formatCapabilityStatusReport, summarizeCapabilityStatus } from "./capabilityStatus.js";
 export { compileCapabilities, writeCompiledCapabilities } from "./compileCapabilities.js";
+export { buildDiscoveryAgentTaskBundle } from "./discoveryAgentTask.js";
+export { generateDraftCapabilities } from "./discoveryGeneration.js";
+export { organizeDiscoveredCapabilityMap, parseOrganizedDiscoveryPlan } from "./discoveryOrganization.js";
+export { formatDiscoveryRefinementReport, refineDiscoveredCapabilities } from "./discoveryRefinement.js";
+export { saveDiscoveryReport, validateDiscoveryReport, validateDurableDiscoveryReport } from "./discoveryReport.js";
 export { detectExternalAgentCommand, runExternalAgentCommand } from "./externalAgent.js";
 export { formatCapabilities } from "./formatCapabilities.js";
 export { loadCapabilities } from "./loadCapabilities.js";
@@ -16,6 +21,41 @@ export { capabilitySchema, projectConfigSchema } from "./schema.js";
 export { formatSyncReviewEvidenceReport, syncReviewEvidence } from "./syncReviewEvidence.js";
 export { validateLoadedCapabilities } from "./validateCapabilities.js";
 export type { AgentTaskBundle, AgentTaskMode, AgentTaskOptions } from "./agentTask.js";
+export type { DiscoveryAgentTaskBundle, DiscoveryAgentTaskOptions } from "./discoveryAgentTask.js";
+export type {
+  DiscoveryGenerationAudit,
+  GenerateDraftCapabilitiesOptions,
+  GenerateDraftCapabilitiesResult,
+  GeneratedDraftCapability
+} from "./discoveryGeneration.js";
+export type {
+  DiscoveryAreaIndex,
+  DiscoveryDependencySuggestion,
+  DiscoveryGroupingDecision,
+  DiscoveryOrganizationOptions,
+  DiscoveryPlanCollision,
+  DiscoveryPlanReviewFlag,
+  OrganizedDiscoveryCapability,
+  OrganizedDiscoveryPlan
+} from "./discoveryOrganization.js";
+export type {
+  DiscoveryRefinementCapability,
+  DiscoveryRefinementDisposition,
+  DiscoveryRefinementKind,
+  DiscoveryRefinementPriority,
+  DiscoveryRefinementRecommendation,
+  DiscoveryRefinementReport
+} from "./discoveryRefinement.js";
+export type {
+  DiscoveryReport,
+  DiscoveryReportProvenance,
+  DiscoveryReportValidationIssue,
+  DurableDiscoveryReport,
+  SaveDiscoveryReportOptions,
+  SaveDiscoveryReportResult,
+  ValidatedDiscoveryReport,
+  ValidatedDurableDiscoveryReport
+} from "./discoveryReport.js";
 export type {
   AcceptanceCoverageStatus,
   AcceptanceCriterionCoverage,

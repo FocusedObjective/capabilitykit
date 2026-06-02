@@ -15,13 +15,19 @@ acceptance:
     changing capability status.
   - Supports explicit no-save validation for users who want to inspect review
     output before writing.
-  - Saves review source and criterion-level evidence while omitting duplicate
-    top-level evidence caches and empty review gaps.
+  - Saves review source and criterion-level file evidence while omitting empty
+    review gaps.
+  - Saves successful semantic verification commands and checks as top-level
+    review evidence instead of misclassifying them as remaining gaps.
+  - Saves completed covered semantic reviews with residual verification gaps at
+    tested or behavioral depth while reserving verified depth for gap-free
+    evidence.
 guidance:
   - Keep ingestion separate from verification policy.
   - Do not mark a capability verified solely because an agent set done true.
   - Preserve enough criterion-level evidence for later human or automated policy
     review.
+  - Keep successful verification evidence separate from unresolved gaps.
 planning:
   story_map:
     backbone: Agent workflow
@@ -52,6 +58,7 @@ agent:
   implementation:
     references:
       - packages/core/src/agentReviewResult.ts
+      - packages/core/src/agentReview.ts
       - packages/core/src/schema.ts
       - packages/core/src/types.ts
       - packages/core/src/index.ts
@@ -60,8 +67,9 @@ agent:
   verification:
     automated:
       - id: agent-review-result-tests
-        description: Unit tests cover valid review ingestion, validation issues, and
-          saving agent.review without status changes.
+        description: Unit tests cover valid review ingestion, validation issues,
+          semantic verification evidence, residual gaps, and saving agent.review
+          without status changes.
         command: npm test -- packages/core/tests/agentReviewResult.test.ts
       - id: cli-build
         description: TypeScript build verifies exported APIs and CLI integration.

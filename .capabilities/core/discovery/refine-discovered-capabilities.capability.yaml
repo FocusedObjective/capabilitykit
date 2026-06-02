@@ -1,5 +1,5 @@
 title: Refine discovered capabilities
-status: planned
+status: implemented
 summary: Provide an iterative review workflow that improves generated capability
   files after creation.
 intent: Help teams turn agent-generated drafts into maintained capability specs
@@ -9,14 +9,17 @@ acceptance:
   - Reuses assessment and review commands to compare each generated capability
     against implementation references.
   - Prioritizes refinement of capabilities with weak code evidence, shallow
-    inspected path summaries, or acceptance criteria inferred from documentation
-    instead of implementation behavior.
+    inspected path summaries, or mixed documentation evidence that may have
+    influenced inferred acceptance criteria.
   - Suggests specific edits for vague acceptance criteria, weak references,
     missing verification, and poor area placement.
-  - Lets users accept, revise, or remove generated draft capabilities without
-    losing the audit trail of why they were proposed.
-  - Updates status and review evidence only through explicit user or policy
-    action.
+  - Reports accept, revise, or remove dispositions alongside the audit trail so
+    users can choose a later explicit action for each generated draft.
+  - Links recommendations back to the durable discovery report, including
+    inspected paths, confidence notes, grouping decisions, and rejected or
+    quarantined candidates.
+  - Keeps refinement read-only and does not mutate generated status or review
+    evidence, leaving subsequent updates to explicit user or policy actions.
 guidance:
   - Treat generated capability files as the start of a maintenance loop, not a
     one-time import.
@@ -30,7 +33,7 @@ planning:
     backbone: Existing project discovery
     step: Refine generated map
     release: reverse-engineering
-    order: 30
+    order: 50
 #
 #
 agent:
@@ -44,6 +47,7 @@ agent:
   # -----------------------------
   inputs:
     - generated capability files
+    - durable discovery report
     - implementation references
     - inspected code path summaries
     - assessment output
@@ -51,12 +55,19 @@ agent:
   outputs:
     - capability refinement recommendations
     - accepted review evidence
-    - updated capability statuses when explicitly requested
+    - recommended explicit next actions
   depends_on:
     - core/discovery/generate-draft-capability-files
     - core/assessment/assess-implementation-coverage
     - core/agents/review-capability-with-agent
     - core/agents/ingest-agent-review-result
+  implementation:
+    references:
+      - packages/core/src/discoveryRefinement.ts
+      - packages/core/src/assessmentAdvice.ts
+      - packages/core/src/index.ts
+      - packages/cli/src/index.ts
+      - packages/core/tests/discoveryRefinement.test.ts
   verification:
     automated:
       - id: discovery-refinement-tests
@@ -77,50 +88,92 @@ agent:
     depth: partial
     source: coding-agent
     gaps:
-      - Reports generated capabilities that still need human review.
-      - Reuses assessment and review commands to compare each generated
-        capability against implementation references.
-      - Prioritizes refinement of capabilities with weak code evidence, shallow
-        inspected path summaries, or acceptance criteria inferred from
-        documentation instead of implementation behavior.
-      - Suggests specific edits for vague acceptance criteria, weak references,
-        missing verification, and poor area placement.
-      - Lets users accept, revise, or remove generated draft capabilities
-        without losing the audit trail of why they were proposed.
-      - Updates status and review evidence only through explicit user or policy
-        action.
-    intent_summary: Refine discovered capabilities is currently planned. I found no
-      implementation references to inspect, so the acceptance criteria are not
-      implemented yet.
+      - Add a persisted disposition workflow for accept, revise, and remove
+        actions while retaining audit history.
+      - Make discovered-draft status promotion configurable or require an
+        explicit acceptance step before assigning implemented status.
+      - Run the declared manual refinement workflow against a representative
+        durable discovery report.
+    evidence:
+      - npm test -- packages/core/tests/discoveryRefinement.test.ts
+      - npm run build
+      - git diff --check
+    intent_summary: Provide a read-only maintenance workflow that reviews generated
+      capability drafts, recommends focused improvements, preserves discovery
+      provenance, and leaves acceptance or status changes under explicit
+      control.
     criteria:
       - criterion: Reports generated capabilities that still need human review.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryRefinement.ts:200
+          - packages/core/src/discoveryRefinement.ts:226
+          - packages/core/tests/discoveryRefinement.test.ts:82
+        notes: Each generated capability receives a needsHumanReview flag and the report
+          summarizes the count.
       - criterion: Reuses assessment and review commands to compare each generated
           capability against implementation references.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryRefinement.ts:131
+          - packages/core/src/assessmentAdvice.ts:268
+          - packages/core/src/assessmentAdvice.ts:282
+          - packages/cli/src/index.ts:2625
+        notes: Refinement invokes implementation advice for every generated capability.
+          Advice runs deterministic assessment and incorporates saved human or
+          coding-agent review evidence.
       - criterion: Prioritizes refinement of capabilities with weak code evidence,
-          shallow inspected path summaries, or acceptance criteria inferred from
-          documentation instead of implementation behavior.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+          shallow inspected path summaries, or mixed documentation evidence that
+          may have influenced inferred acceptance criteria.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryRefinement.ts:142
+          - packages/core/src/discoveryRefinement.ts:150
+          - packages/core/src/discoveryRefinement.ts:158
+          - packages/core/src/discoveryRefinement.ts:163
+        notes: Weak code evidence is high priority. Shallow inspection and mixed
+          documentation evidence produce medium-priority recommendations.
       - criterion: Suggests specific edits for vague acceptance criteria, weak
           references, missing verification, and poor area placement.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Lets users accept, revise, or remove generated draft capabilities
-          without losing the audit trail of why they were proposed.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
-      - criterion: Updates status and review evidence only through explicit user or
-          policy action.
-        status: uncovered
-        notes: Capability status is planned and no agent.implementation.references are
-          declared.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryRefinement.ts:147
+          - packages/core/src/discoveryRefinement.ts:174
+          - packages/core/src/discoveryRefinement.ts:182
+          - packages/core/src/discoveryRefinement.ts:190
+          - packages/core/tests/discoveryRefinement.test.ts:86
+        notes: Each requested issue category maps to a focused suggested edit.
+      - criterion: Offers accept, revise, or remove dispositions for users to apply
+          explicitly without losing the audit trail of why generated drafts were
+          proposed.
+        status: partial
+        evidence:
+          - packages/core/src/discoveryRefinement.ts:202
+          - packages/core/src/discoveryRefinement.ts:208
+          - packages/core/tests/discoveryRefinement.test.ts:89
+        notes: The report offers all three dispositions and retains audit links, but no
+          command applies or records the selected disposition.
+      - criterion: Links recommendations back to the durable discovery report, including
+          inspected paths, confidence notes, grouping decisions, and rejected or
+          quarantined candidates.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryRefinement.ts:208
+          - packages/core/src/discoveryRefinement.ts:212
+          - packages/core/src/discoveryRefinement.ts:222
+          - packages/core/tests/discoveryRefinement.test.ts:84
+        notes: Structured output includes report and generation-plan links, inspected
+          paths, confidence notes, grouping decisions, discovery gaps, and
+          quarantined candidates.
+      - criterion: Keeps refinement read-only and updates review evidence or
+          post-generation status only through explicit user or policy action.
+        status: partial
+        evidence:
+          - packages/core/tests/discoveryRefinement.test.ts:94
+          - packages/core/src/discoveryOrganization.ts:129
+          - packages/core/src/discoveryOrganization.ts:266
+          - packages/core/src/discoveryGeneration.ts:91
+        notes: Refinement itself is read-only. However, discovered candidates are forced
+          to implemented status during organization and generation without a
+          configurable promotion policy or refinement acceptance gate.
     done: false

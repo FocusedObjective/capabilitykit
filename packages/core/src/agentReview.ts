@@ -29,6 +29,7 @@ function reviewOutputInstructions(): string {
     '      "notes": "string"',
     "    }",
     "  ],",
+    '  "verification_evidence": ["successful command or manual check"],',
     '  "remaining_gaps": ["string"],',
     '  "done": false',
     "}",
@@ -37,7 +38,8 @@ function reviewOutputInstructions(): string {
     "Act as a coding agent reviewing the repository, not as a text matcher.",
     "Inspect the referenced source, tests, and related code paths directly before deciding whether each criterion is implemented.",
     "Use the deterministic report only as a starting evidence bundle; do not trust it as proof.",
-    "Set `done` to true only when every criterion is covered with concrete file-path evidence.",
+    "Set `done` to true only when every criterion is covered with concrete file-path evidence. Residual verification gaps may remain when the implementation behavior is covered but confidence is not complete.",
+    "Record successful test commands, builds, and manual checks in `verification_evidence`. Record only unresolved risks or missing checks in `remaining_gaps`.",
     "Use `partial` when only part of a behavior is implemented, `uncovered` when the code does not implement it, and `uncertain` only when the repository evidence is insufficient to decide.",
     "Do not change capability status; this review is evidence for a human or policy-controlled acceptance step."
   ].join("\n");

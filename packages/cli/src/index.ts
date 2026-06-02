@@ -7,6 +7,7 @@ import {
   analyzeCapabilityImpact,
   adviseImplementationCoverage,
   assessImplementationCoverage,
+  buildDiscoveryAgentTaskBundle,
   buildAgentReviewPrompt,
   buildAgentTaskBundle,
   compileCapabilities,
@@ -16,19 +17,33 @@ import {
   formatCapabilityStatusReport,
   formatAssessmentAdviceReport,
   formatImplementationCoverageReport,
+  formatDiscoveryRefinementReport,
+  generateDraftCapabilities,
   loadCapabilities,
+  organizeDiscoveredCapabilityMap,
+  parseOrganizedDiscoveryPlan,
   runExternalAgentCommand,
+  refineDiscoveredCapabilities,
   saveAgentReviewResult,
+  saveDiscoveryReport,
   summarizeSavedReviewHealth,
   summarizeCapabilityStatus,
   syncReviewEvidence,
   validateAgentReviewResult,
+  validateDiscoveryReport,
+  validateDurableDiscoveryReport,
   validateLoadedCapabilities,
   writeCompiledCapabilities,
   formatSyncReviewEvidenceReport,
   formatCapabilities
 } from "@capabilitykit/core";
-import type { Capability, LoadCapabilitiesResult, VerificationGap } from "@capabilitykit/core";
+import type {
+  Capability,
+  DurableDiscoveryReport,
+  LoadCapabilitiesResult,
+  OrganizedDiscoveryPlan,
+  VerificationGap
+} from "@capabilitykit/core";
 import { installCapabilityKitSkill } from "./skillInstall.js";
 import { filterStatusReportByRelease, formatStoryMapStatusReport, formatStoryMapViewerHtml } from "./statusOutput.js";
 
@@ -140,6 +155,44 @@ function parseAgentHandoff(value: string): "stdin" | "argument" | "prompt-file" 
 
 function collectOption(value: string, previous: string[] = []): string[] {
   return [...previous, value];
+}
+
+function printDiscoveryResult(result: Awaited<ReturnType<typeof validateDiscoveryReport>>): void {
+  console.log("CapabilityKit discovery report");
+  console.log("");
+  console.log(`${result.valid ? "OK" : "!!"} ${result.report.candidates.length} capability candidates`);
+  console.log(`${result.report.quarantined_candidates.length} quarantined candidates`);
+  console.log(`${result.report.discovery_gaps.length} discovery gaps`);
+
+  if (result.issues.length > 0) {
+    console.log("");
+    console.log("Issues:");
+    for (const issue of result.issues) {
+      console.log(`  - ${issue.message}`);
+    }
+  }
+}
+
+async function readDiscoveryReport(filePath: string): Promise<DurableDiscoveryReport> {
+  const validation = await validateDurableDiscoveryReport(process.cwd(), await fs.readFile(filePath, "utf8"));
+  if (!validation.valid) {
+    throw new Error(`Invalid durable discovery report: ${validation.issues.map((issue) => issue.message).join("; ")}`);
+  }
+  return validation.report;
+}
+
+async function readDiscoveryPlan(filePath: string): Promise<OrganizedDiscoveryPlan> {
+  const source = JSON.parse(await fs.readFile(filePath, "utf8")) as unknown;
+  if (!source || typeof source !== "object") {
+    throw new Error(`Invalid discovery generation plan: ${path.relative(process.cwd(), filePath)}`);
+  }
+  const sourceRecord = source as Record<string, unknown>;
+  const plan = sourceRecord.plan && typeof sourceRecord.plan === "object" ? sourceRecord.plan : sourceRecord;
+  const planRecord = plan as Record<string, unknown>;
+  if (!Array.isArray(planRecord.capabilities) || !Array.isArray(planRecord.collisions)) {
+    throw new Error(`Invalid discovery generation plan: ${path.relative(process.cwd(), filePath)}`);
+  }
+  return parseOrganizedDiscoveryPlan(planRecord);
 }
 
 function commandName(command: string): string {
@@ -356,6 +409,7 @@ interface GraphNode {
   reviewFindings: string[];
   health: "implemented" | "review" | "gap" | "planned";
   healthLabel: string;
+  coverage: "full" | "partial" | "uncovered";
   storyMap?: {
     release: string;
     backbone: string;
@@ -387,6 +441,17 @@ interface GraphViewModel {
 
 function escapeAttribute(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function graphCoverageFor(capability: Capability): GraphNode["coverage"] {
+  const criteria = capability.agent?.review?.criteria ?? [];
+  if (criteria.length > 0 && criteria.every((criterion) => criterion.status === "covered")) {
+    return "full";
+  }
+  if (criteria.some((criterion) => criterion.status === "covered" || criterion.status === "partial")) {
+    return "partial";
+  }
+  return "uncovered";
 }
 
 function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>): GraphViewModel {
@@ -489,6 +554,7 @@ function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<strin
       reviewFindings: reviewHealth.findings,
       health,
       healthLabel,
+      coverage: graphCoverageFor(node),
       storyMap,
       impact,
       gaps,
@@ -576,14 +642,12 @@ function graphSvg(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>)
     .node text { text-anchor: middle; pointer-events: none; }
     .node .label { font-size: 12px; font-weight: 720; fill: #0f172a; }
     .node .meta { font-size: 10px; font-weight: 590; fill: #64748b; text-transform: uppercase; }
-    .implemented .node-ring, .implemented.legend-dot { stroke: #10b981; }
-    .implemented .node-halo { stroke: #10b981; }
-    .review .node-ring, .review.legend-dot { stroke: #3b82f6; stroke-dasharray: 8 6; }
-    .review .node-halo { stroke: #3b82f6; }
-    .gap .node-ring, .gap.legend-dot { stroke: #f43f5e; }
-    .gap .node-halo { stroke: #f43f5e; }
-    .planned .node-ring, .planned.legend-dot { stroke: #f59e0b; stroke-dasharray: 6 6; }
-    .planned .node-halo { stroke: #f59e0b; }
+    .full .node-ring, .full.legend-dot { stroke: #10b981; }
+    .full .node-halo { stroke: #10b981; }
+    .partial .node-ring, .partial.legend-dot { stroke: #f59e0b; }
+    .partial .node-halo { stroke: #f59e0b; }
+    .uncovered .node-ring, .uncovered.legend-dot { stroke: #f43f5e; }
+    .uncovered .node-halo { stroke: #f43f5e; }
     .detail-card { fill: rgba(255,255,255,0.92); stroke: rgba(148,163,184,0.6); filter: url(#shadow); }
     .detail-title { font-size: 15px; font-weight: 720; fill: #111827; }
     .detail-line { font-size: 12px; font-weight: 560; fill: #475569; }
@@ -595,10 +659,9 @@ function graphSvg(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>)
     <text class="chrome-subtitle" y="30">Animated force layout. Drag nodes to inspect dependency paths.</text>
   </g>
   <g class="legend" transform="translate(1040 44)">
-    <circle class="implemented legend-dot" cx="0" cy="0" r="9" /><text x="18" y="4">Implemented</text>
-    <circle class="review legend-dot" cx="0" cy="28" r="9" /><text x="18" y="32">Needs review</text>
-    <circle class="gap legend-dot" cx="150" cy="0" r="9" /><text x="168" y="4">Needs action</text>
-    <circle class="planned legend-dot" cx="150" cy="28" r="9" /><text x="168" y="32">Planned</text>
+    <circle class="full legend-dot" cx="0" cy="0" r="9" /><text x="18" y="4">Full coverage</text>
+    <circle class="partial legend-dot" cx="0" cy="28" r="9" /><text x="18" y="32">Partial coverage</text>
+    <circle class="uncovered legend-dot" cx="150" cy="0" r="9" /><text x="168" y="4">Not covered</text>
   </g>
   <g id="controls" transform="translate(1040 102)">
     <g class="slider" data-control="zoom" transform="translate(0 0)">
@@ -661,7 +724,7 @@ for (const link of links) {
   linked.add(link.source.id + "->" + link.target.id);
   linked.add(link.target.id + "->" + link.source.id);
 }
-const statusClass = (node) => node.health;
+const statusClass = (node) => node.coverage;
 function el(name, attrs = {}) {
   const node = document.createElementNS("http://www.w3.org/2000/svg", name);
   for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
@@ -1108,9 +1171,8 @@ function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, n
         border-radius: 999px;
         background: white;
       }
-      .dot.review { border-color: var(--blue); border-style: dashed; }
-      .dot.gap { border-color: var(--rose); }
-      .dot.planned { border-color: var(--amber); border-style: dashed; }
+      .dot.partial { border-color: var(--amber); }
+      .dot.uncovered { border-color: var(--rose); }
       .link {
         fill: none;
         stroke: var(--link);
@@ -1128,10 +1190,9 @@ function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, n
       .node-halo { fill: transparent; stroke-width: 10; stroke-opacity: 0.15; }
       .node-ring { fill: #fff; stroke-width: 4.6; }
       .node-core { fill: #fff; stroke: rgba(15,23,42,0.08); stroke-width: 1; }
-      .implemented .node-ring, .implemented .node-halo { stroke: var(--green); }
-      .review .node-ring, .review .node-halo { stroke: var(--blue); stroke-dasharray: 8 6; }
-      .gap .node-ring, .gap .node-halo { stroke: var(--rose); }
-      .planned .node-ring, .planned .node-halo { stroke: var(--amber); stroke-dasharray: 6 6; }
+      .full .node-ring, .full .node-halo { stroke: var(--green); }
+      .partial .node-ring, .partial .node-halo { stroke: var(--amber); }
+      .uncovered .node-ring, .uncovered .node-halo { stroke: var(--rose); }
       .node.selected .node-ring { stroke-width: 7; }
       .node text { text-anchor: middle; pointer-events: none; }
       .label { font-size: 12px; font-weight: 760; fill: #0f172a; }
@@ -1177,6 +1238,9 @@ function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, n
         font-weight: 750;
       }
       .badge.gap { border-color: rgba(244,63,94,0.35); color: #be123c; background: #fff1f2; }
+      .badge.full { border-color: rgba(16,185,129,0.35); color: #047857; background: #ecfdf5; }
+      .badge.partial { border-color: rgba(245,158,11,0.35); color: #b45309; background: #fffbeb; }
+      .badge.uncovered { border-color: rgba(244,63,94,0.35); color: #be123c; background: #fff1f2; }
       .section {
         padding: 18px 0;
         border-top: 1px solid var(--line);
@@ -1246,6 +1310,14 @@ function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, n
       }
       .acceptance-item.covered .acceptance-icon {
         background: #10b981;
+        color: #ffffff;
+      }
+      .acceptance-item.partial {
+        border-color: rgba(245,158,11,0.36);
+        background: #fffbeb;
+      }
+      .acceptance-item.partial .acceptance-icon {
+        background: #f59e0b;
         color: #ffffff;
       }
       .acceptance-item.gap {
@@ -1333,10 +1405,9 @@ function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, n
             <g id="viewport"><g id="links"></g><g id="nodes"></g></g>
           </svg>
           <div class="legend">
-            <span><i class="dot"></i>Implemented</span>
-            <span><i class="dot review"></i>Needs review</span>
-            <span><i class="dot gap"></i>Needs action</span>
-            <span><i class="dot planned"></i>Planned</span>
+            <span><i class="dot"></i>Full coverage</span>
+            <span><i class="dot partial"></i>Partial coverage</span>
+            <span><i class="dot uncovered"></i>Not covered</span>
           </div>
         </div>
       </main>
@@ -1389,7 +1460,7 @@ function storyMapMatches(node) {
 function emphasized(node) {
   return visible(node) && storyMapMatches(node);
 }
-function statusClass(node) { return node.health; }
+function statusClass(node) { return node.coverage; }
 function el(name, attrs = {}) {
   const node = document.createElementNS("http://www.w3.org/2000/svg", name);
   for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
@@ -1430,10 +1501,10 @@ function acceptanceList(node) {
   const wrapper = htmlEl("div", "acceptance-list");
   for (const acceptance of node.acceptance) {
     const review = reviewForAcceptance(node, acceptance);
-    const covered = review?.status === "covered";
-    const item = htmlEl("div", covered ? "acceptance-item covered" : "acceptance-item gap");
-    const icon = htmlEl("span", "acceptance-icon", covered ? "\\u2713" : "\\u00d7");
-    icon.setAttribute("aria-label", covered ? "Covered" : "Not covered");
+    const coverage = review?.status === "covered" ? "covered" : review?.status === "partial" ? "partial" : "gap";
+    const item = htmlEl("div", "acceptance-item " + coverage);
+    const icon = htmlEl("span", "acceptance-icon", coverage === "covered" ? "\\u2713" : coverage === "partial" ? "~" : "\\u00d7");
+    icon.setAttribute("aria-label", coverage === "covered" ? "Covered" : coverage === "partial" ? "Partially covered" : "Not covered");
     item.append(icon, htmlEl("span", "", acceptance));
     wrapper.append(item);
   }
@@ -1499,7 +1570,7 @@ function renderPanel(node) {
   panel.replaceChildren();
   panel.append(htmlEl("h2", "", node.title), htmlEl("p", "id", node.id));
   const badges = htmlEl("div", "badges");
-  badges.append(htmlEl("span", "badge", node.status), htmlEl("span", node.health === "gap" ? "badge gap" : "badge", node.healthLabel), htmlEl("span", "badge", node.scope), htmlEl("span", node.gaps > 0 ? "badge gap" : "badge", node.gaps + " gaps"), htmlEl("span", node.reviewFindings.length > 0 ? "badge gap" : "badge", node.reviewFindings.length + " review findings"), htmlEl("span", "badge", node.impact + " direct dependents"));
+  badges.append(htmlEl("span", "badge", node.status), htmlEl("span", node.health === "gap" ? "badge gap" : "badge", node.healthLabel), htmlEl("span", "badge " + node.coverage, node.coverage === "full" ? "full coverage" : node.coverage === "partial" ? "partial coverage" : "not covered"), htmlEl("span", "badge", node.scope), htmlEl("span", node.gaps > 0 ? "badge gap" : "badge", node.gaps + " gaps"), htmlEl("span", node.reviewFindings.length > 0 ? "badge gap" : "badge", node.reviewFindings.length + " review findings"), htmlEl("span", "badge", node.impact + " direct dependents"));
   if (node.storyMap?.label) badges.append(htmlEl("span", "badge", node.storyMap.label));
   if (node.review?.depth) badges.append(htmlEl("span", "badge", "review: " + node.review.depth));
   panel.append(badges);
@@ -1698,7 +1769,7 @@ Command groups:
   Setup:        init, create, skill
   Daily:        check, next, format, validate, compile, status
   Review:       verify, assess, advise, review, sync-review, review-noisy
-  Agent:        agent-task, agent-run, agent-review, review-result
+  Agent:        agent-task, agent-run, discovery-task, discovery-run, discovery-result, agent-review, review-result
   Visualize:    graph, graph-viewer, story-map-viewer
 `
   );
@@ -2325,6 +2396,242 @@ program
     }
 
     console.log(formatReviewNoisy(report, limit, options.command));
+  });
+
+program
+  .command("discovery-task")
+  .description("Generate a read-only project discovery prompt bundle for an external coding agent")
+  .option("--goal <goal>", "discovery goal to include in the bundle; repeat for multiple goals", collectOption, [])
+  .option("--output <path>", "write the prompt bundle to a file instead of stdout")
+  .action(async (options: { goal: string[]; output?: string }) => {
+    const bundle = await buildDiscoveryAgentTaskBundle(process.cwd(), { goals: options.goal });
+
+    if (options.output) {
+      const outputPath = path.resolve(process.cwd(), options.output);
+      await fs.mkdir(path.dirname(outputPath), { recursive: true });
+      await fs.writeFile(outputPath, bundle.prompt);
+      console.log(`Wrote ${path.relative(process.cwd(), outputPath)}`);
+      return;
+    }
+
+    console.log(bundle.prompt);
+  });
+
+program
+  .command("discovery-run")
+  .description("Run an external coding-agent command with a read-only project discovery bundle")
+  .requiredOption("--command <command>", "external agent executable to run")
+  .option("--arg <value>", "argument to pass to the external agent command; repeat for multiple args", collectOption, [])
+  .option("--goal <goal>", "discovery goal to include in the bundle; repeat for multiple goals", collectOption, [])
+  .option("--handoff <strategy>", "bundle handoff strategy: stdin, argument, or prompt-file; defaults by agent")
+  .option("--prompt-file <path>", "prompt file path for prompt-file handoff")
+  .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
+  .option("--report-id <id>", "durable discovery report ID; generated when omitted")
+  .option("--no-save", "validate discovery output without saving a durable report")
+  .option("--dry-run", "print the discovery bundle and prepare handoff files without running the external agent")
+  .action(
+    async (
+      options: {
+        command: string;
+        arg: string[];
+        goal: string[];
+        handoff?: string;
+        promptFile?: string;
+        transcript?: string;
+        reportId?: string;
+        save?: boolean;
+        dryRun?: boolean;
+      }
+    ) => {
+      const bundle = await buildDiscoveryAgentTaskBundle(process.cwd(), { goals: options.goal });
+      const result = await runExternalAgentCommand({
+        command: options.command,
+        args: defaultAgentArgs(options.command, options.arg, options.handoff),
+        cwd: process.cwd(),
+        input: bundle.prompt,
+        handoff: defaultAgentHandoff(options.command, options.handoff),
+        promptFilePath: options.promptFile,
+        transcriptPath: options.transcript,
+        dryRun: options.dryRun
+      });
+
+      console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
+      console.log(`Handoff: ${result.handoff}`);
+      if (result.promptFilePath) {
+        console.log(`Prompt file: ${path.relative(process.cwd(), result.promptFilePath)}`);
+      }
+      if (result.dryRun) {
+        console.log("Result: dry run");
+        console.log("");
+        console.log(bundle.prompt);
+      } else {
+        console.log(`Exit code: ${result.exitCode ?? "unknown"}`);
+      }
+      if (result.transcriptPath) {
+        console.log(`Transcript: ${path.relative(process.cwd(), result.transcriptPath)}`);
+      }
+      if (result.stdout.trim()) {
+        console.log("");
+        console.log(result.stdout.trimEnd());
+      }
+      if (result.stderr.trim()) {
+        console.error("");
+        console.error(result.stderr.trimEnd());
+      }
+
+      if (!result.dryRun && result.exitCode === 0) {
+        const report =
+          options.save === false
+            ? await validateDiscoveryReport(process.cwd(), result.stdout)
+            : await saveDiscoveryReport(process.cwd(), result.stdout, {
+                reportId: options.reportId,
+                selectedAgentCommand: options.command,
+                agentTranscript: result.stdout,
+                agentTranscriptPath: result.transcriptPath
+              });
+        const validation = "validation" in report ? report.validation : report;
+        console.log("");
+        printDiscoveryResult(validation);
+        if ("filePath" in report && report.filePath) {
+          console.log(`Saved discovery report to ${path.relative(process.cwd(), report.filePath)}`);
+        }
+        if (!validation.valid) {
+          process.exitCode = 1;
+        }
+      }
+
+      if (!result.dryRun && result.exitCode !== 0) {
+        process.exitCode = result.exitCode ?? 1;
+      }
+    }
+  );
+
+program
+  .command("discovery-result")
+  .description("Save or validate structured coding-agent discovery output")
+  .requiredOption("--input <path>", "path to the agent discovery JSON output")
+  .option("--report-id <id>", "durable discovery report ID; generated when omitted")
+  .option("--agent-command <command>", "selected coding-agent command to record in provenance")
+  .option("--transcript <path>", "path to an agent transcript to record in provenance")
+  .option("--no-save", "validate discovery output without saving a durable report")
+  .option("--json", "print validation result as JSON")
+  .action(
+    async (options: {
+      input: string;
+      reportId?: string;
+      agentCommand?: string;
+      transcript?: string;
+      save?: boolean;
+      json?: boolean;
+    }) => {
+      const inputPath = path.resolve(process.cwd(), options.input);
+      const source = await fs.readFile(inputPath, "utf8");
+      const transcriptPath = options.transcript ? path.resolve(process.cwd(), options.transcript) : undefined;
+      const agentTranscript = transcriptPath ? await fs.readFile(transcriptPath, "utf8") : undefined;
+
+      if (options.save !== false) {
+        const result = await saveDiscoveryReport(process.cwd(), source, {
+          reportId: options.reportId,
+          selectedAgentCommand: options.agentCommand,
+          agentTranscript,
+          agentTranscriptPath: transcriptPath
+        });
+        if (options.json) {
+          console.log(JSON.stringify(result, null, 2));
+        } else {
+          printDiscoveryResult(result.validation);
+          if (result.filePath) {
+            console.log(`Saved discovery report to ${path.relative(process.cwd(), result.filePath)}`);
+          }
+        }
+        process.exitCode = result.validation.valid ? 0 : 1;
+        return;
+      }
+
+      const validation = await validateDiscoveryReport(process.cwd(), source);
+      if (options.json) {
+        console.log(JSON.stringify(validation, null, 2));
+      } else {
+        printDiscoveryResult(validation);
+      }
+      process.exitCode = validation.valid ? 0 : 1;
+    }
+  );
+
+program
+  .command("discovery-plan")
+  .description("Create an inspectable capability generation plan from a durable discovery report")
+  .requiredOption("--report <path>", "path to a durable discovery report")
+  .option("--output <path>", "write the plan to a file instead of stdout")
+  .action(async (options: { report: string; output?: string }) => {
+    const reportPath = path.resolve(process.cwd(), options.report);
+    const report = await readDiscoveryReport(reportPath);
+    const loaded = await loadCapabilities(process.cwd());
+    const plan = organizeDiscoveredCapabilityMap(report, {
+      existingCapabilityIds: loaded.capabilities.map(({ capability }) => capability.id)
+    });
+    const source = `${JSON.stringify(plan, null, 2)}\n`;
+    if (options.output) {
+      const outputPath = path.resolve(process.cwd(), options.output);
+      await fs.mkdir(path.dirname(outputPath), { recursive: true });
+      await fs.writeFile(outputPath, source);
+      console.log(`Wrote ${path.relative(process.cwd(), outputPath)}`);
+      return;
+    }
+    console.log(source.trimEnd());
+  });
+
+program
+  .command("discovery-generate")
+  .description("Preview or explicitly apply a selected capability generation plan")
+  .requiredOption("--report <path>", "path to the durable discovery report used to create the plan")
+  .requiredOption("--plan <path>", "path to the selected organized generation plan")
+  .option("--apply", "write generated capability files and the durable generation-plan audit")
+  .option("--force", "overwrite existing capability files and generation-plan audit")
+  .option("--json", "print the generation result as JSON")
+  .action(async (options: { report: string; plan: string; apply?: boolean; force?: boolean; json?: boolean }) => {
+    const report = await readDiscoveryReport(path.resolve(process.cwd(), options.report));
+    const plan = await readDiscoveryPlan(path.resolve(process.cwd(), options.plan));
+    const result = await generateDraftCapabilities(process.cwd(), report, plan, {
+      apply: options.apply,
+      force: options.force
+    });
+    if (options.json) {
+      console.log(JSON.stringify(result, null, 2));
+      return;
+    }
+    console.log(`CapabilityKit discovery generation ${result.applied ? "applied" : "preview"}`);
+    console.log("");
+    console.log(`${result.files.length} capability files`);
+    console.log(`${result.collisions.length} collisions`);
+    console.log(`Report: ${path.relative(process.cwd(), result.reportPath)}`);
+    console.log(`Audit: ${path.relative(process.cwd(), result.auditPath)}`);
+    if (result.collisions.length > 0) {
+      console.log("");
+      console.log("Collisions:");
+      for (const collision of result.collisions) {
+        console.log(`  - ${collision.capabilityId}: ${collision.reason}`);
+      }
+    }
+    if (!options.apply) {
+      console.log("");
+      console.log("Preview only. Pass --apply to write files.");
+    } else if (!result.applied) {
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command("discovery-refine")
+  .description("Report actionable refinement recommendations for generated capability drafts")
+  .requiredOption("--report <path>", "path to the durable discovery report used to generate the drafts")
+  .requiredOption("--plan <path>", "path to the selected organized generation plan or generation audit")
+  .option("--json", "print the refinement report as JSON")
+  .action(async (options: { report: string; plan: string; json?: boolean }) => {
+    const report = await readDiscoveryReport(path.resolve(process.cwd(), options.report));
+    const plan = await readDiscoveryPlan(path.resolve(process.cwd(), options.plan));
+    const result = await refineDiscoveredCapabilities(process.cwd(), report, plan);
+    console.log(options.json ? JSON.stringify(result, null, 2) : formatDiscoveryRefinementReport(result));
   });
 
 program

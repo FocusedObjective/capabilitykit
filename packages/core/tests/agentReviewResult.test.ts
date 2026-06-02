@@ -101,6 +101,23 @@ describe("agent review results", () => {
     expect(result.depth).toBe("verified");
   });
 
+  it("normalizes list prefixes when agent criteria otherwise exactly match acceptance criteria", async () => {
+    const rootDir = await createProject();
+    const loaded = await loadCapabilities(rootDir);
+    const capability = loaded.capabilities[0]!.capability;
+    const review = JSON.parse(validReview());
+    review.criteria[0].criterion = "1. First criterion is covered.";
+    review.criteria[1].criterion = "- Second criterion is covered.";
+
+    const result = await validateAgentReviewResult(rootDir, capability, JSON.stringify(review));
+
+    expect(result.valid).toBe(true);
+    expect(result.review.criteria.map((criterion) => criterion.criterion)).toEqual([
+      "First criterion is covered.",
+      "Second criterion is covered."
+    ]);
+  });
+
   it("reports missing criterion and missing evidence paths", async () => {
     const rootDir = await createProject();
     const loaded = await loadCapabilities(rootDir);
@@ -152,5 +169,22 @@ describe("agent review results", () => {
     expect(source).toContain("# run deterministic review only: capabilitykit review core/example --deterministic-only");
     expect(source).toContain("# ask an agent and save review evidence: capabilitykit review core/example --agent codex --arg exec --handoff stdin");
     expect(source).toContain("# validate saved agent output without writing: capabilitykit review-result core/example --input review.json");
+  });
+
+  it("saves completed coding-agent verification with residual gaps as tested evidence", async () => {
+    const rootDir = await createProject();
+    const review = JSON.parse(validReview());
+    review.verification_evidence = ["npm test -- packages/core/tests/example.test.ts passed"];
+    review.remaining_gaps = ["Add a dedicated CLI integration test."];
+
+    const result = await saveAgentReviewResult(rootDir, "core/example", JSON.stringify(review));
+
+    expect(result.validation.valid).toBe(true);
+    expect(result.validation.depth).toBe("tested");
+    const source = await readFile(path.join(rootDir, ".capabilities", "core", "example.capability.yaml"), "utf8");
+    const parsed = YAML.parse(source);
+    expect(parsed.agent.review.done).toBe(true);
+    expect(parsed.agent.review.evidence).toEqual(["npm test -- packages/core/tests/example.test.ts passed"]);
+    expect(parsed.agent.review.gaps).toEqual(["Add a dedicated CLI integration test."]);
   });
 });
