@@ -57,6 +57,12 @@ describe("buildDiscoveryAgentTaskBundle", () => {
     expect(bundle.prompt).toContain("- core/example [planned]: Example summary.");
     expect(bundle.prompt).toContain("main entrypoints, user workflows, UI components and UI flow code, APIs, routes and handlers, data models and persistence code, tests, scripts, and configuration");
     expect(bundle.prompt).toContain("Use README files, documentation, package metadata, and filenames only as supporting context.");
+    expect(bundle.prompt).toContain("Split broad behavior into the smallest independently reviewable capabilities");
+    expect(bundle.prompt).toContain("Use `likely_area` as a shared product-domain or workflow folder hint");
+    expect(bundle.prompt).toContain("avoid one capability per folder");
+    expect(bundle.prompt).toContain("Identify dependency relationships during first discovery");
+    expect(bundle.prompt).toContain("acceptance_evidence");
+    expect(bundle.prompt).toContain("likely_dependencies");
     expect(bundle.prompt).toContain("Do not create, overwrite, move, or edit capability files during discovery.");
     expect(bundle.prompt).toContain("agent.implementation.references");
     expect(bundle.prompt).toContain("Include verification gaps whenever behavior is inferred or not covered by tests.");

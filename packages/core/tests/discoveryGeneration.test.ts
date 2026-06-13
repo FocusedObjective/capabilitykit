@@ -32,9 +32,17 @@ function report(): DurableDiscoveryReport {
         summary: "Allow a user to complete checkout.",
         inferred_intent: "Turn a prepared order into a completed purchase.",
         acceptance_criteria: ["A prepared order can be checked out."],
+        acceptance_evidence: [
+          {
+            criterion: "A prepared order can be checked out.",
+            evidence: ["src/checkout.ts:1"],
+            notes: "Checkout export provides the behavior entrypoint."
+          }
+        ],
         implementation_references: ["src/checkout.ts:1"],
         verification_gaps: ["Production payment provider behavior needs review."],
         likely_relationships: [],
+        likely_dependencies: [],
         inspected_code_paths: ["src/checkout.ts"],
         confidence: "medium",
         confidence_notes: ["External provider behavior was not inspected."]
@@ -73,6 +81,15 @@ describe("generateDraftCapabilities", () => {
     expect(parsed.capability?.status).toBe("implemented");
     expect(parsed.capability?.agent?.implementation?.references).toEqual(["src/checkout.ts:1"]);
     expect(parsed.capability?.agent?.verification?.gaps).toEqual(["Production payment provider behavior needs review."]);
+    expect(parsed.capability?.agent?.review?.criteria).toEqual([
+      {
+        criterion: "A prepared order can be checked out.",
+        status: "covered",
+        evidence: ["src/checkout.ts:1"],
+        notes: "Checkout export provides the behavior entrypoint."
+      }
+    ]);
+    expect(parsed.capability?.agent?.review?.done).toBe(false);
     expect(JSON.parse(await readFile(result.reportPath, "utf8")).provenance.report_id).toBe("checkout-discovery");
     expect(JSON.parse(await readFile(result.auditPath, "utf8")).plan.capabilities[0].groupingDecision.sourceArea).toBe(
       "commerce / checkout"
@@ -166,6 +183,7 @@ describe("generateDraftCapabilities", () => {
         acceptance_criteria: ["A completed payment can be selected for refund."],
         verification_gaps: ["Refund behavior is not implemented yet."],
         likely_relationships: [],
+        likely_dependencies: [],
         confidence: "medium",
         confidence_notes: ["This is an explicitly retained absent-behavior proposal."],
         retention_reason: "The user requested that refund support remain in the generated map."

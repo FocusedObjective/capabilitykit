@@ -17,6 +17,9 @@ acceptance:
     fully covered verification, orange for partial coverage, and red for
     uncovered verification."
   - Renders dependency links from `agent.depends_on` relationships.
+  - Renders suggested dependencies from discovery generation plans as dashed
+    links without treating them as authoritative `agent.depends_on`
+    relationships.
   - Includes browser-side interaction for animated layout, dragging,
     highlighting, zoom, and spacing controls.
   - Includes a scope filter control that can focus the graph on any capability
@@ -47,6 +50,7 @@ agent:
   inputs:
     - .capabilities/**/*.capability.yaml
     - agent.depends_on relationships
+    - discovery generation plan dependency suggestions
     - validation verification gaps
   outputs:
     - .capabilities/dependency-graph.svg
@@ -159,6 +163,18 @@ agent:
           - packages/cli/src/index.ts:349
           - packages/cli/src/index.ts:516
         notes: Saved coding-agent review marks this criterion covered. No action needed.
+      - criterion: Renders suggested dependencies from discovery generation plans as
+          dashed links without treating them as authoritative `agent.depends_on`
+          relationships.
+        status: covered
+        evidence:
+          - packages/cli/src/index.ts:487
+          - packages/cli/src/index.ts:534
+          - packages/cli/src/index.ts:569
+          - packages/cli/src/index.ts:712
+        notes: The graph command loads discovery generation-plan dependency suggestions,
+          filters out relationships already represented by agent.depends_on, and
+          renders remaining suggestions with dashed link styling.
       - criterion: Includes browser-side interaction for animated layout, dragging,
           highlighting, zoom, and spacing controls.
         status: covered

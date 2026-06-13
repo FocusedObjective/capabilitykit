@@ -11,6 +11,8 @@ acceptance:
     with the generated folder structure.
   - Detects likely dependencies between discovered capabilities when code
     evidence or workflow relationships support them.
+  - Uses structured dependency targets from the discovery report before falling
+    back to relationship-text matching.
   - Provides a summary index of generated areas and top-level capabilities.
   - Flags ambiguous grouping decisions for human review instead of hiding them.
   - Produces an inspectable generation plan that records grouping decisions,
@@ -69,8 +71,8 @@ agent:
       - Review generated folders for a sample app and confirm a maintainer can
         answer what the app does without reading source code first.
     gaps:
-      - Dependency inference may need project-specific review for cross-cutting
-        infrastructure and shared services.
+      - Dependency inference may still need project-specific review for
+        cross-cutting infrastructure and shared services.
   review:
     depth: partial
     source: coding-agent
@@ -78,8 +80,9 @@ agent:
       - Grouping quality depends on upstream likely_area hints; inspected code
         path summaries are not used to derive or improve product-domain
         grouping.
-      - Dependency inference uses likely_relationships text matching only and
-        does not infer relationships from code evidence.
+      - Dependency inference uses structured discovery dependency targets or
+        likely_relationships text; it does not perform independent static code
+        analysis.
       - The requested manual sample-app readability review was not performed.
     evidence:
       - "npm test -- packages/core/tests/discoveryOrganization.test.ts: passed,
@@ -124,9 +127,20 @@ agent:
           - packages/core/src/discoveryOrganization.ts:247
           - packages/core/tests/discoveryOrganization.test.ts:46
           - packages/core/tests/discoveryOrganization.test.ts:56
-        notes: Conservative suggestions are generated from likely_relationships text and
-          ambiguous matches are flagged. The organizer does not infer
-          dependencies from inspected code evidence.
+        notes: Conservative suggestions are generated from structured dependency targets
+          and likely_relationships text, and ambiguous matches are flagged. The
+          organizer does not independently infer dependencies from inspected
+          code evidence.
+      - criterion: Uses structured dependency targets from the discovery report before
+          falling back to relationship-text matching.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryOrganization.ts:177
+          - packages/core/src/discoveryOrganization.ts:187
+          - packages/core/src/discoveryOrganization.ts:205
+          - packages/core/tests/discoveryOrganization.test.ts:45
+        notes: Structured target_title matches are resolved against candidate titles or
+          capability IDs before likely_relationships text matching runs.
       - criterion: Provides a summary index of generated areas and top-level capabilities.
         status: covered
         evidence:

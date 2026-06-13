@@ -21,7 +21,8 @@ function candidate(
   title: string,
   likely_area: string,
   likely_relationships: string[] = [],
-  confidence: "high" | "medium" | "low" = "high"
+  confidence: "high" | "medium" | "low" = "high",
+  likely_dependencies: DiscoveryReport["candidates"][number]["likely_dependencies"] = []
 ): DiscoveryReport["candidates"][number] {
   return {
     title,
@@ -32,6 +33,7 @@ function candidate(
     implementation_references: ["src/checkout.ts:1"],
     verification_gaps: [],
     likely_relationships,
+    likely_dependencies,
     inspected_code_paths: ["src/checkout.ts"],
     confidence,
     confidence_notes: [`${title} confidence notes.`]
@@ -43,7 +45,13 @@ describe("organizeDiscoveredCapabilityMap", () => {
     const plan = organizeDiscoveredCapabilityMap(
       report([
         candidate("Prepare order", "commerce / checkout"),
-        candidate("Complete checkout", "commerce / checkout", ["Depends on Prepare order."]),
+        candidate("Complete checkout", "commerce / checkout", [], "high", [
+          {
+            target_title: "Prepare order",
+            relationship: "Checkout requires a prepared order.",
+            evidence: ["src/checkout.ts:1"]
+          }
+        ]),
         candidate("View catalog", "commerce")
       ])
     );

@@ -413,6 +413,7 @@ interface GraphNode {
   guidance: string[];
   path: string;
   dependencies: string[];
+  suggestedDependencies: string[];
   dependents: string[];
   implementationReferences: string[];
   automatedChecks: Array<{ id?: string; description: string; command?: string }>;
@@ -440,6 +441,8 @@ interface GraphNode {
 interface GraphLink {
   source: string;
   target: string;
+  kind: "committed" | "suggested";
+  relationship?: string;
 }
 
 interface GraphViewModel {
@@ -450,6 +453,12 @@ interface GraphViewModel {
   hasUnassignedStoryMap: boolean;
   nodes: GraphNode[];
   links: GraphLink[];
+}
+
+interface SuggestedGraphLink {
+  source: string;
+  target: string;
+  relationship: string;
 }
 
 function escapeAttribute(value: string): string {
@@ -467,7 +476,53 @@ function graphCoverageFor(capability: Capability): GraphNode["coverage"] {
   return "uncovered";
 }
 
-function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>): GraphViewModel {
+async function loadDiscoverySuggestedLinks(rootDir: string): Promise<SuggestedGraphLink[]> {
+  const discoveryDir = path.join(rootDir, ".capabilities", "discovery");
+  let entries: string[];
+  try {
+    entries = await fs.readdir(discoveryDir);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return [];
+    }
+    throw error;
+  }
+
+  const links: SuggestedGraphLink[] = [];
+  for (const entry of entries.filter((name) => name.endsWith(".generation-plan.json"))) {
+    const filePath = path.join(discoveryDir, entry);
+    let parsed: { plan?: OrganizedDiscoveryPlan };
+    try {
+      parsed = JSON.parse(await fs.readFile(filePath, "utf8"));
+    } catch {
+      continue;
+    }
+    for (const capability of parsed.plan?.capabilities ?? []) {
+      for (const suggestion of capability.dependencySuggestions ?? []) {
+        links.push({
+          source: suggestion.dependsOn,
+          target: suggestion.capabilityId,
+          relationship: suggestion.relationship
+        });
+      }
+    }
+  }
+  return links.filter(
+    (link, index, all) =>
+      all.findIndex(
+        (candidate) =>
+          candidate.source === link.source &&
+          candidate.target === link.target &&
+          candidate.relationship === link.relationship
+      ) === index
+  );
+}
+
+function buildGraphViewModel(
+  loaded: LoadCapabilitiesResult,
+  gapsById: Map<string, number>,
+  suggestedLinks: SuggestedGraphLink[] = []
+): GraphViewModel {
   const validation = validateLoadedCapabilities(loaded);
   const gapsByCapability = validation.verificationGaps.reduce((map, gap) => {
     if (!gap.capabilityId) {
@@ -501,6 +556,16 @@ function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<strin
   for (const node of nodes) {
     node.dependents = dependentsById.get(node.id) ?? [];
   }
+  const knownIds = new Set(nodes.map((node) => node.id));
+  const committedLinkKeys = new Set(nodes.flatMap((node) => (node.agent?.depends_on ?? []).map((dep) => `${dep}->${node.id}`)));
+  const suggestedLinksByTarget = suggestedLinks.filter((link) => {
+    const key = `${link.source}->${link.target}`;
+    return knownIds.has(link.source) && knownIds.has(link.target) && !committedLinkKeys.has(key);
+  });
+  const suggestedByNode = suggestedLinksByTarget.reduce((map, link) => {
+    map.set(link.target, [...(map.get(link.target) ?? []), link]);
+    return map;
+  }, new Map<string, SuggestedGraphLink[]>());
 
   const width = 1440;
   const height = 980;
@@ -558,6 +623,10 @@ function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<strin
       guidance: node.guidance ?? [],
       path: node.path,
       dependencies: node.dependencies,
+      suggestedDependencies: suggestedByNode
+        .get(node.id)
+        ?.map((link) => `${link.source}: ${link.relationship}`)
+        .sort((a, b) => a.localeCompare(b)) ?? [],
       dependents: node.dependents,
       implementationReferences: node.agent?.implementation?.references ?? [],
       automatedChecks: node.agent?.verification?.automated ?? [],
@@ -576,10 +645,19 @@ function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<strin
       y: 170 + row * 118
     };
   });
-  const graphLinks = sorted.flatMap((node) =>
+  const graphLinks: GraphLink[] = sorted.flatMap((node) =>
     (node.agent?.depends_on ?? []).map((dep) => ({
       source: dep,
-      target: node.id
+      target: node.id,
+      kind: "committed" as const
+    }))
+  );
+  graphLinks.push(
+    ...suggestedLinksByTarget.map((link) => ({
+      source: link.source,
+      target: link.target,
+      kind: "suggested" as const,
+      relationship: link.relationship
     }))
   );
 
@@ -596,8 +674,12 @@ function buildGraphViewModel(loaded: LoadCapabilitiesResult, gapsById: Map<strin
   };
 }
 
-function graphSvg(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>): string {
-  const model = buildGraphViewModel(loaded, gapsById);
+function graphSvg(
+  loaded: LoadCapabilitiesResult,
+  gapsById: Map<string, number>,
+  suggestedLinks: SuggestedGraphLink[] = []
+): string {
+  const model = buildGraphViewModel(loaded, gapsById, suggestedLinks);
   const { width, height } = model;
   const graphData = JSON.stringify({ nodes: model.nodes, links: model.links }).replaceAll("</", "<\\/");
   const scopeOptions = [
@@ -645,6 +727,7 @@ function graphSvg(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>)
     .scope-select-wrap label { display: block; margin-bottom: 7px; font-size: 11px; font-weight: 650; text-transform: uppercase; }
     .scope-select-wrap select { width: 202px; height: 34px; border: 1px solid #cbd5e1; border-radius: 7px; background: rgba(255,255,255,0.9); color: #0f172a; font: 600 12px Inter, ui-sans-serif, system-ui, sans-serif; padding: 0 10px; box-shadow: 0 8px 20px rgba(15,23,42,0.08); }
     .link { fill: none; stroke: url(#link-gradient); stroke-width: 1.9; stroke-opacity: 0.46; marker-end: url(#arrow); transition: stroke-opacity 160ms ease, stroke-width 160ms ease; }
+    .link.suggested { stroke: #64748b; stroke-dasharray: 8 7; stroke-opacity: 0.58; }
     .link.active { stroke-opacity: 0.9; stroke-width: 3; filter: url(#soft-glow); }
     .node { cursor: grab; filter: url(#shadow); transition: opacity 160ms ease; }
     .node:active { cursor: grabbing; }
@@ -675,6 +758,7 @@ function graphSvg(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>)
     <circle class="full legend-dot" cx="0" cy="0" r="9" /><text x="18" y="4">Full coverage</text>
     <circle class="partial legend-dot" cx="0" cy="28" r="9" /><text x="18" y="32">Partial coverage</text>
     <circle class="uncovered legend-dot" cx="150" cy="0" r="9" /><text x="168" y="4">Not covered</text>
+    <line x1="150" y1="28" x2="184" y2="28" stroke="#64748b" stroke-width="2" stroke-dasharray="8 7" /><text x="196" y="32">Suggested dependency</text>
   </g>
   <g id="controls" transform="translate(1040 102)">
     <g class="slider" data-control="zoom" transform="translate(0 0)">
@@ -730,7 +814,7 @@ const forceKnob = document.getElementById("force-knob");
 const scopeFilter = document.getElementById("scope-filter");
 const byId = new Map(graph.nodes.map((node) => [node.id, node]));
 const links = graph.links
-  .map((link) => ({ source: byId.get(link.source), target: byId.get(link.target) }))
+  .map((link) => ({ source: byId.get(link.source), target: byId.get(link.target), kind: link.kind, relationship: link.relationship }))
   .filter((link) => link.source && link.target);
 const linked = new Set();
 for (const link of links) {
@@ -744,7 +828,7 @@ function el(name, attrs = {}) {
   return node;
 }
 const linkEls = links.map((link) => {
-  const path = el("path", { class: "link" });
+  const path = el("path", { class: "link " + (link.kind === "suggested" ? "suggested" : "committed") });
   linksLayer.appendChild(path);
   return { ...link, el: path };
 });
@@ -1038,8 +1122,12 @@ restartSimulation(1);
 </svg>\n`;
 }
 
-function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, number>): string {
-  const model = buildGraphViewModel(loaded, gapsById);
+function graphViewerHtml(
+  loaded: LoadCapabilitiesResult,
+  gapsById: Map<string, number>,
+  suggestedLinks: SuggestedGraphLink[] = []
+): string {
+  const model = buildGraphViewModel(loaded, gapsById, suggestedLinks);
   const graphData = JSON.stringify({
     nodes: model.nodes,
     links: model.links,
@@ -1186,6 +1274,11 @@ function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, n
       }
       .dot.partial { border-color: var(--amber); }
       .dot.uncovered { border-color: var(--rose); }
+      .dash {
+        width: 28px;
+        height: 0;
+        border-top: 2px dashed var(--muted);
+      }
       .link {
         fill: none;
         stroke: var(--link);
@@ -1193,6 +1286,11 @@ function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, n
         stroke-opacity: 0.42;
         marker-end: url(#arrow);
         transition: opacity 140ms ease, stroke-width 140ms ease;
+      }
+      .link.suggested {
+        stroke: var(--muted);
+        stroke-dasharray: 8 7;
+        stroke-opacity: 0.58;
       }
       .link.active { stroke-width: 3.2; stroke-opacity: 0.92; }
       .link.dimmed { opacity: 0.13; }
@@ -1421,6 +1519,7 @@ function graphViewerHtml(loaded: LoadCapabilitiesResult, gapsById: Map<string, n
             <span><i class="dot"></i>Full coverage</span>
             <span><i class="dot partial"></i>Partial coverage</span>
             <span><i class="dot uncovered"></i>Not covered</span>
+            <span><i class="dash"></i>Suggested dependency</span>
           </div>
         </div>
       </main>
@@ -1450,7 +1549,9 @@ const spacing = document.getElementById("spacing");
 const zoomValue = document.getElementById("zoom-value");
 const spacingValue = document.getElementById("spacing-value");
 const byId = new Map(graph.nodes.map((node) => [node.id, node]));
-const links = graph.links.map((link) => ({ source: byId.get(link.source), target: byId.get(link.target) })).filter((link) => link.source && link.target);
+const links = graph.links
+  .map((link) => ({ source: byId.get(link.source), target: byId.get(link.target), kind: link.kind, relationship: link.relationship }))
+  .filter((link) => link.source && link.target);
 const linked = new Set();
 for (const link of links) {
   linked.add(link.source.id + "->" + link.target.id);
@@ -1542,7 +1643,7 @@ function reviewEvidence(node) {
   return details;
 }
 const linkEls = links.map((link) => {
-  const path = el("path", { class: "link" });
+  const path = el("path", { class: "link " + (link.kind === "suggested" ? "suggested" : "committed") });
   linksLayer.append(path);
   return { ...link, el: path };
 });
@@ -1604,6 +1705,7 @@ function renderPanel(node) {
   const evidence = reviewEvidence(node);
   if (evidence) panel.append(evidence);
   panel.append(section("Dependencies", list(node.dependencies)));
+  panel.append(section("Suggested Dependencies", list(node.suggestedDependencies)));
   panel.append(section("Direct Dependents", list(node.dependents)));
   panel.append(section("Path", (() => { const code = document.createElement("code"); code.textContent = node.path; return code; })()));
 }
@@ -2208,7 +2310,8 @@ program
       map.set(gap.capabilityId, (map.get(gap.capabilityId) ?? 0) + 1);
       return map;
     }, new Map<string, number>());
-    const svg = graphSvg(loaded, gapsById);
+    const suggestedLinks = await loadDiscoverySuggestedLinks(process.cwd());
+    const svg = graphSvg(loaded, gapsById, suggestedLinks);
     const outputPath = path.resolve(process.cwd(), options.output);
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
     await fs.writeFile(outputPath, svg, "utf8");
@@ -2234,8 +2337,9 @@ program
       map.set(gap.capabilityId, (map.get(gap.capabilityId) ?? 0) + 1);
       return map;
     }, new Map<string, number>());
-    const svg = graphSvg(loaded, gapsById);
-    const html = graphViewerHtml(loaded, gapsById);
+    const suggestedLinks = await loadDiscoverySuggestedLinks(process.cwd());
+    const svg = graphSvg(loaded, gapsById, suggestedLinks);
+    const html = graphViewerHtml(loaded, gapsById, suggestedLinks);
 
     const svgOutputPath = path.resolve(process.cwd(), options.svgOutput);
     await fs.mkdir(path.dirname(svgOutputPath), { recursive: true });

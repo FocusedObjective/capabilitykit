@@ -15,6 +15,9 @@ acceptance:
     verification gaps while deriving capability IDs and areas from the selected
     folder paths, and includes implementation references for discovered existing
     behavior.
+  - Preserves source-backed acceptance evidence from discovery as draft
+    criterion-level review metadata so generated capabilities have an initial
+    coverage trail before a later semantic review.
   - Requires every generated capability for discovered existing behavior to
     include concrete implementation references from code inspection, not only
     documentation or package metadata.
@@ -38,6 +41,8 @@ guidance:
     module names.
   - Preserve evidence paths so maintainers can quickly review why each
     capability was proposed.
+  - Treat generated review metadata as a starting audit trail, not proof that a
+    capability is verified.
   - Reject or quarantine candidates that lack enough code evidence to be useful
     as draft capabilities.
 planning:
@@ -146,6 +151,18 @@ agent:
           - packages/core/tests/discoveryGeneration.test.ts:70
         notes: Draft fields and references are populated from the candidate. IDs and
           areas are path-derived.
+      - criterion: Preserves source-backed acceptance evidence from discovery as draft
+          criterion-level review metadata so generated capabilities have an
+          initial coverage trail before a later semantic review.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryGeneration.ts:34
+          - packages/core/src/discoveryGeneration.ts:47
+          - packages/core/src/discoveryGeneration.ts:119
+          - packages/core/tests/discoveryGeneration.test.ts:76
+        notes: Generated capabilities include agent.review criteria populated from
+          acceptance_evidence and marked done false so later review can refine
+          them.
       - criterion: Requires every generated capability for discovered existing behavior
           to include concrete implementation references from code inspection,
           not only documentation or package metadata.

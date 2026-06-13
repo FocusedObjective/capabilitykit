@@ -10,6 +10,8 @@ acceptance:
     viewer.
   - Keeps generating the standalone SVG graph alongside the HTML viewer.
   - Shows graph nodes and dependency links from the current capability map.
+  - Shows suggested dependencies from discovery generation plans as dashed links
+    that do not affect committed dependency impact analysis.
   - Lets users filter the graph by any capability folder scope.
   - Lets users click a node to pin capability details in a side panel.
   - Shows title, ID, status, scope, summary, intent, acceptance criteria,
@@ -24,6 +26,8 @@ acceptance:
     disclosure instead of duplicating review criteria as an always-visible
     section.
   - Shows dependencies and direct dependents for the selected capability.
+  - Shows suggested dependencies for the selected capability when discovery
+    generation plans recorded noncommitted dependency suggestions.
   - Provides a story-map dropdown that emphasizes matching graph nodes by
     story-map name while keeping nonmatching nodes visible but muted.
   - Keeps the viewer self-contained so it can be opened directly from the local
@@ -118,6 +122,18 @@ agent:
         notes: "Saved coding-agent review marks this criterion covered. Notes: The model
           is built from `loaded.capabilities`; links are derived from
           `agent.depends_on` and rendered as SVG paths. No action needed."
+      - criterion: Shows suggested dependencies from discovery generation plans as
+          dashed links that do not affect committed dependency impact analysis.
+        status: covered
+        evidence:
+          - packages/cli/src/index.ts:487
+          - packages/cli/src/index.ts:534
+          - packages/cli/src/index.ts:569
+          - packages/cli/src/index.ts:1062
+          - packages/cli/src/index.ts:1240
+        notes: The viewer loads dependencySuggestions from discovery generation audits,
+          removes suggestions already present as agent.depends_on, and renders
+          the remaining links with dashed styling.
       - criterion: Lets users filter the graph by any capability folder scope.
         status: covered
         evidence:
@@ -226,6 +242,16 @@ agent:
         notes: "Saved coding-agent review marks this criterion covered. Notes:
           Dependencies come from `agent.depends_on`; direct dependents are
           reverse-mapped and shown in the panel. No action needed."
+      - criterion: Shows suggested dependencies for the selected capability when
+          discovery generation plans recorded noncommitted dependency
+          suggestions.
+        status: covered
+        evidence:
+          - packages/cli/src/index.ts:525
+          - packages/cli/src/index.ts:580
+          - packages/cli/src/index.ts:1598
+        notes: Suggested dependencies are stored on graph nodes and displayed in the
+          selected-capability side panel separately from committed dependencies.
       - criterion: Provides a story-map dropdown that emphasizes matching graph nodes by
           story-map name while keeping nonmatching nodes visible but muted.
         status: covered

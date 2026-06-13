@@ -50,6 +50,33 @@ function isSupportingContextOnly(reference: string): boolean {
   );
 }
 
+function discoveredReview(candidate: DurableDiscoveryReport["candidates"][number]): Record<string, unknown> {
+  const evidenceByCriterion = new Map(candidate.acceptance_evidence.map((item) => [item.criterion, item]));
+  const criteria = candidate.acceptance_criteria.map((criterion) => {
+    const evidence = evidenceByCriterion.get(criterion);
+    return {
+      criterion,
+      status: evidence && evidence.evidence.length > 0 ? "covered" : "partial",
+      ...(evidence && evidence.evidence.length > 0 ? { evidence: evidence.evidence } : {}),
+      notes:
+        evidence?.notes ??
+        "Generated from discovery evidence; review the criterion against implementation before marking verified."
+    };
+  });
+  return {
+    depth: "referenced",
+    source: "coding-agent",
+    gaps: [
+      "Generated from reverse-engineering discovery; review source evidence before treating this as verified behavior.",
+      ...candidate.verification_gaps
+    ],
+    evidence: candidate.implementation_references,
+    intent_summary: candidate.summary,
+    criteria,
+    done: false
+  };
+}
+
 async function exists(filePath: string): Promise<boolean> {
   try {
     await fs.access(filePath, fsConstants.F_OK);
@@ -107,7 +134,10 @@ function draftSource(
         : {}),
       verification: {
         gaps: candidate.verification_gaps
-      }
+      },
+      ...(organized.candidateKind === "discovered" && "implementation_references" in candidate
+        ? { review: discoveredReview(candidate) }
+        : {})
     }
   });
 }

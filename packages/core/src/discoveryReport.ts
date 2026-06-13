@@ -5,15 +5,29 @@ import { z } from "zod";
 
 const confidenceSchema = z.enum(["high", "medium", "low"]);
 
+const candidateDependencySchema = z.object({
+  target_title: z.string().trim().min(1),
+  relationship: z.string().trim().min(1),
+  evidence: z.array(z.string().trim().min(1)).default([])
+});
+
+const acceptanceEvidenceSchema = z.object({
+  criterion: z.string().trim().min(1),
+  evidence: z.array(z.string().trim().min(1)),
+  notes: z.string().trim().min(1).optional()
+});
+
 const discoveryCandidateSchema = z.object({
   title: z.string().trim().min(1),
   likely_area: z.string().trim().min(1),
   summary: z.string().trim().min(1),
   inferred_intent: z.string().trim().min(1),
   acceptance_criteria: z.array(z.string().trim().min(1)).min(1),
+  acceptance_evidence: z.array(acceptanceEvidenceSchema).default([]),
   implementation_references: z.array(z.string().trim().min(1)).min(1),
   verification_gaps: z.array(z.string().trim().min(1)),
   likely_relationships: z.array(z.string().trim().min(1)),
+  likely_dependencies: z.array(candidateDependencySchema).default([]),
   inspected_code_paths: z.array(z.string().trim().min(1)).min(1),
   confidence: confidenceSchema,
   confidence_notes: z.array(z.string().trim().min(1)).min(1)
@@ -27,6 +41,7 @@ const retainedProposalSchema = z.object({
   acceptance_criteria: z.array(z.string().trim().min(1)).min(1),
   verification_gaps: z.array(z.string().trim().min(1)).min(1),
   likely_relationships: z.array(z.string().trim().min(1)),
+  likely_dependencies: z.array(candidateDependencySchema).default([]),
   confidence: confidenceSchema,
   confidence_notes: z.array(z.string().trim().min(1)).min(1),
   retention_reason: z.string().trim().min(1)
@@ -270,7 +285,23 @@ export async function validateDiscoveryReport(rootDir: string, source: string): 
       });
     }
 
-    for (const evidence of [...candidate.implementation_references, ...candidate.inspected_code_paths]) {
+    const acceptanceCriteria = new Set(candidate.acceptance_criteria);
+    for (const evidence of candidate.acceptance_evidence) {
+      if (!acceptanceCriteria.has(evidence.criterion)) {
+        issues.push({
+          code: "acceptance-evidence-criterion-mismatch",
+          message: `Acceptance evidence for candidate "${candidate.title}" references a criterion that is not in acceptance_criteria: ${evidence.criterion}`,
+          candidate: candidate.title
+        });
+      }
+    }
+
+    for (const evidence of [
+      ...candidate.implementation_references,
+      ...candidate.inspected_code_paths,
+      ...candidate.acceptance_evidence.flatMap((item) => item.evidence),
+      ...candidate.likely_dependencies.flatMap((item) => item.evidence)
+    ]) {
       if (!(await pathExists(rootDir, evidence))) {
         issues.push({
           code: "missing-evidence-path",

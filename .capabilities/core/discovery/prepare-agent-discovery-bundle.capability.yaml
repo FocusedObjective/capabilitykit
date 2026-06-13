@@ -13,6 +13,14 @@ acceptance:
     scripts, and configuration.
   - Instructs the external agent to propose structured capability candidates for
     the main project functionality, not every implementation detail.
+  - Instructs the external agent to split broad discoveries into smaller
+    independently reviewable capabilities when the code exposes separable
+    workflows, commands, screens, API operations, or state transitions.
+  - Instructs the external agent to use shared product-domain or workflow area
+    hints so generated files group related capabilities under reusable folders
+    instead of creating one folder per capability.
+  - Requires first-pass dependency suggestions and source-backed acceptance
+    evidence in the discovery output when implementation evidence supports them.
   - Instructs the external agent not to rely on README, package metadata, or
     filenames without confirming behavior in code.
   - Requires the agent to cite source evidence through
@@ -135,6 +143,37 @@ agent:
           - packages/core/src/discoveryAgentTask.ts:86
         notes: The prompt limits proposals to main functionality and defines a JSON
           candidate contract.
+      - criterion: Instructs the external agent to split broad discoveries into smaller
+          independently reviewable capabilities when the code exposes separable
+          workflows, commands, screens, API operations, or state transitions.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:80
+          - packages/core/src/discoveryAgentTask.ts:97
+          - packages/core/tests/discoveryAgentTask.test.ts:61
+        notes: The prompt directly tells agents to decompose broad behavior and prefer
+          focused candidates.
+      - criterion: Instructs the external agent to use shared product-domain or workflow
+          area hints so generated files group related capabilities under
+          reusable folders instead of creating one folder per capability.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:81
+          - packages/core/src/discoveryAgentTask.ts:82
+          - packages/core/src/discoveryAgentTask.ts:95
+          - packages/core/tests/discoveryAgentTask.test.ts:62
+        notes: The output contract explains likely_area as a reusable category folder
+          and tells agents to group related capabilities.
+      - criterion: Requires first-pass dependency suggestions and source-backed
+          acceptance evidence in the discovery output when implementation
+          evidence supports them.
+        status: covered
+        evidence:
+          - packages/core/src/discoveryAgentTask.ts:83
+          - packages/core/src/discoveryAgentTask.ts:84
+          - packages/core/src/discoveryAgentTask.ts:88
+          - packages/core/tests/discoveryAgentTask.test.ts:64
+        notes: The JSON contract includes likely_dependencies and acceptance_evidence.
       - criterion: Instructs the external agent not to rely on README, package metadata,
           or filenames without confirming behavior in code.
         status: covered

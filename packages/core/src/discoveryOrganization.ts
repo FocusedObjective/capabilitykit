@@ -179,13 +179,41 @@ function relationshipMatches(relationship: string, candidateId: string, title: s
   return normalized.includes(candidateId) || normalized.includes(slugify(title, ""));
 }
 
+function dependencyTargetMatches(target: string, candidateId: string, title: string): boolean {
+  const normalized = slugify(target, "");
+  return normalized === candidateId || normalized === slugify(title, "");
+}
+
 function suggestDependencies(
   capabilityId: string,
   relationships: string[],
+  dependencies: Array<{ target_title: string; relationship: string }>,
   knownCapabilities: Array<{ capabilityId: string; title: string }>,
   reviewFlags: DiscoveryPlanReviewFlag[]
 ): DiscoveryDependencySuggestion[] {
   const suggestions: DiscoveryDependencySuggestion[] = [];
+  for (const dependency of dependencies) {
+    const matches = knownCapabilities.filter(
+      (known) =>
+        known.capabilityId !== capabilityId &&
+        dependencyTargetMatches(dependency.target_title, known.capabilityId, known.title)
+    );
+    if (matches.length === 1) {
+      suggestions.push({ capabilityId, dependsOn: matches[0].capabilityId, relationship: dependency.relationship });
+    } else if (matches.length > 1) {
+      reviewFlags.push({
+        candidate: capabilityId,
+        message: `Dependency target "${dependency.target_title}" matches multiple capabilities: ${matches
+          .map((match) => match.capabilityId)
+          .join(", ")}.`
+      });
+    } else {
+      reviewFlags.push({
+        candidate: capabilityId,
+        message: `Dependency target "${dependency.target_title}" did not match a discovered or existing capability.`
+      });
+    }
+  }
   for (const relationship of relationships) {
     const matches = knownCapabilities.filter(
       (known) => known.capabilityId !== capabilityId && relationshipMatches(relationship, known.capabilityId, known.title)
@@ -247,6 +275,7 @@ export function organizeDiscoveredCapabilityMap(
     const dependencySuggestions = suggestDependencies(
       capabilityId,
       candidate.likely_relationships,
+      candidate.likely_dependencies ?? [],
       knownCapabilities,
       reviewFlags
     );

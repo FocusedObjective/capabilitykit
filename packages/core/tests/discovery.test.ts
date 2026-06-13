@@ -107,6 +107,30 @@ describe("discovery reports", () => {
     expect(result.issues.map((issue) => issue.code)).toContain("uninspected-area-without-gap");
   });
 
+  it("validates criterion-level discovery evidence", async () => {
+    const rootDir = await createProject();
+    const report = JSON.parse(validReport());
+    report.candidates[0].acceptance_evidence = [
+      {
+        criterion: "A missing criterion.",
+        evidence: ["src/checkout.ts:1"]
+      }
+    ];
+    report.candidates[0].likely_dependencies = [
+      {
+        target_title: "Prepare order",
+        relationship: "Checkout requires an order.",
+        evidence: ["src/missing-dependency.ts:1"]
+      }
+    ];
+
+    const result = await validateDiscoveryReport(rootDir, JSON.stringify(report));
+
+    expect(result.valid).toBe(false);
+    expect(result.issues.map((issue) => issue.code)).toContain("acceptance-evidence-criterion-mismatch");
+    expect(result.issues.map((issue) => issue.code)).toContain("missing-evidence-path");
+  });
+
   it("saves a durable report with provenance and never overwrites an existing report", async () => {
     const rootDir = await createProject();
 
