@@ -59,7 +59,7 @@ describe("buildAgentReviewPrompt", () => {
   it("builds a review prompt with deterministic coverage and structured output instructions", async () => {
     const rootDir = await createProject();
 
-    const review = await buildAgentReviewPrompt(rootDir, "core/example", { includeReferences: false });
+    const review = await buildAgentReviewPrompt(rootDir, "core/example", { detailed: true, includeReferences: false });
 
     expect(review.capabilityId).toBe("core/example");
     expect(review.missingReferences).toEqual([]);
@@ -69,5 +69,28 @@ describe("buildAgentReviewPrompt", () => {
     expect(review.prompt).toContain('"intent_summary": "string"');
     expect(review.prompt).toContain('"status": "covered | partial | uncovered | uncertain"');
     expect(review.prompt).toContain("Set `done` to true only when every criterion is covered");
+  });
+
+  it("defaults to a focused path-only review without the large deterministic report", async () => {
+    const rootDir = await createProject();
+    await writeFile(path.join(rootDir, "src", "example.ts"), "export const largeImplementation = 'content-marker';\n".repeat(2000));
+    const quick = await buildAgentReviewPrompt(rootDir, "core/example");
+    const detailed = await buildAgentReviewPrompt(rootDir, "core/example", { detailed: true });
+    expect(quick.prompt).not.toContain("content-marker");
+    expect(quick.prompt).not.toContain("# Deterministic Implementation Coverage Report");
+    expect(quick.prompt).toContain("src/example.ts");
+    expect(quick.prompt).toContain("Return JSON only");
+    expect(quick.prompt).toContain("report uncertain");
+    expect(quick.prompt).toContain("Stop once every criterion");
+    expect(quick.inputFingerprint).toMatch(/^[a-f0-9]{64}$/);
+    expect(detailed.prompt).toContain("content-marker");
+    expect(quick.prompt.length).toBeLessThan(detailed.prompt.length / 10);
+  });
+
+  it("reports missing references in the focused prompt", async () => {
+    const rootDir = await createProject();
+    await rm(path.join(rootDir, "src", "example.ts"));
+    const review = await buildAgentReviewPrompt(rootDir, "core/example");
+    expect(review.missingReferences).toEqual(["src/example.ts"]);
   });
 });

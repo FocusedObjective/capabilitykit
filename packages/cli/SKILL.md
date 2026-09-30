@@ -201,6 +201,31 @@ After creating or editing capability files:
 
 ## Implementation Review
 
+When the user wants a progress overview, start with `capabilitykit status`.
+It shows green, amber, and red evidence signals without running an external
+agent. Keep review and verification detail available through `status <id>`.
+Do not launch a repository-wide semantic review merely to refresh map colours
+or regenerate a viewer. Target changed or unconfirmed capabilities instead.
+
+Semantic `verify --agent`, `review --agent`, and `agent-review` use focused
+completion prompts by default. They retain criterion-level file evidence while
+omitting whole-file content and the large deterministic report. Return concise
+JSON, with short reasons for gaps and uncertainty. Use `--detailed` when the
+user needs the full report, and `--detailed --no-references` to omit file content.
+
+Unchanged fingerprinted coding-agent or human reviews are reused automatically.
+Fingerprints track the contract, referenced implementation, cited evidence, and
+declared dependencies. A changed input requires a new review; unrelated files
+outside that evidence scope are not tracked. Existing reviews without a
+fingerprint must run once before they can be reused. Use `--force` to reassess.
+Quick reviews are not reused for a `--detailed` request.
+
+Semantic runs have a 120-second default time limit. Use `--timeout <seconds>`
+to adjust it or `--timeout 0` to disable it. A timeout reports amber/unconfirmed,
+exits with code 124, and saves no partial output. `--no-save` and `--dry-run`
+remain available. Local `verify` and `review` preserve saved semantic evidence;
+use `sync-review` when explicitly replacing it with a deterministic snapshot.
+
 When asked whether a capability matches implementation behavior:
 
 1. Treat the capability file as the source of truth.

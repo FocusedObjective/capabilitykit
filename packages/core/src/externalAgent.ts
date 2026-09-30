@@ -20,6 +20,7 @@ export interface ExternalAgentRunOptions extends ExternalAgentCommand {
   dryRun?: boolean;
   onProgress?: (event: ExternalAgentProgressEvent) => void;
   progressIntervalMs?: number;
+  timeoutMs?: number;
 }
 
 export interface ExternalAgentDetectionResult {
@@ -40,6 +41,7 @@ export interface ExternalAgentRunResult {
   stderr: string;
   transcriptPath?: string;
   promptFilePath?: string;
+  timedOut?: boolean;
 }
 
 export interface ExternalAgentProgressEvent {
@@ -273,6 +275,9 @@ function requiresWindowsCommandShell(command: string): boolean {
 }
 
 export async function runExternalAgentCommand(options: ExternalAgentRunOptions): Promise<ExternalAgentRunResult> {
+  if (options.timeoutMs !== undefined && (!Number.isFinite(options.timeoutMs) || options.timeoutMs < 0)) {
+    throw new Error("timeoutMs must be a non-negative finite number.");
+  }
   const handoff = options.handoff ?? "stdin";
   const cwd = options.cwd ?? process.cwd();
   const args = [...(options.args ?? [])];
@@ -336,15 +341,54 @@ export async function runExternalAgentCommand(options: ExternalAgentRunOptions):
       cwd,
       env: options.env ?? process.env,
       shell: requiresWindowsCommandShell(baseResult.command),
+      detached: process.platform !== "win32",
       stdio: ["pipe", "pipe", "pipe"]
     });
 
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
     let stdinError: string | undefined;
+    let timedOut = false;
+    let settled = false;
+    const timeout = options.timeoutMs ? setTimeout(() => {
+      timedOut = true;
+      if (process.platform === "win32" && child.pid) {
+        // A .cmd launcher owns a process tree; stop only the tree started for this run.
+        if (!requiresWindowsCommandShell(baseResult.command)) child.kill();
+        else {
+          const killer = spawn("taskkill", ["/PID", String(child.pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" });
+          killer.on("error", () => child.kill());
+          killer.on("exit", (code) => { if (code !== 0) child.kill(); });
+        }
+      } else if (child.pid) {
+        try { process.kill(-child.pid, "SIGKILL"); } catch { child.kill("SIGKILL"); }
+      }
+      finish(124);
+      // Do not let inherited pipes keep the review waiting after its deadline.
+      child.stdin.destroy();
+      child.stdout.destroy();
+      child.stderr.destroy();
+      child.unref();
+    }, options.timeoutMs) : undefined;
     const progressInterval = options.onProgress
       ? setInterval(() => emitProgress({ type: "heartbeat" }), options.progressIntervalMs ?? 10000)
       : undefined;
+    function finish(exitCode: number | null): void {
+      if (settled) return;
+      settled = true;
+      if (timeout) clearTimeout(timeout);
+      if (progressInterval) clearInterval(progressInterval);
+      const finalExitCode = timedOut ? 124 : exitCode;
+      emitProgress({ type: "completed", exitCode: finalExitCode });
+      const stderrText = Buffer.concat(stderr).toString("utf8");
+      resolve({
+        ...baseResult,
+        exitCode: finalExitCode,
+        timedOut,
+        stdout: Buffer.concat(stdout).toString("utf8"),
+        stderr: stdinError ? `${stderrText}${stderrText ? "\n" : ""}stdin: ${stdinError}` : stderrText
+      });
+    }
 
     emitProgress({ type: "started" });
     child.stdout.on("data", (chunk: Buffer) => {
@@ -361,24 +405,15 @@ export async function runExternalAgentCommand(options: ExternalAgentRunOptions):
       stdinError = error instanceof Error ? error.message : String(error);
     });
     child.on("error", (error) => {
+      if (settled) return;
+      settled = true;
+      if (timeout) clearTimeout(timeout);
       if (progressInterval) {
         clearInterval(progressInterval);
       }
       reject(error);
     });
-    child.on("close", (exitCode) => {
-      if (progressInterval) {
-        clearInterval(progressInterval);
-      }
-      emitProgress({ type: "completed", exitCode });
-      const stderrText = Buffer.concat(stderr).toString("utf8");
-      resolve({
-        ...baseResult,
-        exitCode,
-        stdout: Buffer.concat(stdout).toString("utf8"),
-        stderr: stdinError ? `${stderrText}${stderrText ? "\n" : ""}stdin: ${stdinError}` : stderrText
-      });
-    });
+    child.on("close", finish);
 
     if (handoff === "stdin") {
       child.stdin.end(options.input);

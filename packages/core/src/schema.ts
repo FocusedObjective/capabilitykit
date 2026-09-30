@@ -70,6 +70,8 @@ type AgentSection = {
     criteria?: Array<z.infer<typeof agentReviewCriterionSchema>>;
     ignore_findings?: Array<z.infer<typeof assessmentFindingIgnoreSchema>>;
     done?: boolean;
+    input_fingerprint?: string;
+    mode?: "quick" | "detailed";
   };
   guidance?: {
     notes?: string[];
@@ -105,7 +107,9 @@ const agentSectionSchema = z
         intent_summary: nonEmptyString.optional(),
         criteria: z.array(agentReviewCriterionSchema).optional().default([]),
         ignore_findings: z.array(assessmentFindingIgnoreSchema).optional().default([]),
-        done: z.boolean().optional()
+        done: z.boolean().optional(),
+        input_fingerprint: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+        mode: z.enum(["quick", "detailed"]).optional()
       })
       .optional(),
     guidance: z

@@ -71,7 +71,7 @@ function taskInstructions(mode: AgentTaskMode): string {
   ].join("\n");
 }
 
-async function readReference(rootDir: string, reference: string): Promise<ReferenceContent> {
+async function readReference(rootDir: string, reference: string, includeContent: boolean): Promise<ReferenceContent> {
   const resolved = path.resolve(rootDir, reference);
   try {
     const stat = await fs.stat(resolved);
@@ -81,7 +81,7 @@ async function readReference(rootDir: string, reference: string): Promise<Refere
     return {
       reference,
       exists: true,
-      content: await fs.readFile(resolved, "utf8")
+      content: includeContent ? await fs.readFile(resolved, "utf8") : undefined
     };
   } catch {
     return { reference, exists: false };
@@ -134,7 +134,7 @@ export async function buildAgentTaskBundle(
 
   const capability = match.capability;
   const implementationReferences = capability.agent?.implementation?.references ?? [];
-  const references = await Promise.all(implementationReferences.map((reference) => readReference(loaded.rootDir, reference)));
+  const references = await Promise.all(implementationReferences.map((reference) => readReference(loaded.rootDir, reference, includeReferences)));
   const missingReferences = references.filter((reference) => !reference.exists).map((reference) => reference.reference);
 
   const prompt = [

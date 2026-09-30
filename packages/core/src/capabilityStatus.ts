@@ -561,14 +561,16 @@ function formatOverview(report: CapabilityStatusReport): string {
     `CapabilityKit Status: ${report.project}`,
     "",
     `Capabilities: ${report.summary.total}  ok: ${report.summary.ok}  needs-review: ${report.summary.review}  needs-action: ${report.summary.action}  planned: ${report.summary.planned}`,
+    "🟢 Clear evidence  🟠 Partial / unconfirmed  🔴 Gaps / not started",
     "",
     `${"Capability".padEnd(idWidth)}  State         Signals`,
     `${"-".repeat(idWidth)}  ------------  -------`
   ];
 
   for (const capability of report.capabilities) {
+    const light = capability.health === "ok" ? "🟢" : capability.health === "review" || capability.status === "in-progress" ? "🟠" : "🔴";
     lines.push(
-      `${fit(capability.capabilityId, idWidth)}  ${healthLabel(capability.health).padEnd(12)}  ${findingSummary(capability)}`
+      `${light} ${fit(capability.capabilityId, idWidth)}  ${healthLabel(capability.health).padEnd(12)}  ${findingSummary(capability)}`
     );
   }
 

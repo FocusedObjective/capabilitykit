@@ -32,6 +32,8 @@ acceptance:
     story-map name while keeping nonmatching nodes visible but muted.
   - Keeps the viewer self-contained so it can be opened directly from the local
     filesystem.
+  - Flags fingerprinted stale review evidence as needing reassessment with
+    partial coverage when regenerating the viewer.
 guidance:
   - Keep the SVG as the small portable visualization.
   - Treat the HTML viewer as a richer inspector that can use normal HTML layout

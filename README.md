@@ -185,6 +185,30 @@ capabilitykit compile
 - `capabilitykit review-result <capability-id>` validates or saves structured review JSON under `agent.review`.
 - `capabilitykit sync-review [capability-id]` updates `agent.review` from current implementation evidence without changing capability status.
 
+For a quick progress check, run `capabilitykit status`. It shows green for clear
+evidence, amber for partial or unconfirmed coverage, and red for gaps or work not
+started; `status <id>` retains the review and verification detail.
+
+Semantic reviews are focused by default: concise criterion evidence, without
+whole-file dumps or a large deterministic report. Unchanged fingerprinted
+reviews are reused. The fingerprint tracks the capability contract, referenced
+implementation, cited evidence, and declared dependencies; unrelated files
+outside that scope are not tracked. Existing reviews run once to establish a
+fingerprint. Changed inputs show as needing reassessment.
+
+```bash
+capabilitykit verify core/example --agent codex
+capabilitykit verify core/example --agent codex --force
+capabilitykit verify core/example --agent codex --detailed --timeout 300
+```
+
+`--detailed` requests the full report, `--force` requests fresh assessment, and
+`--timeout` adjusts the default 120-second limit (`0` disables it). Timeouts
+report amber/unconfirmed, exit with code 124, and save no partial evidence.
+Local `verify` and `review` preserve saved semantic reviews. Use `sync-review`
+when explicitly replacing them with deterministic snapshots. Map and viewer
+refreshes do not need a full semantic review.
+
 Semantic assessment supports Codex, GitHub Copilot CLI, Pi Coding Agent,
 Claude Code, and Cursor CLI defaults:
 

@@ -73,6 +73,8 @@ export interface Capability {
       criteria?: AgentReviewCriterion[];
       ignore_findings?: AssessmentFindingIgnore[];
       done?: boolean;
+      input_fingerprint?: string;
+      mode?: "quick" | "detailed";
     };
   };
   planning?: {

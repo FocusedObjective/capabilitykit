@@ -93,4 +93,17 @@ describe("syncReviewEvidence", () => {
     expect(result.results[0]?.changed).toBe(false);
     expect(after).toBe(before);
   });
+
+  it("preserves semantic evidence during a lightweight verification pass", async () => {
+    const rootDir = await createProject();
+    const filePath = path.join(rootDir, ".capabilities", "core", "example.capability.yaml");
+    const doc = YAML.parse(await readFile(filePath, "utf8"));
+    doc.agent.review = { source: "coding-agent", done: false, depth: "partial", criteria: [] };
+    await writeFile(filePath, YAML.stringify(doc));
+    const before = await readFile(filePath, "utf8");
+    const result = await syncReviewEvidence(rootDir, "core/example", { preserveSemantic: true });
+    expect(result.results[0]?.retained).toBe(true);
+    expect(result.results[0]?.changed).toBe(false);
+    expect(await readFile(filePath, "utf8")).toBe(before);
+  });
 });

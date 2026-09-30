@@ -15,7 +15,18 @@ acceptance:
     default and supports no-save or dry-run previews.
   - Keeps status changes policy-controlled and does not automatically mark a
     capability verified solely from agent prose.
+  - Defaults semantic review to a focused path-only prompt with concise
+    criterion evidence and keeps the full implementation report available
+    through --detailed.
+  - Reuses unchanged saved semantic reviews, supports --force for fresh
+    assessment, and does not reuse a quick review when a detailed review is
+    requested.
+  - Limits semantic agent execution to 120 seconds by default, supports a
+    configurable limit, and reports timeouts as unconfirmed without saving
+    partial output.
 guidance:
+  - Default semantic reviews should be focused completion checks; use --detailed
+    when a full evidence report is needed.
   - Treat agent review as evidence for human or policy-controlled acceptance.
   - Prefer structured JSON output for criterion status and evidence.
   - Reuse the deterministic implementation coverage report when available.
@@ -56,6 +67,7 @@ agent:
       - packages/core/src/index.ts
       - packages/cli/src/index.ts
       - packages/core/tests/agentReview.test.ts
+      - packages/core/src/reviewFingerprint.ts
   verification:
     automated:
       - id: agent-review-prompt-tests

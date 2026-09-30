@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { loadCapabilities } from "./loadCapabilities.js";
+import type { Capability } from "./types.js";
 
 export type AcceptanceCoverageStatus = "covered" | "uncovered" | "uncertain";
 
@@ -221,20 +222,28 @@ export async function assessImplementationCoverage(
     throw new Error(`Capability not found: ${capabilityId}`);
   }
 
+  return assessCapabilityCoverage(loaded.rootDir, match.capability);
+}
+
+export async function assessCapabilityCoverage(
+  rootDir: string, capability: Capability, skipCriteria: Set<string> = new Set()
+): Promise<ImplementationCoverageReport> {
   const references = await Promise.all(
-    (match.capability.agent?.implementation?.references ?? []).map((reference) => loadReference(loaded.rootDir, reference))
+    (capability.agent?.implementation?.references ?? []).map((reference) => loadReference(rootDir, reference))
   );
 
   return {
-    capabilityId: match.capability.id,
-    title: match.capability.title,
+    capabilityId: capability.id,
+    title: capability.title,
     references: references.map((reference) => ({
       reference: reference.reference,
       exists: reference.exists,
       readable: reference.readable,
       error: reference.error
     })),
-    criteria: match.capability.acceptance.map((criterion) => assessCriterion(criterion, references)),
+    criteria: capability.acceptance.map((criterion) => skipCriteria.has(criterion)
+      ? { criterion, status: "uncertain" as const, evidence: [], rationale: "Saved review supplies the evidence." }
+      : assessCriterion(criterion, references)),
     missingReferences: references.filter((reference) => !reference.readable).map((reference) => reference.reference)
   };
 }

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { loadCapabilities } from "./loadCapabilities.js";
 import { agentMetadataCommentLines } from "./agentMetadataComments.js";
 import { setAgentSectionComment } from "./agentSectionComment.js";
+import { fingerprintReviewInputs } from "./reviewFingerprint.js";
 import type { AgentReviewCriterion, Capability } from "./types.js";
 
 const reviewStatusSchema = z.enum(["covered", "partial", "uncovered", "uncertain"]);
@@ -261,7 +262,8 @@ function pruneEmptyReviewCriterion(criterion: AgentReviewCriterion): Record<stri
 export async function saveAgentReviewResult(
   rootDir: string,
   capabilityId: string,
-  source: string
+  source: string,
+  options: { expectedFingerprint?: string; mode?: "quick" | "detailed" } = {}
 ): Promise<SaveAgentReviewResult> {
   const loaded = await loadCapabilities(rootDir);
   const match = loaded.capabilities.find((item) => item.capability.id === capabilityId);
@@ -270,6 +272,11 @@ export async function saveAgentReviewResult(
   }
 
   const validation = await validateAgentReviewResult(loaded.rootDir, match.capability, source);
+  if (options.expectedFingerprint && options.expectedFingerprint !== await fingerprintReviewInputs(loaded.rootDir, match.capability, loaded.capabilities.map((item) => item.capability))) {
+    validation.valid = false;
+    validation.depth = "partial";
+    validation.issues.push({ code: "review-inputs-changed", message: "Capability or implementation changed during review. Run the review again." });
+  }
   if (!validation.valid) {
     return {
       capabilityId,
@@ -279,14 +286,22 @@ export async function saveAgentReviewResult(
   }
 
   const document = parseDocument(await fs.readFile(match.filePath, "utf8"));
-  document.setIn(["agent", "review"], {
+  const review = {
     depth: validation.depth,
     source: validation.review.source,
     intent_summary: validation.review.intent_summary,
     done: validation.review.done,
     ...(validation.review.verification_evidence.length > 0 ? { evidence: validation.review.verification_evidence } : {}),
     criteria: validation.review.criteria.map(pruneEmptyReviewCriterion),
-    ...(validation.review.remaining_gaps.length > 0 ? { gaps: validation.review.remaining_gaps } : {})
+    ...(validation.review.remaining_gaps.length > 0 ? { gaps: validation.review.remaining_gaps } : {}),
+    mode: options.mode ?? "quick"
+  };
+  const reviewedCapability = { ...match.capability, agent: { ...match.capability.agent, review: {
+    ...review, criteria: validation.review.criteria
+  } } };
+  document.setIn(["agent", "review"], {
+    ...review,
+    input_fingerprint: await fingerprintReviewInputs(loaded.rootDir, reviewedCapability, loaded.capabilities.map((item) => item.capability))
   });
 
   setAgentSectionComment(document, agentMetadataCommentLines(capabilityId));
@@ -298,4 +313,21 @@ export async function saveAgentReviewResult(
     filePath: match.filePath,
     validation
   };
+}
+
+export async function getCachedAgentReview(
+  rootDir: string, capabilityId: string, options: { detailed?: boolean } = {}
+): Promise<ValidatedAgentReviewResult | undefined> {
+  const loaded = await loadCapabilities(rootDir);
+  const capability = loaded.capabilities.find((item) => item.capability.id === capabilityId)?.capability;
+  if (!capability) throw new Error(`Capability not found: ${capabilityId}`);
+  const review = capability.agent?.review;
+  if (!review?.input_fingerprint || !review.intent_summary || review.done === undefined ||
+      !review.source || review.source === "deterministic-assessment" ||
+      (options.detailed && review.mode !== "detailed")) return undefined;
+  if (review.input_fingerprint !== await fingerprintReviewInputs(loaded.rootDir, capability, loaded.capabilities.map((item) => item.capability))) return undefined;
+  const validation = await validateAgentReviewResult(loaded.rootDir, capability, JSON.stringify({
+    ...review, verification_evidence: review.evidence, remaining_gaps: review.gaps
+  }));
+  return validation.valid ? validation : undefined;
 }

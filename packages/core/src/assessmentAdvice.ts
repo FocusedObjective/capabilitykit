@@ -1,4 +1,5 @@
-import { assessImplementationCoverage, type AcceptanceCriterionCoverage } from "./assessImplementationCoverage.js";
+import { assessCapabilityCoverage, type AcceptanceCriterionCoverage } from "./assessImplementationCoverage.js";
+import { fingerprintReviewInputs } from "./reviewFingerprint.js";
 import { loadCapabilities } from "./loadCapabilities.js";
 import { validateLoadedCapabilities } from "./validateCapabilities.js";
 import type { AgentReviewCriterion, AgentReviewSource, AssessmentFindingIgnore, Capability, VerificationGap } from "./types.js";
@@ -263,9 +264,15 @@ export async function adviseImplementationCoverage(
   }
 
   const capabilities: CapabilityAssessmentAdvice[] = [];
+  const fingerprintCapabilities = loaded.capabilities.map((item) => item.capability);
 
   for (const item of selected) {
-    const coverage = await assessImplementationCoverage(rootDir, item.capability.id);
+    const savedReview = item.capability.agent?.review;
+    const stale = Boolean(savedReview?.input_fingerprint &&
+      savedReview.input_fingerprint !== await fingerprintReviewInputs(loaded.rootDir, item.capability, fingerprintCapabilities));
+    const reviewedCriteria = new Set((savedReview?.source !== "deterministic-assessment" ? savedReview?.criteria ?? [] : [])
+      .map((criterion) => criterion.criterion));
+    const coverage = await assessCapabilityCoverage(loaded.rootDir, item.capability, reviewedCriteria);
     const references = {
       total: coverage.references.length,
       readable: coverage.references.filter((reference) => reference.readable).length,
@@ -280,7 +287,14 @@ export async function adviseImplementationCoverage(
       references,
       criteria: coverage.criteria.map((criterion) => {
         const savedReview = item.capability.agent?.review?.criteria?.find((review) => review.criterion === criterion.criterion);
-        const savedAdvice = adviceFromSavedReview(savedReview, item.capability.agent?.review?.source);
+        const savedAdvice = stale ? {
+          status: "assessor-limitation" as const,
+          confidence: "low" as const,
+          action: "manual-review" as const,
+          rationale: "Saved review is stale: capability or implementation evidence changed.",
+          recommendation: `Run capabilitykit verify ${item.capability.id} --agent <command> to refresh this capability.`,
+          evidence: []
+        } : adviceFromSavedReview(savedReview, item.capability.agent?.review?.source);
         const baseAdvice = savedAdvice ?? {
           evidence: criterion.evidence,
           ...classifyCriterion(item.capability, criterion, references)

@@ -22,6 +22,10 @@ acceptance:
   - Saves completed covered semantic reviews with residual verification gaps at
     tested or behavioral depth while reserving verified depth for gap-free
     evidence.
+  - Records a content fingerprint of the capability contract, implementation
+    references, and cited evidence so changed inputs invalidate review reuse.
+  - Rejects results when the supplied input fingerprint shows the contract or
+    implementation changed during review.
 guidance:
   - Keep ingestion separate from verification policy.
   - Do not mark a capability verified solely because an agent set done true.
@@ -64,6 +68,7 @@ agent:
       - packages/core/src/index.ts
       - packages/cli/src/index.ts
       - packages/core/tests/agentReviewResult.test.ts
+      - packages/core/src/reviewFingerprint.ts
   verification:
     automated:
       - id: agent-review-result-tests

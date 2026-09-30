@@ -17,6 +17,8 @@ acceptance:
   - Reports start, periodic heartbeat, and completion progress during long
     external-agent runs without mixing progress messages into structured stdout.
   - Fails with an actionable message when the agent CLI is not installed.
+  - Supports an optional execution time limit, terminates an overdue agent, and
+    identifies timed-out output separately from successful results.
 guidance:
   - Do not require VS Code or any editor extension.
   - Start with explicit user-provided command configuration before adding

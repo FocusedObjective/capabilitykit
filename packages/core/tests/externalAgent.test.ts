@@ -22,6 +22,26 @@ describe("external agent command runner", () => {
     await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
   });
 
+  it("terminates a slow agent at the configured limit without accepting partial stdout", async () => {
+    const result = await runExternalAgentCommand({
+      command: process.execPath,
+      args: ["-e", "console.log('partial output'); setInterval(() => {}, 1000)"],
+      input: "review",
+      timeoutMs: 300
+    });
+    expect(result.timedOut).toBe(true);
+    expect(result.exitCode).toBe(124);
+  });
+
+  it("clears the deadline when an agent finishes and rejects invalid limits", async () => {
+    const result = await runExternalAgentCommand({
+      command: process.execPath, args: ["-e", "console.log('done')"], input: "review", timeoutMs: 5000
+    });
+    expect(result.timedOut).toBe(false);
+    expect(result.exitCode).toBe(0);
+    await expect(runExternalAgentCommand({ command: process.execPath, input: "", timeoutMs: -1 })).rejects.toThrow("non-negative");
+  });
+
   it("detects a configured command on PATH", async () => {
     const scriptName = process.platform === "win32" ? "agent.cmd" : "agent";
     const { rootDir } = await createExecutable(

@@ -10,6 +10,8 @@ acceptance:
     `.capabilities/dependency-graph.svg` by default.
   - Returns a non-zero exit code for validation failures.
   - Prints verification gaps in validation and inspect output.
+  - Reports the CLI package version published to npm through --version,
+    regardless of the current working directory.
 guidance:
   - Keep command output concise and script-friendly.
   - Do not hide verification gaps behind verbose flags.
@@ -104,4 +106,14 @@ agent:
           - packages/cli/src/index.ts:832
         notes: The validation report prints verification gaps when present, and inspect
           always prints a Verification gaps section for the selected capability.
+      - criterion: Reports the CLI package version published to npm through --version,
+          regardless of the current working directory.
+        status: covered
+        evidence:
+          - packages/cli/src/index.ts:1863
+          - packages/cli/package.json:3
+        notes: Reads the manifest relative to the CLI module. Built and npm-packed CLI
+          report 0.2.2 for --version and -V from outside the repository. A
+          temporary prerelease manifest in the unpacked artifact reports
+          9.8.7-next.4 without rebuilding.
     done: true

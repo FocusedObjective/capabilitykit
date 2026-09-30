@@ -11,6 +11,8 @@ export interface SyncReviewEvidenceResult {
   changed: boolean;
   gaps: string[];
   evidence: string[];
+  retained?: boolean;
+  signal?: "green" | "amber" | "red";
 }
 
 export interface SyncReviewEvidenceReport {
@@ -72,7 +74,7 @@ function reviewForCapability(capability: CapabilityAssessmentAdvice) {
 export async function syncReviewEvidence(
   rootDir: string,
   capabilityId?: string,
-  options: { dryRun?: boolean } = {}
+  options: { dryRun?: boolean; preserveSemantic?: boolean } = {}
 ): Promise<SyncReviewEvidenceReport> {
   const advice = await adviseImplementationCoverage(rootDir, capabilityId);
   const results: SyncReviewEvidenceResult[] = [];
@@ -83,8 +85,10 @@ export async function syncReviewEvidence(
     const resolvedPath = path.resolve(rootDir, filePath);
     const { evidence, ...reviewForYaml } = review;
 
-    if (!options.dryRun) {
-      const document = parseDocument(await fs.readFile(resolvedPath, "utf8"));
+    const document = parseDocument(await fs.readFile(resolvedPath, "utf8"));
+    const source = document.getIn(["agent", "review", "source"]);
+    const retained = Boolean(options.preserveSemantic && (source === "coding-agent" || source === "human"));
+    if (!options.dryRun && !retained) {
       document.setIn(["agent", "review"], reviewForYaml);
       setAgentSectionComment(document, agentMetadataCommentLines(capability.capabilityId));
       await fs.writeFile(resolvedPath, document.toString());
@@ -93,7 +97,11 @@ export async function syncReviewEvidence(
     results.push({
       capabilityId: capability.capabilityId,
       filePath: resolvedPath,
-      changed: !options.dryRun,
+      changed: !options.dryRun && !retained,
+      retained,
+      signal: capability.status === "planned" || advice.verificationGaps.some((gap) => gap.capabilityId === capability.capabilityId) ||
+        capability.criteria.some((criterion) => ["implementation-gap", "missing-reference", "no-implementation-reference"].includes(criterion.status))
+        ? "red" : capability.criteria.some((criterion) => criterion.status !== "covered" && criterion.status !== "ignored") ? "amber" : "green",
       gaps: review.gaps ?? [],
       evidence
     });
@@ -113,13 +121,13 @@ export function formatSyncReviewEvidenceReport(report: SyncReviewEvidenceReport)
   ];
 
   for (const result of report.results) {
+    const light = result.signal === "green" ? "🟢" : result.signal === "red" ? "🔴" : "🟠";
     lines.push(
-      "",
-      `${result.changed ? "Updated" : "Would update"} ${result.capabilityId}`,
-      `  Gaps: ${result.gaps.length}`,
-      `  Evidence paths: ${result.evidence.length}`
+      `${light} ${result.retained ? "Kept semantic review" : result.changed ? "Updated" : "Would update"} ${result.capabilityId} — ${result.gaps.length} findings`
     );
   }
+
+  lines.push("", "Local evidence summary; semantic review and verification confidence remain available in capabilitykit status <id>.");
 
   return `${lines.join("\n")}\n`;
 }

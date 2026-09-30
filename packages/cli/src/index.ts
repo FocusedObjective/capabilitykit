@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { promises as fs } from "node:fs";
+import { promises as fs, readFileSync } from "node:fs";
 import path from "node:path";
 import { Command } from "commander";
 import YAML from "yaml";
@@ -19,6 +19,8 @@ import {
   formatImplementationCoverageReport,
   formatDiscoveryRefinementReport,
   generateDraftCapabilities,
+  getCachedAgentReview,
+  fingerprintReviewInputs,
   loadCapabilities,
   organizeDiscoveredCapabilityMap,
   parseOrganizedDiscoveryPlan,
@@ -116,12 +118,32 @@ function printValidationReport(result: ReturnType<typeof validateLoadedCapabilit
   );
 }
 
-function printReviewResult(result: Awaited<ReturnType<typeof validateAgentReviewResult>>): void {
+function printReviewResult(result: Awaited<ReturnType<typeof validateAgentReviewResult>>, detailed = false): void {
+  if (!detailed) {
+    const covered = result.review.criteria.filter((criterion) => criterion.status === "covered").length;
+    const missing = result.review.criteria.some((criterion) => criterion.status === "uncovered");
+    const complete = result.valid && result.review.done && covered === result.review.criteria.length && result.review.remaining_gaps.length === 0;
+    const signal = !result.valid ? "🟠 Unconfirmed" : complete ? "🟢 Complete" : missing ? "🔴 Incomplete" : "🟠 Partial / unconfirmed";
+    console.log(`${signal} — ${covered}/${result.review.criteria.length} criteria covered; verification: ${result.depth}`);
+    const reason = result.issues[0]?.message ?? result.review.remaining_gaps[0] ?? result.review.criteria.find((criterion) => criterion.status !== "covered")?.notes;
+    if (reason) console.log(reason);
+    return;
+  }
   console.log("CapabilityKit review result");
   console.log("");
   console.log(`${result.valid ? "OK" : "!!"} ${result.review.criteria.length} criteria reviewed`);
   console.log(`Depth: ${result.depth}`);
   console.log(`Done: ${result.review.done ? "yes" : "no"}`);
+  console.log(`Intent: ${result.review.intent_summary}`);
+  for (const criterion of result.review.criteria) {
+    console.log(`\n${criterion.status}: ${criterion.criterion}`);
+    if (criterion.notes) console.log(`  ${criterion.notes}`);
+    for (const evidence of criterion.evidence) console.log(`  ${evidence}`);
+  }
+  if (result.review.verification_evidence.length > 0) {
+    console.log("\nSuccessful verification:");
+    for (const evidence of result.review.verification_evidence) console.log(`  - ${evidence}`);
+  }
 
   if (result.review.remaining_gaps.length > 0) {
     console.log("");
@@ -156,6 +178,98 @@ function parseAgentHandoff(value: string): "stdin" | "argument" | "prompt-file" 
 
 function collectOption(value: string, previous: string[] = []): string[] {
   return [...previous, value];
+}
+
+interface SemanticReviewOptions {
+  arg: string[];
+  handoff?: string;
+  promptFile?: string;
+  transcript?: string;
+  outputPrompt?: string;
+  references: boolean;
+  detailed?: boolean;
+  force?: boolean;
+  timeout?: string;
+  save?: boolean;
+  dryRun?: boolean;
+  json?: boolean;
+}
+
+async function runSemanticReview(capabilityId: string, command: string, options: SemanticReviewOptions): Promise<void> {
+  const timeoutSeconds = Number(options.timeout ?? "120");
+  if (!Number.isFinite(timeoutSeconds) || timeoutSeconds < 0 || timeoutSeconds * 1000 > 2147483647) {
+    throw new Error("--timeout must be a non-negative number of seconds (0 disables the limit).");
+  }
+  if (!options.force && !options.dryRun && !options.outputPrompt) {
+    const cached = await getCachedAgentReview(process.cwd(), capabilityId, { detailed: options.detailed });
+    if (cached) {
+      if (options.json) console.log(JSON.stringify({ cached: true, validation: cached }, null, 2));
+      else {
+        printReviewResult(cached, options.detailed);
+        console.log("Reused unchanged review evidence. Use --force to reassess.");
+      }
+      return;
+    }
+  }
+  const review = await buildAgentReviewPrompt(process.cwd(), capabilityId, {
+    detailed: options.detailed,
+    includeReferences: Boolean(options.detailed && options.references)
+  });
+  if (options.outputPrompt) {
+    const outputPath = path.resolve(process.cwd(), options.outputPrompt);
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(outputPath, review.prompt);
+    if (!options.json) console.log(`Review prompt: ${path.relative(process.cwd(), outputPath)}`);
+  }
+  if (!options.json) console.log(`${options.detailed ? "Detailed" : "Focused"} review: ${capabilityId}${timeoutSeconds ? ` (limit ${timeoutSeconds}s)` : ""}`);
+  const result = await runExternalAgentCommand({
+    command,
+    args: defaultAgentArgs(command, options.arg, options.handoff),
+    cwd: process.cwd(),
+    input: review.prompt,
+    handoff: defaultAgentHandoff(command, options.handoff),
+    promptFilePath: options.promptFile,
+    transcriptPath: options.transcript,
+    dryRun: options.dryRun,
+    timeoutMs: timeoutSeconds * 1000,
+    onProgress: options.json ? undefined : reportExternalAgentProgress
+  });
+  if (options.dryRun) {
+    if (options.json) console.log(JSON.stringify(result, null, 2));
+    else console.log(`Dry run: ${result.command} (${result.handoff}). No agent executed or evidence saved.`);
+    return;
+  }
+  if (result.timedOut || result.exitCode !== 0) {
+    if (options.json) console.log(JSON.stringify({ ...result, signal: "amber", saved: false }, null, 2));
+    else {
+      console.log(result.timedOut
+        ? "🟠 Unconfirmed — review time limit reached. No new evidence saved. Use --timeout <seconds> to allow longer."
+        : "🟠 Unconfirmed — agent failed. No new evidence saved.");
+      if (result.stderr.trim()) console.error(result.stderr.trim());
+    }
+    process.exitCode = result.exitCode ?? 1;
+    return;
+  }
+  if (options.save !== false) {
+    const saved = await saveAgentReviewResult(process.cwd(), capabilityId, result.stdout, {
+      expectedFingerprint: review.inputFingerprint,
+      mode: options.detailed ? "detailed" : "quick"
+    });
+    if (options.json) console.log(JSON.stringify(saved, null, 2));
+    else {
+      printReviewResult(saved.validation, options.detailed);
+      if (saved.validation.valid) console.log(`Saved evidence: ${path.relative(process.cwd(), saved.filePath)}`);
+    }
+    process.exitCode = saved.validation.valid ? 0 : 1;
+    return;
+  }
+  const loaded = await loadCapabilities(process.cwd());
+  const capability = loaded.capabilities.find((item) => item.capability.id === capabilityId)?.capability;
+  if (!capability) throw new Error(`Capability not found: ${capabilityId}`);
+  const validation = await validateAgentReviewResult(process.cwd(), capability, result.stdout);
+  if (options.json) console.log(JSON.stringify(validation, null, 2));
+  else printReviewResult(validation, options.detailed);
+  process.exitCode = validation.valid ? 0 : 1;
 }
 
 function reportExternalAgentProgress(event: ExternalAgentProgressEvent): void {
@@ -421,6 +535,7 @@ interface GraphNode {
   verificationGaps: VerificationGap[];
   review?: NonNullable<NonNullable<Capability["agent"]>["review"]>;
   reviewFindings: string[];
+  reviewStale: boolean;
   health: "implemented" | "review" | "gap" | "planned";
   healthLabel: string;
   coverage: "full" | "partial" | "uncovered";
@@ -518,10 +633,20 @@ async function loadDiscoverySuggestedLinks(rootDir: string): Promise<SuggestedGr
   );
 }
 
+async function staleReviewIds(loaded: LoadCapabilitiesResult): Promise<Set<string>> {
+  const capabilities = loaded.capabilities.map((item) => item.capability);
+  const stale = await Promise.all(capabilities.map(async (capability) => {
+    const fingerprint = capability.agent?.review?.input_fingerprint;
+    return fingerprint && fingerprint !== await fingerprintReviewInputs(loaded.rootDir, capability, capabilities) ? capability.id : undefined;
+  }));
+  return new Set(stale.filter((id): id is string => id !== undefined));
+}
+
 function buildGraphViewModel(
   loaded: LoadCapabilitiesResult,
   gapsById: Map<string, number>,
-  suggestedLinks: SuggestedGraphLink[] = []
+  suggestedLinks: SuggestedGraphLink[] = [],
+  staleReviews: Set<string> = new Set()
 ): GraphViewModel {
   const validation = validateLoadedCapabilities(loaded);
   const gapsByCapability = validation.verificationGaps.reduce((map, gap) => {
@@ -576,7 +701,10 @@ function buildGraphViewModel(
   );
   const graphNodes = sorted.map((node, i) => {
     const gaps = gapsById.get(node.id) ?? 0;
-    const reviewHealth = summarizeSavedReviewHealth(node);
+    const reviewStale = staleReviews.has(node.id);
+    const reviewHealth = reviewStale
+      ? { health: "review", findings: ["Saved review is stale; reassess changed capability or implementation evidence."] }
+      : summarizeSavedReviewHealth(node);
     const health: GraphNode["health"] =
       gaps > 0 || reviewHealth.health === "action"
         ? "gap"
@@ -634,9 +762,10 @@ function buildGraphViewModel(
       verificationGaps: node.verificationGaps,
       review: node.agent?.review,
       reviewFindings: reviewHealth.findings,
+      reviewStale,
       health,
       healthLabel,
-      coverage: graphCoverageFor(node),
+      coverage: reviewStale ? "partial" : graphCoverageFor(node),
       storyMap,
       impact,
       gaps,
@@ -677,9 +806,10 @@ function buildGraphViewModel(
 function graphSvg(
   loaded: LoadCapabilitiesResult,
   gapsById: Map<string, number>,
-  suggestedLinks: SuggestedGraphLink[] = []
+  suggestedLinks: SuggestedGraphLink[] = [],
+  staleReviews: Set<string> = new Set()
 ): string {
-  const model = buildGraphViewModel(loaded, gapsById, suggestedLinks);
+  const model = buildGraphViewModel(loaded, gapsById, suggestedLinks, staleReviews);
   const { width, height } = model;
   const graphData = JSON.stringify({ nodes: model.nodes, links: model.links }).replaceAll("</", "<\\/");
   const scopeOptions = [
@@ -1125,9 +1255,10 @@ restartSimulation(1);
 function graphViewerHtml(
   loaded: LoadCapabilitiesResult,
   gapsById: Map<string, number>,
-  suggestedLinks: SuggestedGraphLink[] = []
+  suggestedLinks: SuggestedGraphLink[] = [],
+  staleReviews: Set<string> = new Set()
 ): string {
-  const model = buildGraphViewModel(loaded, gapsById, suggestedLinks);
+  const model = buildGraphViewModel(loaded, gapsById, suggestedLinks, staleReviews);
   const graphData = JSON.stringify({
     nodes: model.nodes,
     links: model.links,
@@ -1615,7 +1746,7 @@ function acceptanceList(node) {
   const wrapper = htmlEl("div", "acceptance-list");
   for (const acceptance of node.acceptance) {
     const review = reviewForAcceptance(node, acceptance);
-    const coverage = review?.status === "covered" ? "covered" : review?.status === "partial" ? "partial" : "gap";
+    const coverage = node.reviewStale ? "partial" : review?.status === "covered" ? "covered" : review?.status === "partial" ? "partial" : "gap";
     const item = htmlEl("div", "acceptance-item " + coverage);
     const icon = htmlEl("span", "acceptance-icon", coverage === "covered" ? "\\u2713" : coverage === "partial" ? "~" : "\\u00d7");
     icon.setAttribute("aria-label", coverage === "covered" ? "Covered" : coverage === "partial" ? "Partially covered" : "Not covered");
@@ -1860,7 +1991,7 @@ applyFilter();
 program
   .name("capabilitykit")
   .description("Capabilities as code for AI-native software teams")
-  .version("0.1.0")
+  .version(JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version)
   .addHelpText(
     "after",
     `
@@ -2088,6 +2219,9 @@ program
   .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
   .option("--output-prompt <path>", "write the generated agent review prompt to a file")
   .option("--no-references", "omit implementation reference file contents from the agent prompt")
+  .option("--detailed", "request the full evidence report and implementation content")
+  .option("--force", "reassess even when saved semantic review evidence is unchanged")
+  .option("--timeout <seconds>", "agent time limit; 0 disables the limit", "120")
   .option("--recommended", "list high-value semantic review candidates instead of reviewing one capability")
   .option("--stale", "alias for --recommended; list capabilities most likely to need fresh semantic review")
   .option("--limit <count>", "maximum recommended candidates to list", "5")
@@ -2105,6 +2239,9 @@ program
         transcript?: string;
         outputPrompt?: string;
         references: boolean;
+        detailed?: boolean;
+        force?: boolean;
+        timeout?: string;
         recommended?: boolean;
         stale?: boolean;
         limit: string;
@@ -2130,7 +2267,7 @@ program
 
       const save = options.save !== false && !options.dryRun;
       if (!options.agent) {
-        const result = await syncReviewEvidence(process.cwd(), capabilityId, { dryRun: !save });
+        const result = await syncReviewEvidence(process.cwd(), capabilityId, { dryRun: !save, preserveSemantic: true });
         if (options.json) {
           console.log(JSON.stringify(result, null, 2));
         } else {
@@ -2145,100 +2282,7 @@ program
         return;
       }
 
-      if (!options.json) {
-        console.log(`Semantic verification uses external agent "${options.agent}" and may take more time or tokens.`);
-      }
-
-      const review = await buildAgentReviewPrompt(process.cwd(), capabilityId, {
-        includeReferences: options.references
-      });
-
-      if (options.outputPrompt) {
-        const outputPath = path.resolve(process.cwd(), options.outputPrompt);
-        await fs.mkdir(path.dirname(outputPath), { recursive: true });
-        await fs.writeFile(outputPath, review.prompt);
-        console.log(`Review prompt: ${path.relative(process.cwd(), outputPath)}`);
-      }
-
-      const result = await runExternalAgentCommand({
-        command: options.agent,
-        args: defaultAgentArgs(options.agent, options.arg, options.handoff),
-        cwd: process.cwd(),
-        input: review.prompt,
-        handoff: defaultAgentHandoff(options.agent, options.handoff),
-        promptFilePath: options.promptFile,
-        transcriptPath: options.transcript,
-        dryRun: options.dryRun,
-        onProgress: reportExternalAgentProgress
-      });
-
-      console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
-      console.log(`Handoff: ${result.handoff}`);
-      if (result.promptFilePath) {
-        console.log(`Prompt file: ${path.relative(process.cwd(), result.promptFilePath)}`);
-      }
-      if (result.dryRun) {
-        console.log("Result: dry run");
-      } else {
-        console.log(`Exit code: ${result.exitCode ?? "unknown"}`);
-      }
-      if (result.transcriptPath) {
-        console.log(`Transcript: ${path.relative(process.cwd(), result.transcriptPath)}`);
-      }
-      if (review.missingReferences.length > 0) {
-        console.log(`Missing references: ${review.missingReferences.join(", ")}`);
-      }
-      if (result.stderr.trim()) {
-        console.error("");
-        console.error(result.stderr.trimEnd());
-      }
-
-      if (result.dryRun) {
-        if (result.stdout.trim()) {
-          console.log("");
-          console.log(result.stdout.trimEnd());
-        }
-        return;
-      }
-
-      if (result.exitCode !== 0) {
-        if (result.stdout.trim()) {
-          console.log("");
-          console.log(result.stdout.trimEnd());
-        }
-        process.exitCode = result.exitCode ?? 1;
-        return;
-      }
-
-      if (save) {
-        const saved = await saveAgentReviewResult(process.cwd(), capabilityId, result.stdout);
-        if (options.json) {
-          console.log(JSON.stringify(saved, null, 2));
-        } else {
-          printReviewResult(saved.validation);
-          if (saved.validation.valid) {
-            console.log(`Saved review evidence to ${path.relative(process.cwd(), saved.filePath)}`);
-          }
-        }
-        process.exitCode = saved.validation.valid ? 0 : 1;
-        return;
-      }
-
-      const loaded = await loadCapabilities(process.cwd());
-      const match = loaded.capabilities.find((item) => item.capability.id === capabilityId);
-      if (!match) {
-        console.error(`Capability not found: ${capabilityId}`);
-        process.exitCode = 1;
-        return;
-      }
-
-      const validation = await validateAgentReviewResult(process.cwd(), match.capability, result.stdout);
-      if (options.json) {
-        console.log(JSON.stringify(validation, null, 2));
-      } else {
-        printReviewResult(validation);
-      }
-      process.exitCode = validation.valid ? 0 : 1;
+      await runSemanticReview(capabilityId, options.agent, options);
     }
   );
 
@@ -2311,7 +2355,8 @@ program
       return map;
     }, new Map<string, number>());
     const suggestedLinks = await loadDiscoverySuggestedLinks(process.cwd());
-    const svg = graphSvg(loaded, gapsById, suggestedLinks);
+    const staleReviews = await staleReviewIds(loaded);
+    const svg = graphSvg(loaded, gapsById, suggestedLinks, staleReviews);
     const outputPath = path.resolve(process.cwd(), options.output);
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
     await fs.writeFile(outputPath, svg, "utf8");
@@ -2338,8 +2383,9 @@ program
       return map;
     }, new Map<string, number>());
     const suggestedLinks = await loadDiscoverySuggestedLinks(process.cwd());
-    const svg = graphSvg(loaded, gapsById, suggestedLinks);
-    const html = graphViewerHtml(loaded, gapsById, suggestedLinks);
+    const staleReviews = await staleReviewIds(loaded);
+    const svg = graphSvg(loaded, gapsById, suggestedLinks, staleReviews);
+    const html = graphViewerHtml(loaded, gapsById, suggestedLinks, staleReviews);
 
     const svgOutputPath = path.resolve(process.cwd(), options.svgOutput);
     await fs.mkdir(path.dirname(svgOutputPath), { recursive: true });
@@ -2875,6 +2921,9 @@ program
   .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
   .option("--output-prompt <path>", "write the generated agent review prompt to a file")
   .option("--no-references", "omit implementation reference file contents from the agent prompt")
+  .option("--detailed", "request the full evidence report and implementation content")
+  .option("--force", "reassess even when saved semantic review evidence is unchanged")
+  .option("--timeout <seconds>", "agent time limit; 0 disables the limit", "120")
   .option("--deterministic-only", "use deterministic implementation evidence even when --agent is configured")
   .option("--no-save", "print or validate review output without writing agent.review")
   .option("--dry-run", "prepare review output without running an agent or writing files")
@@ -2890,6 +2939,9 @@ program
         transcript?: string;
         outputPrompt?: string;
         references: boolean;
+        detailed?: boolean;
+        force?: boolean;
+        timeout?: string;
         deterministicOnly?: boolean;
         save: boolean;
         dryRun?: boolean;
@@ -2900,7 +2952,7 @@ program
       const useAgent = Boolean(options.agent) && !options.deterministicOnly;
 
       if (!useAgent) {
-        const result = await syncReviewEvidence(process.cwd(), capabilityId, { dryRun: !save });
+        const result = await syncReviewEvidence(process.cwd(), capabilityId, { dryRun: !save, preserveSemantic: true });
         if (options.json) {
           console.log(JSON.stringify(result, null, 2));
         } else {
@@ -2915,96 +2967,7 @@ program
         return;
       }
 
-      const review = await buildAgentReviewPrompt(process.cwd(), capabilityId, {
-        includeReferences: options.references
-      });
-
-      if (options.outputPrompt) {
-        const outputPath = path.resolve(process.cwd(), options.outputPrompt);
-        await fs.mkdir(path.dirname(outputPath), { recursive: true });
-        await fs.writeFile(outputPath, review.prompt);
-        console.log(`Review prompt: ${path.relative(process.cwd(), outputPath)}`);
-      }
-
-      const result = await runExternalAgentCommand({
-        command: options.agent!,
-        args: defaultAgentArgs(options.agent!, options.arg, options.handoff),
-        cwd: process.cwd(),
-        input: review.prompt,
-        handoff: defaultAgentHandoff(options.agent!, options.handoff),
-        promptFilePath: options.promptFile,
-        transcriptPath: options.transcript,
-        dryRun: options.dryRun,
-        onProgress: reportExternalAgentProgress
-      });
-
-      console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
-      console.log(`Handoff: ${result.handoff}`);
-      if (result.promptFilePath) {
-        console.log(`Prompt file: ${path.relative(process.cwd(), result.promptFilePath)}`);
-      }
-      if (result.dryRun) {
-        console.log("Result: dry run");
-      } else {
-        console.log(`Exit code: ${result.exitCode ?? "unknown"}`);
-      }
-      if (result.transcriptPath) {
-        console.log(`Transcript: ${path.relative(process.cwd(), result.transcriptPath)}`);
-      }
-      if (review.missingReferences.length > 0) {
-        console.log(`Missing references: ${review.missingReferences.join(", ")}`);
-      }
-      if (result.stderr.trim()) {
-        console.error("");
-        console.error(result.stderr.trimEnd());
-      }
-
-      if (result.dryRun) {
-        if (result.stdout.trim()) {
-          console.log("");
-          console.log(result.stdout.trimEnd());
-        }
-        return;
-      }
-
-      if (result.exitCode !== 0) {
-        if (result.stdout.trim()) {
-          console.log("");
-          console.log(result.stdout.trimEnd());
-        }
-        process.exitCode = result.exitCode ?? 1;
-        return;
-      }
-
-      if (save) {
-        const saved = await saveAgentReviewResult(process.cwd(), capabilityId, result.stdout);
-        if (options.json) {
-          console.log(JSON.stringify(saved, null, 2));
-        } else {
-          printReviewResult(saved.validation);
-          if (saved.validation.valid) {
-            console.log(`Saved review evidence to ${path.relative(process.cwd(), saved.filePath)}`);
-          }
-        }
-        process.exitCode = saved.validation.valid ? 0 : 1;
-        return;
-      }
-
-      const loaded = await loadCapabilities(process.cwd());
-      const match = loaded.capabilities.find((item) => item.capability.id === capabilityId);
-      if (!match) {
-        console.error(`Capability not found: ${capabilityId}`);
-        process.exitCode = 1;
-        return;
-      }
-
-      const validation = await validateAgentReviewResult(process.cwd(), match.capability, result.stdout);
-      if (options.json) {
-        console.log(JSON.stringify(validation, null, 2));
-      } else {
-        printReviewResult(validation);
-      }
-      process.exitCode = validation.valid ? 0 : 1;
+      await runSemanticReview(capabilityId, options.agent!, options);
     }
   );
 
@@ -3019,7 +2982,11 @@ program
   .option("--transcript <path>", "write stdout, stderr, exit code, and handoff details to a transcript file")
   .option("--output-prompt <path>", "write the generated review prompt to a file")
   .option("--no-references", "omit implementation reference file contents")
+  .option("--detailed", "request the full evidence report and implementation content")
+  .option("--force", "reassess even when saved semantic review evidence is unchanged")
+  .option("--timeout <seconds>", "agent time limit; 0 disables the limit", "120")
   .option("--dry-run", "detect the command and prepare handoff files without running the external agent")
+  .option("--json", "print the validated review result as JSON")
   .action(
     async (
       capabilityId: string,
@@ -3031,60 +2998,14 @@ program
         transcript?: string;
         outputPrompt?: string;
         references: boolean;
+        detailed?: boolean;
+        force?: boolean;
+        timeout?: string;
         dryRun?: boolean;
+        json?: boolean;
       }
     ) => {
-      const review = await buildAgentReviewPrompt(process.cwd(), capabilityId, {
-        includeReferences: options.references
-      });
-
-      if (options.outputPrompt) {
-        const outputPath = path.resolve(process.cwd(), options.outputPrompt);
-        await fs.mkdir(path.dirname(outputPath), { recursive: true });
-        await fs.writeFile(outputPath, review.prompt);
-        console.log(`Review prompt: ${path.relative(process.cwd(), outputPath)}`);
-      }
-
-      const result = await runExternalAgentCommand({
-        command: options.command,
-        args: defaultAgentArgs(options.command, options.arg, options.handoff),
-        cwd: process.cwd(),
-        input: review.prompt,
-        handoff: defaultAgentHandoff(options.command, options.handoff),
-        promptFilePath: options.promptFile,
-        transcriptPath: options.transcript,
-        dryRun: options.dryRun,
-        onProgress: reportExternalAgentProgress
-      });
-
-      console.log(`Command: ${[result.command, ...result.args].join(" ")}`);
-      console.log(`Handoff: ${result.handoff}`);
-      if (result.promptFilePath) {
-        console.log(`Prompt file: ${path.relative(process.cwd(), result.promptFilePath)}`);
-      }
-      if (result.dryRun) {
-        console.log("Result: dry run");
-      } else {
-        console.log(`Exit code: ${result.exitCode ?? "unknown"}`);
-      }
-      if (result.transcriptPath) {
-        console.log(`Transcript: ${path.relative(process.cwd(), result.transcriptPath)}`);
-      }
-      if (review.missingReferences.length > 0) {
-        console.log(`Missing references: ${review.missingReferences.join(", ")}`);
-      }
-      if (result.stdout.trim()) {
-        console.log("");
-        console.log(result.stdout.trimEnd());
-      }
-      if (result.stderr.trim()) {
-        console.error("");
-        console.error(result.stderr.trimEnd());
-      }
-
-      if (!result.dryRun && result.exitCode !== 0) {
-        process.exitCode = result.exitCode ?? 1;
-      }
+      await runSemanticReview(capabilityId, options.command, { ...options, save: false });
     }
   );
 

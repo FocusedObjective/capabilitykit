@@ -3,7 +3,10 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import YAML from "yaml";
-import { saveAgentReviewResult, validateAgentReviewResult } from "../src/agentReviewResult.js";
+import { getCachedAgentReview, saveAgentReviewResult, validateAgentReviewResult } from "../src/agentReviewResult.js";
+import { buildAgentReviewPrompt } from "../src/agentReview.js";
+import { formatCapabilities } from "../src/formatCapabilities.js";
+import { adviseImplementationCoverage } from "../src/assessmentAdvice.js";
 import { loadCapabilities } from "../src/loadCapabilities.js";
 
 const tempDirs: string[] = [];
@@ -186,5 +189,109 @@ describe("agent review results", () => {
     expect(parsed.agent.review.done).toBe(true);
     expect(parsed.agent.review.evidence).toEqual(["npm test -- packages/core/tests/example.test.ts passed"]);
     expect(parsed.agent.review.gaps).toEqual(["Add a dedicated CLI integration test."]);
+  });
+
+  it("reuses unchanged semantic evidence after formatting but not for a requested detailed review", async () => {
+    const rootDir = await createProject();
+    await saveAgentReviewResult(rootDir, "core/example", validReview());
+    await formatCapabilities(rootDir, { write: true });
+    const cached = await getCachedAgentReview(rootDir, "core/example");
+    expect(cached?.valid).toBe(true);
+    expect(cached?.review.done).toBe(true);
+    expect(await getCachedAgentReview(rootDir, "core/example", { detailed: true })).toBeUndefined();
+    await saveAgentReviewResult(rootDir, "core/example", validReview(), { mode: "detailed" });
+    expect((await getCachedAgentReview(rootDir, "core/example", { detailed: true }))?.valid).toBe(true);
+  });
+
+  it("invalidates changed source and reports stale evidence as amber instead of keeping it covered", async () => {
+    const rootDir = await createProject();
+    await saveAgentReviewResult(rootDir, "core/example", validReview());
+    await writeFile(path.join(rootDir, "src", "example.ts"), "export const value = 2;\n");
+    expect(await getCachedAgentReview(rootDir, "core/example")).toBeUndefined();
+    const advice = await adviseImplementationCoverage(rootDir, "core/example");
+    expect(advice.summary.statuses.covered).toBe(0);
+    expect(advice.capabilities[0]!.criteria[0]!.rationale).toContain("stale");
+    expect(advice.summary.statuses["assessor-limitation"]).toBe(2);
+  });
+
+  it("invalidates changes to the contract and to additional evidence files", async () => {
+    const rootDir = await createProject();
+    await writeFile(path.join(rootDir, "src", "related.ts"), "export const related = true;\n");
+    const review = JSON.parse(validReview());
+    review.criteria[0].evidence.push("src/related.ts:1");
+    await saveAgentReviewResult(rootDir, "core/example", JSON.stringify(review));
+    expect((await getCachedAgentReview(rootDir, "core/example"))?.valid).toBe(true);
+    await writeFile(path.join(rootDir, "src", "related.ts"), "export const related = false;\n");
+    expect(await getCachedAgentReview(rootDir, "core/example")).toBeUndefined();
+    await saveAgentReviewResult(rootDir, "core/example", JSON.stringify(review));
+    const capabilityFile = path.join(rootDir, ".capabilities", "core", "example.capability.yaml");
+    const doc = YAML.parse(await readFile(capabilityFile, "utf8"));
+    doc.intent = "Changed contract.";
+    await writeFile(capabilityFile, YAML.stringify(doc));
+    expect(await getCachedAgentReview(rootDir, "core/example")).toBeUndefined();
+  });
+
+  it("does not save a result if its inputs changed while the agent ran", async () => {
+    const rootDir = await createProject();
+    const prompt = await buildAgentReviewPrompt(rootDir, "core/example");
+    await writeFile(path.join(rootDir, "src", "example.ts"), "export const value = 3;\n");
+    const result = await saveAgentReviewResult(rootDir, "core/example", validReview(), { expectedFingerprint: prompt.inputFingerprint });
+    expect(result.validation.valid).toBe(false);
+    expect(result.validation.issues[0]?.code).toBe("review-inputs-changed");
+    const loaded = await loadCapabilities(rootDir);
+    expect(loaded.capabilities[0]!.capability.agent?.review).toBeUndefined();
+  });
+
+  it("does not reuse deterministic snapshots or untracked legacy reviews", async () => {
+    const rootDir = await createProject();
+    const review = JSON.parse(validReview());
+    review.source = "deterministic-assessment";
+    await saveAgentReviewResult(rootDir, "core/example", JSON.stringify(review));
+    expect(await getCachedAgentReview(rootDir, "core/example")).toBeUndefined();
+    await saveAgentReviewResult(rootDir, "core/example", validReview());
+    const capabilityFile = path.join(rootDir, ".capabilities", "core", "example.capability.yaml");
+    const doc = YAML.parse(await readFile(capabilityFile, "utf8"));
+    delete doc.agent.review.input_fingerprint;
+    await writeFile(capabilityFile, YAML.stringify(doc));
+    expect(await getCachedAgentReview(rootDir, "core/example")).toBeUndefined();
+  });
+
+  it("invalidates dependent behavior when a declared dependency changes", async () => {
+    const rootDir = await createProject();
+    const capabilityFile = path.join(rootDir, ".capabilities", "core", "example.capability.yaml");
+    const doc = YAML.parse(await readFile(capabilityFile, "utf8"));
+    doc.agent.depends_on = ["core/dependency"];
+    await writeFile(capabilityFile, YAML.stringify(doc));
+    await writeFile(path.join(rootDir, ".capabilities", "core", "dependency.capability.yaml"), YAML.stringify({
+      title: "Dependency", status: "implemented", summary: "Helper behavior.", intent: "Supports the example.",
+      acceptance: ["Provides helper behavior."],
+      agent: { implementation: { references: ["src/dependency.ts"] }, verification: { manual: ["Inspect helper."] } }
+    }));
+    await writeFile(path.join(rootDir, "src", "dependency.ts"), "export const helper = 1;\n");
+    await saveAgentReviewResult(rootDir, "core/example", validReview());
+    expect((await getCachedAgentReview(rootDir, "core/example"))?.valid).toBe(true);
+    await writeFile(path.join(rootDir, "src", "dependency.ts"), "export const helper = 2;\n");
+    expect(await getCachedAgentReview(rootDir, "core/example")).toBeUndefined();
+  });
+
+  it("does not invalidate itself when saving review metadata cited as evidence", async () => {
+    const rootDir = await createProject();
+    const review = JSON.parse(validReview());
+    review.criteria[0].evidence.push(".capabilities/core/example.capability.yaml:1");
+    await saveAgentReviewResult(rootDir, "core/example", JSON.stringify(review));
+    await formatCapabilities(rootDir, { write: true });
+    expect((await getCachedAgentReview(rootDir, "core/example"))?.valid).toBe(true);
+  });
+
+  it("reuses an unchanged incomplete verdict without promoting it to complete", async () => {
+    const rootDir = await createProject();
+    const review = JSON.parse(validReview());
+    review.done = false;
+    review.criteria[1] = { criterion: "Second criterion is covered.", status: "uncovered", evidence: [], notes: "Missing behavior." };
+    await saveAgentReviewResult(rootDir, "core/example", JSON.stringify(review));
+    const cached = await getCachedAgentReview(rootDir, "core/example");
+    expect(cached?.valid).toBe(true);
+    expect(cached?.review.done).toBe(false);
+    expect(cached?.review.criteria[1]?.status).toBe("uncovered");
   });
 });

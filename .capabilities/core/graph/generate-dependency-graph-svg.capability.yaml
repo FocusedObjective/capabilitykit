@@ -24,6 +24,8 @@ acceptance:
     highlighting, zoom, and spacing controls.
   - Includes a scope filter control that can focus the graph on any capability
     folder level, such as core, core/agents, core/discovery, and core/graph.
+  - Flags fingerprinted stale review evidence as needing reassessment with
+    partial coverage when regenerating the viewer.
 guidance:
   - Keep the SVG self-contained so users can open it directly in a browser.
   - Treat the visualization as a navigation and review aid, not as a replacement

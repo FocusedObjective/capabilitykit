@@ -1,7 +1,8 @@
 export { assessImplementationCoverage, formatImplementationCoverageReport } from "./assessImplementationCoverage.js";
 export { adviseImplementationCoverage, formatAssessmentAdviceReport } from "./assessmentAdvice.js";
 export { buildAgentReviewPrompt } from "./agentReview.js";
-export { saveAgentReviewResult, validateAgentReviewResult } from "./agentReviewResult.js";
+export { getCachedAgentReview, saveAgentReviewResult, validateAgentReviewResult } from "./agentReviewResult.js";
+export { fingerprintReviewInputs } from "./reviewFingerprint.js";
 export { buildAgentTaskBundle } from "./agentTask.js";
 export { analyzeCapabilityImpact, buildCapabilityImpactGraph, formatCapabilityImpactReport } from "./capabilityImpact.js";
 export { diffCapabilities, formatCapabilityDiffReport } from "./capabilityDiff.js";

@@ -24,6 +24,14 @@ acceptance:
   - Allows accepted advisory findings to be ignored with an explicit reason.
   - Keeps the first version deterministic or review-assisted rather than
     silently trusting an AI judgment.
+  - Loads the capability map once per advisory report and skips deterministic
+    text matching for criteria already supplied by saved semantic review.
+  - Marks fingerprinted saved reviews as needing reassessment when their
+    contract or implementation evidence changes.
+  - Shows green, amber, and red signals in the status overview while keeping
+    review findings and verification detail available.
+  - Lightweight verify and review passes preserve saved semantic evidence
+    instead of replacing it with a deterministic snapshot.
 guidance:
   - Start with a deterministic evidence report that loads capability details and
     referenced files.
